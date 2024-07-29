@@ -4,7 +4,12 @@ const cors = require('@koa/cors');
 const logger = require('koa-logger');
 const config = require('../config');
 const routes = require('./routes');
+const mongoose = require('mongoose');
 
+const MONGODB_URI = config.mongodbUri;
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Could not connect to MongoDB', err));
 
 const app = new Koa();
 

@@ -4,7 +4,8 @@
   "main": "src/app.js",
   "license": "MIT",
   "scripts": {
-    "start:api": "node scripts/start-api.js",
+    "start:api": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "start:agents": "node scripts/start-agents.js",
     "start:all": "npm run start:api & npm run start:agents",
     "test": "NODE_ENV=test jest --detectOpenHandles"
