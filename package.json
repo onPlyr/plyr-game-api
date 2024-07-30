@@ -6,7 +6,7 @@
   "scripts": {
     "start:api": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "start:agents": "node scripts/start-agents.js",
+    "start:agents": "node src/agents/index.js",
     "start:all": "npm run start:api & npm run start:agents",
     "test": "NODE_ENV=test jest --detectOpenHandles"
   },
@@ -14,11 +14,13 @@
     "@koa/cors": "^5.0.0",
     "@koa/router": "^12.0.1",
     "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
     "koa-logger": "^3.2.1",
     "mongoose": "^8.5.1",
-    "redis": "^4.6.15"
+    "redis": "^4.6.15",
+    "viem": "^2.18.4"
   },
   "devDependencies": {
     "jest": "^29.7.0",
