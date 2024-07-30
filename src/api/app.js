@@ -5,6 +5,7 @@ const logger = require('koa-logger');
 const config = require('../config');
 const routes = require('./routes');
 const mongoose = require('mongoose');
+const errorHandler  = require('./middlewares/errorHandler');
 
 const MONGODB_URI = config.mongodbUri;
 mongoose.connect(MONGODB_URI)
@@ -16,7 +17,12 @@ const app = new Koa();
 app.use(cors());
 app.use(logger());
 app.use(bodyParser());
+app.use(errorHandler);
 app.use(routes.routes()).use(routes.allowedMethods());
+
+app.on('error', (err, ctx) => {
+  console.error('error:', err);
+});
 
 let server;
 

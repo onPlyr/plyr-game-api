@@ -34,6 +34,9 @@ const client = createWalletClient({
   transport: http(),
 }).extend(publicActions);
 
+const ROUTER_ABI = require('./Router.json').abi;
+const REGISTER_ABI = require('./Register.json').abi;
+const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 
 module.exports = {
   port: process.env.PORT || 3000,
@@ -41,5 +44,9 @@ module.exports = {
   redisUrl: process.env.REDIS_URL,
   PK: process.env.PK,
   chain: client,
-  plyrRegisterSC: '',
+  plyrRegisterSC: '0xC650e83b1cC9A1438fe2b1E9b4556B6fAa6B6Fb4',
+  plyrRouterSC: '0xaABae47f41fee8f877c7F2641A306A01F7d8A2FA',
+  ROUTER_ABI,
+  REGISTER_ABI,
+  MIRROR_BYTECODE,
 };

@@ -18,16 +18,3 @@ exports.getStatus = (ctx) => {
     cpu: os.cpus().length
   };
 };
-
-exports.postRegister = async (ctx) => {
-  const { address, signature, plyrId, secret } = ctx.request.body;
-
-  if (!address || !signature || !plyrId || !secret) {
-    ctx.status = 400;
-    ctx.body = {
-      error: 'Address, signature, plyrId, secret are required'
-    };
-    return;
-  }
-
-};
