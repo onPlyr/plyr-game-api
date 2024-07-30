@@ -3,6 +3,7 @@ const { app } = require('../../src/api/app');
 const { connectDB, closeDB } = require('../../src/db/mongoose');
 const ApiKey = require('../../src/models/apiKey');
 const { generateHmacSignature } = require('../../src/utils/hmacUtils');
+const { closeRedisConnection } = require('../../src/db/redis');
 
 describe('HMAC Authentication and Authorization', () => {
   let userApiKey, adminApiKey;
@@ -14,8 +15,10 @@ describe('HMAC Authentication and Authorization', () => {
   });
 
   afterAll(async () => {
-    await ApiKey.deleteMany({});
+    await ApiKey.deleteMany({apiKey: 'user-key'});
+    await ApiKey.deleteMany({apiKey: 'admin-key'});
     await closeDB();
+    await closeRedisConnection();
   });
 
   async function makeAuthenticatedRequest(endpoint, apiKey, secretKey) {

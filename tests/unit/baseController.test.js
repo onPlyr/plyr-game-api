@@ -1,6 +1,10 @@
 const baseController = require('../../src/api/controllers/baseController');
+const { closeRedisConnection } = require('../../src/db/redis');
 
 describe('Base Controller', () => {
+  afterAll(async () => {
+    await closeRedisConnection();
+  });
   test('getNow returns current time', () => {
     const ctx = {};
     baseController.getNow(ctx);

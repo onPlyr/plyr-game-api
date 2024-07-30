@@ -1,7 +1,8 @@
-const Redis = require('ioredis');
 const config = require('../config');
+const { getRedisClient } = require('../db/redis');
+const { createUser } = require('../services/user');
 
-const redis = new Redis(config.redisUrl);
+const redis = getRedisClient();
 
 const STREAM_KEY = 'mystream';
 const CONSUMER_GROUP = 'mygroup';
@@ -20,21 +21,49 @@ async function setupConsumerGroup() {
   }
 }
 
-async function processMessage(id, message) {
-  console.log(`Processing message ${id}:`);
-  console.log(JSON.stringify(message, null, 2));
-
-  // TODO:
-  //await someProcessingFunction(message);
-
+async function handleFailedMessage(id, message) {
+  const deadLetterStream = 'deadletter:' + STREAM_KEY;
+  await redis.xadd(deadLetterStream, '*', 'original_id', id, 'data', JSON.stringify(message));
+  console.error(`Message ${id} failed 3 times, move to deadletter`);
   await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
+}
+
+async function processMessage(id, message) {
+  console.log(`Processing message ${id}:`, message);
+
+  const [key, field] = message;
+  const obj = JSON.parse(field);
+
+  const maxRetries = 3;
+  let retries = 0;
+
+  while (retries < maxRetries) {
+    try {
+      if (key === 'createUser') {
+        console.log('Creating user:', obj);
+        await createUser({
+          primaryAddress: obj.address,
+          plyrId: obj.plyrId,
+          chainId: obj.chainId,
+        });
+      }
+      await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
+      return; // success, exit loop
+    } catch (error) {
+      retries++;
+      console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
+      await new Promise(resolve => setTimeout(resolve, 1000 * retries)); // exponential backoff
+    }
+  }
+
+  await handleFailedMessage(id, message);
 }
 
 async function consumeMessages() {
   while (true) {
     try {
       let block = await config.chain.getBlockNumber();
-      console.log('blockNumber:', block, 'Waiting for messages...');
+      console.log('current block:', block, CONSUMER_NAME, 'Waiting for messages...');
       const ret = await redis.xreadgroup(
         'GROUP', CONSUMER_GROUP, CONSUMER_NAME,
         'BLOCK', 5000, 'STREAMS', STREAM_KEY, '>'
@@ -53,6 +82,7 @@ async function consumeMessages() {
       }
     } catch (err) {
       console.error('Error consuming messages:', err);
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
   }
 }

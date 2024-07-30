@@ -3,6 +3,7 @@ const UserInfo = require('../../src/models/userInfo');
 const { verifyMessage } = require('viem');
 const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
+const { closeRedisConnection } = require('../../src/db/redis');
 
 const privateKey = generatePrivateKey();
 
@@ -20,6 +21,10 @@ describe('User Controller', () => {
       body: {},
       status: 200
     };
+  });
+
+  afterAll(async () => {
+    await closeRedisConnection();
   });
 
   describe('getUserExists', () => {

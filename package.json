@@ -5,14 +5,16 @@
   "license": "MIT",
   "scripts": {
     "start:api": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "dev:api": "nodemon src/server.js",
     "start:agents": "node src/agents/index.js",
+    "dev:agents": "nodemon src/agents/index.js",
     "start:all": "npm run start:api & npm run start:agents",
     "test": "NODE_ENV=test jest --detectOpenHandles"
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
     "@koa/router": "^12.0.1",
+    "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "ioredis": "^5.4.1",
     "koa": "^2.15.3",

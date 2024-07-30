@@ -6,6 +6,7 @@ const UserInfo = require('../../src/models/userInfo');
 const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { generateHmacSignature } = require('../../src/utils/hmacUtils');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
+const { closeRedisConnection } = require('../../src/db/redis');
 
 jest.mock('../../src/models/userInfo');
 
@@ -24,8 +25,9 @@ describe('User API', () => {
   });
 
   afterAll(async () => {
-    await ApiKey.deleteMany({});
+    await ApiKey.deleteMany({apiKey: 'user-key'});
     await closeDB();
+    await closeRedisConnection();
   });
 
   async function makeAuthenticatedRequest(method, endpoint, apiKey, secretKey, body = {}) {

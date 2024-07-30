@@ -2,6 +2,9 @@ const { verifyMessage, isAddress, isHex } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid } = require('../../utils/utils');
+const { getRedisClient } = require('../../db/redis');
+
+const redis = getRedisClient();
 
 exports.getUserExists = async (ctx) => {
   const { plyrId } = ctx.query;
@@ -30,7 +33,7 @@ exports.getUserExists = async (ctx) => {
 };
 
 exports.postRegister = async (ctx) => {
-  const { address, signature, plyrId, secret } = ctx.request.body;
+  let { address, signature, plyrId, secret, chainId } = ctx.request.body;
 
   if (!address || !signature || !plyrId || !secret) {
     ctx.status = 400;
@@ -64,6 +67,9 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
+  plyrId = plyrId.toLowerCase();
+  console.log('plyrId', plyrId);
+
   const singatureMessage = `PLYR[ID] Registration`;
 
   const valid = await verifyMessage({
@@ -81,12 +87,12 @@ exports.postRegister = async (ctx) => {
   }
 
   const ret = await UserInfo.findOne({ plyrId });
-  console.log('ret', ret);
   if (ret && ret.plyrId === plyrId) {
     ctx.status = 400;
     ctx.body = {
       error: 'User already exists'
     };
+    console.log('ret', ret);
     return;
   }
 
@@ -97,7 +103,14 @@ exports.postRegister = async (ctx) => {
   });
 
   if (process.env.NODE_ENV !== 'test') {
+    const STREAM_KEY = 'mystream';
     // insert message into redis stream
+    const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
+      address,
+      plyrId,
+      chainId: chainId || 62831,
+    }));
+    console.log('Added message ID:', messageId);
   }
 
   const mirror = calcMirrorAddress(address);
