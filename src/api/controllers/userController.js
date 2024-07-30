@@ -80,6 +80,16 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
+  const ret = await UserInfo.findOne({ plyrId });
+  console.log('ret', ret);
+  if (ret && ret.plyrId === plyrId) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'User already exists'
+    };
+    return;
+  }
+
   await UserInfo.create({
     plyrId,
     mirror: address,

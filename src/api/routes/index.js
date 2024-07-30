@@ -14,6 +14,6 @@ router.get('/', (ctx) => {
 router.get('/now', hmacAuth('user'), baseController.getNow);
 router.get('/status', hmacAuth('admin'), baseController.getStatus);
 router.get('/user/exists', hmacAuth('user'), userController.getUserExists);
-router.post('/register', hmacAuth('user'), userController.postRegister);
+router.post('/user/register', hmacAuth('user'), userController.postRegister);
 
 module.exports = router;
