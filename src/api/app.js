@@ -4,15 +4,13 @@ const cors = require('@koa/cors');
 const logger = require('koa-logger');
 const config = require('../config');
 const routes = require('./routes');
-const mongoose = require('mongoose');
 const errorHandler  = require('./middlewares/errorHandler');
-const { connectDB } = require('../db/mongoose');
 
 
 const app = new Koa();
 
 app.use(cors());
-// app.use(logger());
+app.use(logger());
 app.use(bodyParser());
 app.use(errorHandler);
 app.use(routes.routes()).use(routes.allowedMethods());
