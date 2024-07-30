@@ -6,16 +6,13 @@ const config = require('../config');
 const routes = require('./routes');
 const mongoose = require('mongoose');
 const errorHandler  = require('./middlewares/errorHandler');
+const { connectDB } = require('../db/mongoose');
 
-const MONGODB_URI = config.mongodbUri;
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB', err));
 
 const app = new Koa();
 
 app.use(cors());
-app.use(logger());
+// app.use(logger());
 app.use(bodyParser());
 app.use(errorHandler);
 app.use(routes.routes()).use(routes.allowedMethods());
@@ -31,10 +28,6 @@ function startServer() {
     console.log(`Server running on port ${config.port}`);
   });
   return server;
-}
-
-if (process.env.NODE_ENV !== 'test') {
-  startServer();
 }
 
 module.exports = { app, startServer };

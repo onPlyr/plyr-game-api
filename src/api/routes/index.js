@@ -1,5 +1,6 @@
 const Router = require('@koa/router');
 const baseController = require('../controllers/baseController');
+const userController = require('../controllers/userController');
 const hmacAuth = require('../middlewares/hmacAuth');
 
 const router = new Router({
@@ -12,5 +13,7 @@ router.get('/', (ctx) => {
 
 router.get('/now', hmacAuth('user'), baseController.getNow);
 router.get('/status', hmacAuth('admin'), baseController.getStatus);
+router.get('/user/exists', hmacAuth('user'), userController.getUserExists);
+router.post('/register', hmacAuth('user'), userController.postRegister);
 
 module.exports = router;
