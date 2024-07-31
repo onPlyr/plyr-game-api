@@ -7,28 +7,40 @@ const { getRedisClient } = require('../../db/redis');
 const redis = getRedisClient();
 
 exports.getUserExists = async (ctx) => {
-  const { plyrId } = ctx.query;
+  const { plyrId, primaryAddress } = ctx.query;
 
-  if (!plyrId) {
+  if (!plyrId && !primaryAddress) {
     ctx.status = 400;
     ctx.body = {
-      error: 'PlyrId is required'
+      error: 'PlyrId or primaryAddress is required'
     };
     return;
   }
 
-  // Check if user exists
-  const user = await UserInfo.findOne({ plyrId });
-  if (!user) {
-    ctx.body = {
-      exists: false
-    };
-    return;
-  } else {
-    ctx.body = {
-      exists: true
-    };
-    return;
+  ctx.body = {
+    exists: false
+  };
+
+  if (plyrId) {
+    // Check if user exists
+    const user = await UserInfo.findOne({ plyrId });
+    if (user) {
+      ctx.body = {
+        exists: true
+      };
+      return;
+    }
+  }
+
+  if (primaryAddress) {
+    // Check if user exists
+    const user = await UserInfo.findOne({ primaryAddress });
+    if (user) {
+      ctx.body = {
+        exists: true
+      };
+      return;
+    }
   }
 };
 
@@ -96,9 +108,12 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
+  const mirror = calcMirrorAddress(address);
+
   await UserInfo.create({
     plyrId,
-    mirror: address,
+    mirror: mirror,
+    primaryAddress: address,
     secret
   });
 
@@ -113,10 +128,9 @@ exports.postRegister = async (ctx) => {
     console.log('Added message ID:', messageId);
   }
 
-  const mirror = calcMirrorAddress(address);
-
   ctx.body = {
     plyrId,
     mirror,
+    primaryAddress: address
   };
 };

@@ -8,7 +8,7 @@ const secretKey =
 
 async function main() {
   // test create 100 users with random plyrId and secret
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 2; i++) {
     const privateKey = generatePrivateKey();
     const account = privateKeyToAccount(privateKey);
 

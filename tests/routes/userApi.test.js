@@ -87,8 +87,9 @@ describe('User API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ 
-        plyrId: newUser.plyrId, 
-        mirror: expectedMirror 
+        plyrId: newUser.plyrId.toLowerCase(), 
+        mirror: expectedMirror,
+        primaryAddress: newUser.address,
       });
     });
   });

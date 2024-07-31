@@ -31,7 +31,7 @@ describe('User Controller', () => {
     test('returns 400 when plyrId is not provided', async () => {
       await userController.getUserExists(ctx);
       expect(ctx.status).toBe(400);
-      expect(ctx.body).toEqual({ error: 'PlyrId is required' });
+      expect(ctx.body).toEqual({ error: 'PlyrId or primaryAddress is required' });
     });
 
     test('returns false when user does not exist', async () => {
@@ -94,7 +94,11 @@ describe('User Controller', () => {
       const mirror = calcMirrorAddress(testUser.address);
 
       await userController.postRegister(ctx);
-      expect(ctx.body).toEqual({ plyrId: testUser.plyrId, mirror });
+      expect(ctx.body).toEqual({ 
+        plyrId: testUser.plyrId.toLowerCase(), 
+        mirror, 
+        primaryAddress: testUser.address 
+      });
     });
   });
 });
