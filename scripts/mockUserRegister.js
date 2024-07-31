@@ -18,8 +18,8 @@ async function main() {
     const newUser = {
       address: account.address,
       signature: signature,
-      plyrId: "newTestUser111" + i,
-      secret: "testSecret111" + i,
+      plyrId: "newTestUser112" + i,
+      secret: "testSecret112" + i,
     };
 
     const timestamp = Date.now().toString();

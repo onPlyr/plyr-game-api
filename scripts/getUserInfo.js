@@ -9,7 +9,7 @@ async function main() {
   let hmac = generateHmacSignature(timestamp, {}, secretKey);
 
   try {
-    let ret = await axios.get("http://localhost:3000/api/user/info/newTestUser1111",
+    let ret = await axios.get("http://localhost:3000/api/user/info/newTestUser1121",
       {
         headers: {
           apikey: apiKey,

@@ -115,7 +115,8 @@ exports.postRegister = async (ctx) => {
     plyrId,
     mirror: mirror,
     primaryAddress: address,
-    secret
+    secret,
+    chainId: chainId || 62831
   });
 
   if (process.env.NODE_ENV !== 'test') {
@@ -160,7 +161,9 @@ exports.getUserInfo = async (ctx) => {
     ctx.body = {
       plyrId: user.plyrId,
       mirror: user.mirror,
-      primaryAddress: user.primaryAddress
+      primaryAddress: user.primaryAddress,
+      chainId: user.chainId,
+      avatar: user.avatar,
     };
   }
 }
