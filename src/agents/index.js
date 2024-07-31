@@ -66,7 +66,7 @@ async function consumeMessages() {
       console.log('current block:', block, CONSUMER_NAME, 'Waiting for messages...');
       const ret = await redis.xreadgroup(
         'GROUP', CONSUMER_GROUP, CONSUMER_NAME,
-        'BLOCK', 5000, 'STREAMS', STREAM_KEY, '>'
+        'BLOCK', 30000, 'STREAMS', STREAM_KEY, '>'
       );
 
       if (!ret || !ret.length) {
