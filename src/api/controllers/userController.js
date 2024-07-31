@@ -7,7 +7,7 @@ const { getRedisClient } = require('../../db/redis');
 const redis = getRedisClient();
 
 exports.getUserExists = async (ctx) => {
-  const { plyrId, primaryAddress } = ctx.query;
+  let { plyrId, primaryAddress } = ctx.query;
 
   if (!plyrId && !primaryAddress) {
     ctx.status = 400;
@@ -22,6 +22,7 @@ exports.getUserExists = async (ctx) => {
   };
 
   if (plyrId) {
+    plyrId = plyrId.toLowerCase();
     // Check if user exists
     const user = await UserInfo.findOne({ plyrId });
     if (user) {
@@ -134,3 +135,32 @@ exports.postRegister = async (ctx) => {
     primaryAddress: address
   };
 };
+
+exports.getUserInfo = async (ctx) => {
+  let { plyrId } = ctx.params;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid plyrId'
+    };
+    return;
+  }
+
+  plyrId = plyrId.toLowerCase();
+
+  const user = await UserInfo.findOne({ plyrId });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  } else {
+    ctx.body = {
+      plyrId: user.plyrId,
+      mirror: user.mirror,
+      primaryAddress: user.primaryAddress
+    };
+  }
+}
