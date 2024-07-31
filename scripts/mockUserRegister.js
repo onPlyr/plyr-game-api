@@ -1,10 +1,10 @@
 const { generatePrivateKey, privateKeyToAccount } = require("viem/accounts");
 const { generateHmacSignature } = require("../src/utils/hmacUtils");
 const axios = require("axios");
+require('dotenv').config();
 
-const apiKey = "39488631ccb3e1dcf8bb83da22000ba0";
-const secretKey =
-  "ef5567ed9e5450de4cc9ac7a04d4ac8e560043467d2066164d54672264347f5e";
+const apiKey = process.env.TEST_APIKEY;
+const secretKey = process.env.TEST_SECRET;
 
 async function main() {
   // test create 100 users with random plyrId and secret
@@ -28,7 +28,8 @@ async function main() {
 
     try {
       let ret = await axios.post(
-        "http://localhost:3000/api/user/register",
+        "https://api-testnet.plyr.network/api/user/register",
+        // "http://localhost:3000/api/user/register",
         newUser,
         {
           headers: {

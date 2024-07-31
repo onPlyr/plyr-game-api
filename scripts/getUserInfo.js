@@ -1,15 +1,17 @@
 const { generateHmacSignature } = require("../src/utils/hmacUtils");
 const axios = require("axios");
-const apiKey = "39488631ccb3e1dcf8bb83da22000ba0";
-const secretKey =
-  "ef5567ed9e5450de4cc9ac7a04d4ac8e560043467d2066164d54672264347f5e";
+require('dotenv').config();
 
+const apiKey = process.env.TEST_APIKEY;
+const secretKey = process.env.TEST_SECRET;
 async function main() {
   const timestamp = Date.now().toString();
   let hmac = generateHmacSignature(timestamp, {}, secretKey);
 
   try {
-    let ret = await axios.get("http://localhost:3000/api/user/info/newTestUser1121",
+    let ret = await axios.get(
+      "https://api-testnet.plyr.network/api/user/info/newTestUser1121",
+      // "http://localhost:3000/api/user/info/newTestUser1121",
       {
         headers: {
           apikey: apiKey,
