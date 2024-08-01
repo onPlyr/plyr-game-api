@@ -46,7 +46,7 @@ exports.getUserExists = async (ctx) => {
 };
 
 exports.postRegister = async (ctx) => {
-  let { address, signature, plyrId, secret, chainId } = ctx.request.body;
+  let { address, signature, plyrId, secret, chainId, avatar } = ctx.request.body;
 
   if (!address || !signature || !plyrId || !secret) {
     ctx.status = 400;
@@ -116,7 +116,8 @@ exports.postRegister = async (ctx) => {
     mirror: mirror,
     primaryAddress: address,
     secret,
-    chainId: chainId || 62831
+    chainId: chainId || 62831,
+    avatar: avatar ? avatar : '',
   });
 
   if (process.env.NODE_ENV !== 'test') {
