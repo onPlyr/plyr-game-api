@@ -99,11 +99,21 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
-  const ret = await UserInfo.findOne({ plyrId });
+  let ret = await UserInfo.findOne({ plyrId });
   if (ret && ret.plyrId === plyrId) {
     ctx.status = 400;
     ctx.body = {
       error: 'User already exists'
+    };
+    console.log('ret', ret);
+    return;
+  }
+
+  ret = await UserInfo.findOne({ primaryAddress: address.toLowerCase() });
+  if (ret && ret.primaryAddress === address) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Primary already exists'
     };
     console.log('ret', ret);
     return;
@@ -114,7 +124,7 @@ exports.postRegister = async (ctx) => {
   await UserInfo.create({
     plyrId,
     mirror: mirror,
-    primaryAddress: address,
+    primaryAddress: address.toLowerCase(),
     secret,
     chainId: chainId || 62831,
     avatar: avatar ? avatar : '',
