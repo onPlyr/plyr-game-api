@@ -75,7 +75,7 @@ exports.postRegister = async (ctx) => {
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
     ctx.body = {
-      error: 'Invalid plyrId'
+      error: 'Invalid PLYR[ID}'
     };
     return;
   }
@@ -103,7 +103,7 @@ exports.postRegister = async (ctx) => {
   if (ret && ret.plyrId === plyrId) {
     ctx.status = 400;
     ctx.body = {
-      error: 'User already exists'
+      error: 'PLYR[ID] already exists'
     };
     console.log('ret', ret);
     return;
@@ -154,7 +154,7 @@ exports.getUserInfo = async (ctx) => {
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
     ctx.body = {
-      error: 'Invalid plyrId'
+      error: 'Invalid PLYR[ID}'
     };
     return;
   }
@@ -165,7 +165,7 @@ exports.getUserInfo = async (ctx) => {
   if (!user) {
     ctx.status = 404;
     ctx.body = {
-      error: 'User not found'
+      error: 'PLYR[ID] not found'
     };
     return;
   } else {
