@@ -113,7 +113,7 @@ exports.postRegister = async (ctx) => {
   if (ret && ret.primaryAddress === address.toLowerCase()) {
     ctx.status = 400;
     ctx.body = {
-      error: 'Primary already exists'
+      error: 'Primary address already exists'
     };
     console.log('ret', ret);
     return;
