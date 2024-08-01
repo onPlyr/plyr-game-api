@@ -35,7 +35,7 @@ exports.getUserExists = async (ctx) => {
 
   if (primaryAddress) {
     // Check if user exists
-    const user = await UserInfo.findOne({ primaryAddress });
+    const user = await UserInfo.findOne({ primaryAddress: primaryAddress.toLowerCase() });
     if (user) {
       ctx.body = {
         exists: true
