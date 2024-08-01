@@ -178,3 +178,45 @@ exports.getUserInfo = async (ctx) => {
     };
   }
 }
+
+exports.postModifyAvatar = async (ctx) => {
+  const { plyrId } = ctx.params;
+  const { avatar } = ctx.request.body;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  if (!avatar || typeof avatar !== 'string') {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Avatar must be a non-empty string'
+    };
+    return;
+  }
+
+  const normalizedPlyrId = plyrId.toLowerCase();
+
+  const updatedUser = await UserInfo.findOneAndUpdate(
+    { plyrId: normalizedPlyrId },
+    { $set: { avatar } },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  ctx.body = {
+    plyrId: updatedUser.plyrId,
+    avatar: updatedUser.avatar,
+  };
+};

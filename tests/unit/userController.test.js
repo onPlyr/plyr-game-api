@@ -101,4 +101,60 @@ describe('User Controller', () => {
       });
     });
   });
+
+  describe('postModifyAvatar', () => {
+    let ctx = {
+      params: {},
+      request: { body: {} },
+      body: {},
+      status: 200
+    };
+    
+    beforeEach(() => {
+      ctx.params.plyrId = 'testId';
+      ctx.request.body = { avatar: 'https://example.com/avatar.jpg' };
+      UserInfo.findOneAndUpdate = jest.fn();
+    });
+
+    test('returns 400 when plyrId is invalid', async () => {
+      ctx.params.plyrId = '!!invalid-plyr-id';
+      await userController.postModifyAvatar(ctx);
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Invalid PLYR[ID]' });
+    });
+
+    test('returns 400 when avatar is not provided', async () => {
+      ctx.request.body = {};
+      await userController.postModifyAvatar(ctx);
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Avatar must be a non-empty string' });
+    });
+
+    test('returns 404 when user is not found', async () => {
+      UserInfo.findOneAndUpdate.mockResolvedValue(null);
+      await userController.postModifyAvatar(ctx);
+      expect(ctx.status).toBe(404);
+      expect(ctx.body).toEqual({ error: 'PLYR[ID] not found' });
+    });
+
+    test('successfully updates avatar when all inputs are valid', async () => {
+      const updatedUser = {
+        plyrId: 'testid',
+        avatar: 'https://example.com/avatar.jpg',
+      };
+      UserInfo.findOneAndUpdate.mockResolvedValue(updatedUser);
+
+      await userController.postModifyAvatar(ctx);
+      
+      expect(UserInfo.findOneAndUpdate).toHaveBeenCalledWith(
+        { plyrId: 'testid' },
+        { $set: { avatar: 'https://example.com/avatar.jpg' } },
+        { new: true }
+      );
+      expect(ctx.body).toEqual({ 
+        plyrId: 'testid', 
+        avatar: 'https://example.com/avatar.jpg'
+      });
+    });
+  });
 });
