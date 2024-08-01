@@ -110,7 +110,7 @@ exports.postRegister = async (ctx) => {
   }
 
   ret = await UserInfo.findOne({ primaryAddress: address.toLowerCase() });
-  if (ret && ret.primaryAddress === address) {
+  if (ret && ret.primaryAddress === address.toLowerCase()) {
     ctx.status = 400;
     ctx.body = {
       error: 'Primary already exists'
