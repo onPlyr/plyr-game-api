@@ -7,7 +7,23 @@ const { getRedisClient } = require('../../db/redis');
 const redis = getRedisClient();
 
 exports.getUserExists = async (ctx) => {
-  let { plyrId, primaryAddress } = ctx.query;
+  let { queryStr } = ctx.params;
+
+  if (!queryStr) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'PlyrId or primaryAddress is required'
+    };
+    return;
+  }
+  
+  let plyrId;
+  let primaryAddress;
+  if (isAddress(queryStr)) {
+    primaryAddress = queryStr.toLowerCase();
+  } else {
+    plyrId = queryStr.toLowerCase();
+  }
 
   if (!plyrId && !primaryAddress) {
     ctx.status = 400;
@@ -151,31 +167,51 @@ exports.postRegister = async (ctx) => {
 exports.getUserInfo = async (ctx) => {
   let { plyrId } = ctx.params;
 
-  if (!verifyPlyrid(plyrId)) {
-    ctx.status = 400;
-    ctx.body = {
-      error: 'Invalid PLYR[ID}'
-    };
-    return;
-  }
-
-  plyrId = plyrId.toLowerCase();
-
-  const user = await UserInfo.findOne({ plyrId });
-  if (!user) {
-    ctx.status = 404;
-    ctx.body = {
-      error: 'PLYR[ID] not found'
-    };
-    return;
+  if (isAddress(plyrId)) {
+    const primaryAddress = plyrId.toLowerCase();
+    const user = await UserInfo.findOne({ primaryAddress });
+    if (!user) {
+      ctx.status = 404;
+      ctx.body = {
+        error: 'Primary address not found'
+      };
+      return;
+    } else {
+      ctx.body = {
+        plyrId: user.plyrId,
+        mirror: user.mirror,
+        primaryAddress: user.primaryAddress,
+        chainId: user.chainId,
+        avatar: user.avatar,
+      };
+    }
   } else {
-    ctx.body = {
-      plyrId: user.plyrId,
-      mirror: user.mirror,
-      primaryAddress: user.primaryAddress,
-      chainId: user.chainId,
-      avatar: user.avatar,
-    };
+    if (!verifyPlyrid(plyrId)) {
+      ctx.status = 400;
+      ctx.body = {
+        error: 'Invalid PLYR[ID}'
+      };
+      return;
+    }
+  
+    plyrId = plyrId.toLowerCase();
+  
+    const user = await UserInfo.findOne({ plyrId });
+    if (!user) {
+      ctx.status = 404;
+      ctx.body = {
+        error: 'PLYR[ID] not found'
+      };
+      return;
+    } else {
+      ctx.body = {
+        plyrId: user.plyrId,
+        mirror: user.mirror,
+        primaryAddress: user.primaryAddress,
+        chainId: user.chainId,
+        avatar: user.avatar,
+      };
+    }
   }
 }
 

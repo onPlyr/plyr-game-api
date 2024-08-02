@@ -48,7 +48,7 @@ describe('User API', () => {
 
       const response = await makeAuthenticatedRequest(
         'get', 
-        `/api/user/exists?plyrId=${existingPlyrId}`, 
+        `/api/user/exists/${existingPlyrId}`, 
         userApiKey.apiKey, 
         userApiKey.secretKey
       );

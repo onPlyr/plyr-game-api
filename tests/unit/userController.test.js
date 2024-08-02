@@ -4,6 +4,7 @@ const { verifyMessage } = require('viem');
 const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
 const { closeRedisConnection } = require('../../src/db/redis');
+const { params } = require('../../src/api/routes');
 
 const privateKey = generatePrivateKey();
 
@@ -19,6 +20,7 @@ describe('User Controller', () => {
       query: {},
       request: { body: {} },
       body: {},
+      params: {},
       status: 200
     };
   });
@@ -35,7 +37,7 @@ describe('User Controller', () => {
     });
 
     test('returns false when user does not exist', async () => {
-      ctx.query.plyrId = 'nonexistentId';
+      ctx.params.queryStr = 'nonexistentId';
       UserInfo.findOne.mockResolvedValue(null);
 
       await userController.getUserExists(ctx);
@@ -43,7 +45,7 @@ describe('User Controller', () => {
     });
 
     test('returns true when user exists', async () => {
-      ctx.query.plyrId = 'existingId';
+      ctx.params.queryStr = 'existingId';
       UserInfo.findOne.mockResolvedValue({ plyrId: 'existingId' });
 
       await userController.getUserExists(ctx);

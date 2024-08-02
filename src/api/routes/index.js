@@ -13,7 +13,7 @@ router.get('/', (ctx) => {
 
 router.get('/now', hmacAuth('user'), baseController.getNow);
 router.get('/status', hmacAuth('admin'), baseController.getStatus);
-router.get('/user/exists', hmacAuth('user'), userController.getUserExists);
+router.get('/user/exists/:queryStr', hmacAuth('user'), userController.getUserExists);
 router.post('/user/register', hmacAuth('user'), userController.postRegister);
 router.get('/user/info/:plyrId', hmacAuth('user'), userController.getUserInfo);
 router.post('/user/modify/:plyrId/avatar', hmacAuth('user'), userController.postModifyAvatar);
