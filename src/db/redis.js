@@ -17,17 +17,9 @@ async function closeRedisConnection() {
   }
 }
 
-let step = 0;
-const printStep = () => {
-  console.log(step++);
-};
-
 async function checkTaskStatus(redis, streamName, groupName, messageId) {
-  printStep();
   // check if the message is in the stream
   const messageInStream = await redis.xrange(streamName, messageId, messageId);
-  printStep();
-
   if (messageInStream.length === 0) {
     console.log(
       `Message ${messageId} not found in the stream. It might have been trimmed or the stream was deleted.`
@@ -35,7 +27,6 @@ async function checkTaskStatus(redis, streamName, groupName, messageId) {
     return "unknown";
   }
 
-  printStep();
   // check if the message is pending
   const pendingInfo = await redis.xpending(
     streamName,
@@ -44,13 +35,10 @@ async function checkTaskStatus(redis, streamName, groupName, messageId) {
     messageId,
     1
   );
-  printStep();
-
   if (pendingInfo.length > 0) {
     console.log(`Task ${messageId} is still pending or being processed.`);
     return "pending";
   }
-  printStep();
 
   // check if the message is completed
   const completedInfo = await redis.xrange(
@@ -63,13 +51,11 @@ async function checkTaskStatus(redis, streamName, groupName, messageId) {
     `original_id`,
     messageId
   );
-  printStep();
 
   if (completedInfo.length > 0) {
     console.log(`Task ${messageId} has been completed successfully.`);
     return "success";
   }
-  printStep();
 
   // check if the message is failed
   const failedInfo = await redis.xrange(
@@ -82,13 +68,11 @@ async function checkTaskStatus(redis, streamName, groupName, messageId) {
     `original_id`,
     messageId
   );
-  printStep();
 
   if (failedInfo.length > 0) {
     console.log(`Task ${messageId} has been failed.`);
     return "fail";
   }
-  printStep();
 
   console.log(
     `Task ${messageId} status is uncertain. It might be in transition or there might be an issue.`
