@@ -22,9 +22,16 @@ async function setupConsumerGroup() {
 }
 
 async function handleFailedMessage(id, message) {
-  const deadLetterStream = 'deadletter:' + STREAM_KEY;
+  const deadLetterStream = STREAM_KEY + ':deadletter';
   await redis.xadd(deadLetterStream, '*', 'original_id', id, 'data', JSON.stringify(message));
   console.error(`Message ${id} failed 3 times, move to deadletter`);
+  await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
+}
+
+async function handleSuccessMessage(id, message) {
+  const successStream = STREAM_KEY + ':completed';
+  await redis.xadd(successStream, '*', 'original_id', id, 'data', JSON.stringify(message));
+  console.log(`Message ${id} processed successfully`);
   await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
 }
 
@@ -47,7 +54,7 @@ async function processMessage(id, message) {
           chainId: obj.chainId,
         });
       }
-      await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
+      await handleSuccessMessage(id, message);
       return; // success, exit loop
     } catch (error) {
       retries++;

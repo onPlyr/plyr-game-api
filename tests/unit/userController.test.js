@@ -96,6 +96,7 @@ describe('User Controller', () => {
       const mirror = calcMirrorAddress(testUser.address);
 
       await userController.postRegister(ctx);
+      console.log('ctx.body', ctx.body);
       expect(ctx.body).toEqual({ 
         plyrId: testUser.plyrId.toLowerCase(), 
         mirror, 

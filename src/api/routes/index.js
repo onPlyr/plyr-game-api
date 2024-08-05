@@ -1,6 +1,7 @@
 const Router = require('@koa/router');
 const baseController = require('../controllers/baseController');
 const userController = require('../controllers/userController');
+const statusController = require('../controllers/statusController');
 const hmacAuth = require('../middlewares/hmacAuth');
 
 const router = new Router({
@@ -17,5 +18,6 @@ router.get('/user/exists/:queryStr', hmacAuth('user'), userController.getUserExi
 router.post('/user/register', hmacAuth('user'), userController.postRegister);
 router.get('/user/info/:plyrId', hmacAuth('user'), userController.getUserInfo);
 router.post('/user/modify/:plyrId/avatar', hmacAuth('user'), userController.postModifyAvatar);
+router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 
 module.exports = router;

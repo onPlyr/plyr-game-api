@@ -6,6 +6,8 @@ const { getRedisClient } = require('../../db/redis');
 
 const redis = getRedisClient();
 
+const DEFAULT_AVATR = 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR';
+
 exports.getUserExists = async (ctx) => {
   let { queryStr } = ctx.params;
 
@@ -143,7 +145,7 @@ exports.postRegister = async (ctx) => {
     primaryAddress: getAddress(address),
     secret,
     chainId: chainId || 62831,
-    avatar: avatar ? avatar : '',
+    avatar: avatar ? avatar : DEFAULT_AVATR,
   });
 
   if (process.env.NODE_ENV !== 'test') {
@@ -155,13 +157,23 @@ exports.postRegister = async (ctx) => {
       chainId: chainId || 62831,
     }));
     console.log('Added message ID:', messageId);
-  }
 
-  ctx.body = {
-    plyrId,
-    mirror,
-    primaryAddress: getAddress(address),
-  };
+    ctx.body = {
+      plyrId,
+      mirror,
+      primaryAddress: getAddress(address),
+      task: {
+        id: messageId,
+        status: 'pending',
+      },
+    };
+  } else {
+    ctx.body = {
+      plyrId,
+      mirror,
+      primaryAddress: getAddress(address),
+    };
+  }
 };
 
 exports.getUserInfo = async (ctx) => {
@@ -177,12 +189,15 @@ exports.getUserInfo = async (ctx) => {
       };
       return;
     } else {
+      let avatar = user.avatar ? user.avatar : DEFAULT_AVATR;
+      avatar = avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
+
       ctx.body = {
         plyrId: user.plyrId,
         mirror: user.mirror,
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
-        avatar: user.avatar,
+        avatar,
       };
     }
   } else {
@@ -204,12 +219,14 @@ exports.getUserInfo = async (ctx) => {
       };
       return;
     } else {
+      let avatar = user.avatar ? user.avatar : DEFAULT_AVATR;
+      avatar = avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
       ctx.body = {
         plyrId: user.plyrId,
         mirror: user.mirror,
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
-        avatar: user.avatar,
+        avatar,
       };
     }
   }
