@@ -1,4 +1,4 @@
-const { verifyMessage, isAddress, isHex } = require('viem');
+const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid } = require('../../utils/utils');
@@ -20,7 +20,7 @@ exports.getUserExists = async (ctx) => {
   let plyrId;
   let primaryAddress;
   if (isAddress(queryStr)) {
-    primaryAddress = queryStr.toLowerCase();
+    primaryAddress = getAddress(queryStr);
   } else {
     plyrId = queryStr.toLowerCase();
   }
@@ -51,7 +51,7 @@ exports.getUserExists = async (ctx) => {
 
   if (primaryAddress) {
     // Check if user exists
-    const user = await UserInfo.findOne({ primaryAddress: primaryAddress.toLowerCase() });
+    const user = await UserInfo.findOne({ primaryAddress: getAddress(primaryAddress)});
     if (user) {
       ctx.body = {
         exists: true
@@ -125,8 +125,8 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
-  ret = await UserInfo.findOne({ primaryAddress: address.toLowerCase() });
-  if (ret && ret.primaryAddress === address.toLowerCase()) {
+  ret = await UserInfo.findOne({ primaryAddress: getAddress(address) });
+  if (ret && ret.primaryAddress === getAddress(address)) {
     ctx.status = 400;
     ctx.body = {
       error: 'Primary address already exists'
@@ -140,7 +140,7 @@ exports.postRegister = async (ctx) => {
   await UserInfo.create({
     plyrId,
     mirror: mirror,
-    primaryAddress: address.toLowerCase(),
+    primaryAddress: getAddress(address),
     secret,
     chainId: chainId || 62831,
     avatar: avatar ? avatar : '',
@@ -150,7 +150,7 @@ exports.postRegister = async (ctx) => {
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
     const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
-      address,
+      address: getAddress(address),
       plyrId,
       chainId: chainId || 62831,
     }));
@@ -160,7 +160,7 @@ exports.postRegister = async (ctx) => {
   ctx.body = {
     plyrId,
     mirror,
-    primaryAddress: address
+    primaryAddress: getAddress(address),
   };
 };
 
@@ -168,7 +168,7 @@ exports.getUserInfo = async (ctx) => {
   let { plyrId } = ctx.params;
 
   if (isAddress(plyrId)) {
-    const primaryAddress = plyrId.toLowerCase();
+    const primaryAddress = getAddress(plyrId);
     const user = await UserInfo.findOne({ primaryAddress });
     if (!user) {
       ctx.status = 404;
