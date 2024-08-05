@@ -17,9 +17,9 @@ function generateSecretKey() {
 
 async function generateApiKeys() {
   const apiKeys = [
-    { apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
-    { apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
-    { apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'admin' }
+    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
+    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
+    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'admin' }
   ];
 
   try {
