@@ -18,8 +18,8 @@ async function main() {
     const newUser = {
       address: account.address,
       signature: signature,
-      plyrId: "newTestUser117" + i,
-      secret: "testSecret117" + i,
+      plyrId: "newTestUser001" + i,
+      secret: "testSecret001" + i,
     };
 
     const timestamp = Date.now().toString();
@@ -28,8 +28,7 @@ async function main() {
 
     try {
       let ret = await axios.post(
-        "https://api-testnet.plyr.network/api/user/register",
-        // "http://localhost:3000/api/user/register",
+        process.env.API_ENDPOINT + "/api/user/register",
         newUser,
         {
           headers: {

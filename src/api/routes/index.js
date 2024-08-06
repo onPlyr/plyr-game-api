@@ -12,7 +12,7 @@ router.get('/', (ctx) => {
   ctx.body = { message: 'Welcome to the API' };
 });
 
-router.get('/now', hmacAuth('user'), baseController.getNow);
+router.get('/now', baseController.getNow);
 router.get('/status', hmacAuth('admin'), baseController.getStatus);
 router.get('/user/exists/:queryStr', hmacAuth('user'), userController.getUserExists);
 router.post('/user/register', hmacAuth('user'), userController.postRegister);
