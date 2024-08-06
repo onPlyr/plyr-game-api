@@ -10,7 +10,7 @@ async function main() {
 
   try {
     let ret = await axios.get(
-      "https://api-testnet.plyr.network/api/task/status/1722914307608-0",
+      "https://api-testnet.plyr.network/api/task/status/1722914434180-0",
       {
         headers: {
           apikey: apiKey,
