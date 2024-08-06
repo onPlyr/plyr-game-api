@@ -16,6 +16,7 @@ describe('User API', () => {
   beforeAll(async () => {
     await connectDB();
     userApiKey = await ApiKey.create({ 
+      plyrId: 'tester',
       apiKey: 'user-key', 
       secretKey: 'user-secret', 
       role: 'user' 

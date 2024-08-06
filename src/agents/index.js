@@ -1,6 +1,7 @@
 const config = require('../config');
 const { getRedisClient } = require('../db/redis');
 const { createUser } = require('../services/user');
+const Task = require('../models/task');
 
 const redis = getRedisClient();
 
@@ -21,18 +22,16 @@ async function setupConsumerGroup() {
   }
 }
 
-async function handleFailedMessage(id, message) {
-  const deadLetterStream = STREAM_KEY + ':deadletter';
-  await redis.xadd(deadLetterStream, '*', 'original_id', id, 'data', JSON.stringify(message));
-  console.error(`Message ${id} failed 3 times, move to deadletter`);
-  await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
-}
-
-async function handleSuccessMessage(id, message) {
-  const successStream = STREAM_KEY + ':completed';
-  await redis.xadd(successStream, '*', 'original_id', id, 'data', JSON.stringify(message));
-  console.log(`Message ${id} processed successfully`);
-  await redis.xack(STREAM_KEY, CONSUMER_GROUP, id);
+async function storeTaskResult(messageId, taskData, status, errorMessage = null) {
+  const taskResult = new Task({
+      messageId,
+      taskData,
+      status,
+      errorMessage,
+  });
+  await taskResult.save();
+  await redis.xack(STREAM_KEY, CONSUMER_GROUP, messageId);
+  console.log(`Task result stored in MongoDB: ${JSON.stringify(taskResult)}`);
 }
 
 async function processMessage(id, message) {
@@ -54,7 +53,7 @@ async function processMessage(id, message) {
           chainId: obj.chainId,
         });
       }
-      await handleSuccessMessage(id, message);
+      await storeTaskResult(id, message, 'SUCCESS');
       return; // success, exit loop
     } catch (error) {
       retries++;
@@ -63,7 +62,7 @@ async function processMessage(id, message) {
     }
   }
 
-  await handleFailedMessage(id, message);
+  await storeTaskResult(id, message, 'FAILED');
 }
 
 async function consumeMessages() {

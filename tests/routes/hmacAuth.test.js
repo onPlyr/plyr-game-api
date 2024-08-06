@@ -10,8 +10,8 @@ describe('HMAC Authentication and Authorization', () => {
 
   beforeAll(async () => {
     await connectDB();
-    userApiKey = await ApiKey.create({ apiKey: 'user-key', secretKey: 'user-secret', role: 'user' });
-    adminApiKey = await ApiKey.create({ apiKey: 'admin-key', secretKey: 'admin-secret', role: 'admin' });
+    userApiKey = await ApiKey.create({ plyrId: 'tester', apiKey: 'user-key', secretKey: 'user-secret', role: 'user' });
+    adminApiKey = await ApiKey.create({ plyrId: 'tester', apiKey: 'admin-key', secretKey: 'admin-secret', role: 'admin' });
   });
 
   afterAll(async () => {
