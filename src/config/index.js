@@ -26,11 +26,35 @@ const plyrTestnet = defineChain({
   }
 });
 
+const plyrMainnet = defineChain({
+  id: 16180,
+  name: 'PLYR PHI',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'PLYR',
+    symbol: 'PLYR'
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://subnets.avax.network/plyr/mainnet/rpc']
+    }
+  },
+  blockExplorers: {
+    default: { name: 'PLYR PHI Explorer', url: 'https://subnets.avax.network/plyr'}
+  },
+  contracts: {
+    multicall3: {
+      address: '0x5De6e8f2d786E218C5cC48d719aa5C092991323f',
+      blockCreated: 56817,
+    }
+  }
+});
+
 const account = privateKeyToAccount(process.env.PK);
 
 const client = createWalletClient({
   account,
-  chain: plyrTestnet,
+  chain: plyrMainnet,
   transport: http(),
 }).extend(publicActions);
 
@@ -44,8 +68,8 @@ module.exports = {
   redisUrl: process.env.REDIS_URL,
   PK: process.env.PK,
   chain: client,
-  plyrRegisterSC: '0xC650e83b1cC9A1438fe2b1E9b4556B6fAa6B6Fb4',
-  plyrRouterSC: '0xaABae47f41fee8f877c7F2641A306A01F7d8A2FA',
+  plyrRegisterSC: '0x9684c4d61A62CFc43174953B814995E412cA1096',
+  plyrRouterSC: '0x0EF26D14851c84Dca15CB0265d9EA74f9cAEb828',
   ROUTER_ABI,
   REGISTER_ABI,
   MIRROR_BYTECODE,
