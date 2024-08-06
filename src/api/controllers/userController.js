@@ -164,7 +164,7 @@ exports.postRegister = async (ctx) => {
       primaryAddress: getAddress(address),
       task: {
         id: messageId,
-        status: 'pending',
+        status: 'PENDING',
       },
     };
   } else {
