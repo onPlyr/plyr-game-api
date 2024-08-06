@@ -8,7 +8,13 @@ async function checkTaskStatus(messageId) {
   const taskResult = await Task.findOne({ messageId });
   if (taskResult) {
     console.log(`Task ${messageId} status: ${taskResult.status}`);
-    return taskResult;
+    return {
+      messageId,
+      taskData: taskResult.taskData,
+      status: taskResult.status,
+      errorMessage: taskResult.errorMessage,
+      completedAt: taskResult.completedAt,
+    };
   }
 
   const messageInStream = await redis.xrange(STREAM_KEY, messageId, messageId);
