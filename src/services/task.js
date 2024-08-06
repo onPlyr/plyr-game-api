@@ -8,7 +8,7 @@ async function checkTaskStatus(messageId) {
   const taskResult = await Task.findOne({ messageId });
   if (taskResult) {
     console.log(`Task ${messageId} status: ${taskResult.status}`);
-    return taskResult.status;
+    return taskResult;
   }
 
   const messageInStream = await redis.xrange(STREAM_KEY, messageId, messageId);
@@ -16,11 +16,11 @@ async function checkTaskStatus(messageId) {
     console.log(
       `Message ${messageId} not found in the stream. It might have been trimmed or the stream was deleted.`
     );
-    return "UNKNOWN";
+    return { status: "NOT_FOUND" };
   }
 
   console.log(`Task ${messageId} is still pending or being processed.`);
-  return "PENDING";
+  return { status: "PENDING" };
 }
 
 module.exports = {
