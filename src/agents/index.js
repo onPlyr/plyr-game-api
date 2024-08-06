@@ -2,6 +2,7 @@ const config = require('../config');
 const { getRedisClient } = require('../db/redis');
 const { createUser } = require('../services/user');
 const Task = require('../models/task');
+const { connectDB } = require('../db/mongoose');
 
 const redis = getRedisClient();
 
@@ -94,6 +95,7 @@ async function consumeMessages() {
 }
 
 async function start() {
+  await connectDB();
   await setupConsumerGroup();
   consumeMessages().catch(err => {
     console.error('Fatal error in message consumption:', err);
