@@ -162,6 +162,7 @@ exports.postRegister = async (ctx) => {
       plyrId,
       mirror,
       primaryAddress: getAddress(address),
+      avatar: DEFAULT_AVATR,
       task: {
         id: messageId,
         status: 'PENDING',
@@ -172,6 +173,7 @@ exports.postRegister = async (ctx) => {
       plyrId,
       mirror,
       primaryAddress: getAddress(address),
+      avatar: DEFAULT_AVATR,
     };
   }
 };

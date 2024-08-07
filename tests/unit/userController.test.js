@@ -100,7 +100,8 @@ describe('User Controller', () => {
       expect(ctx.body).toEqual({ 
         plyrId: testUser.plyrId.toLowerCase(), 
         mirror, 
-        primaryAddress: testUser.address 
+        primaryAddress: testUser.address,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
     });
   });
