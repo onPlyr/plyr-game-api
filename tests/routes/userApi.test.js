@@ -91,6 +91,7 @@ describe('User API', () => {
         plyrId: newUser.plyrId.toLowerCase(), 
         mirror: expectedMirror,
         primaryAddress: newUser.address,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
     });
   });
