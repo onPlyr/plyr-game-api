@@ -25,3 +25,5 @@ function verifyPlyrid(plyrid) {
     // Return lowercase plyrid if all checks pass
     return plyrid;
 }
+
+module.exports = { verifyPlyrid };
