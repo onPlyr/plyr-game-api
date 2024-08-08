@@ -1,12 +1,11 @@
 const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
-const { verifyPlyrid } = require('../../utils/utils');
+const { verifyPlyrid, getAvatarUrl } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
 
 const redis = getRedisClient();
 
-const DEFAULT_AVATR = 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR';
 
 exports.getUserExists = async (ctx) => {
   let { queryStr } = ctx.params;
@@ -145,7 +144,7 @@ exports.postRegister = async (ctx) => {
     primaryAddress: getAddress(address),
     secret,
     chainId: chainId || 62831,
-    avatar: avatar ? avatar : DEFAULT_AVATR,
+    avatar: getAvatarUrl(avatar),
   });
 
   if (process.env.NODE_ENV !== 'test') {
@@ -162,7 +161,7 @@ exports.postRegister = async (ctx) => {
       plyrId,
       mirror,
       primaryAddress: getAddress(address),
-      avatar: avatar ? avatar : DEFAULT_AVATR,
+      avatar: getAvatarUrl(avatar),
       task: {
         id: messageId,
         status: 'PENDING',
@@ -173,7 +172,7 @@ exports.postRegister = async (ctx) => {
       plyrId,
       mirror,
       primaryAddress: getAddress(address),
-      avatar: avatar ? avatar : DEFAULT_AVATR,
+      avatar: getAvatarUrl(avatar),
     };
   }
 };
@@ -191,8 +190,7 @@ exports.getUserInfo = async (ctx) => {
       };
       return;
     } else {
-      let avatar = user.avatar ? user.avatar : DEFAULT_AVATR;
-      avatar = avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
+      let avatar = getAvatarUrl(user.avatar);
 
       ctx.body = {
         plyrId: user.plyrId,
@@ -221,8 +219,7 @@ exports.getUserInfo = async (ctx) => {
       };
       return;
     } else {
-      let avatar = user.avatar ? user.avatar : DEFAULT_AVATR;
-      avatar = avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
+      let avatar = getAvatarUrl(user.avatar);
       ctx.body = {
         plyrId: user.plyrId,
         mirror: user.mirror,
