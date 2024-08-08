@@ -26,4 +26,13 @@ function verifyPlyrid(plyrid) {
     return plyrid;
 }
 
-module.exports = { verifyPlyrid };
+const DEFAULT_AVATR = 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR';
+
+function getAvatarUrl(avatar) {
+    if (!avatar) {
+        return DEFAULT_AVATR;
+    }
+    return avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
+}
+
+module.exports = { verifyPlyrid, getAvatarUrl };

@@ -10,8 +10,7 @@ async function main() {
 
   try {
     let ret = await axios.get(
-      "https://api-testnet.plyr.network/api/user/info/newTestUser1121",
-      // "http://localhost:3000/api/user/info/newTestUser1121",
+      process.env.API_ENDPOINT + "/api/user/info/defizooracer",
       {
         headers: {
           apikey: apiKey,
