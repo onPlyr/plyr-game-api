@@ -12,6 +12,11 @@ function verifyPlyrid(plyrid) {
         return false;
     }
 
+    // Ensure plyrid contains at least one alphabetic character
+    if (!/[a-z]/.test(plyrid)) {
+        return false;
+    }
+
     // Check if plyrid is not all numbers
     if (/^\d+$/.test(plyrid)) {
         return false;
