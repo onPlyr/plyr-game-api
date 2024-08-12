@@ -3,6 +3,7 @@ const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
+const Secondary = require('../../models/secondary');
 
 const redis = getRedisClient();
 
@@ -275,3 +276,83 @@ exports.postModifyAvatar = async (ctx) => {
   };
 };
 
+exports.postSecondaryBind = async (ctx) => {
+  const { plyrId, secondaryAddress, signature } = ctx.request.body;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  if (!isAddress(secondaryAddress)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid secondary address'
+    };
+    return;
+  }
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  let user = await UserInfo.findOne({ plyrId: verifyPlyrid(plyrId) });
+  if (!user) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'User not exists'
+    };
+    return;
+  }
+
+  if (getAddress(user.primaryAddress) === getAddress(secondaryAddress)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Secondary must different with primary address'
+    }
+    return;
+  }
+
+  let ret = await Secondary.findOne({ secondaryAddress: getAddress(secondaryAddress) });
+  if (ret) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Secondary address already exists'
+    };
+    return;
+  }
+
+  const singatureMessage = `PLYR[ID] Secondary Bind`;
+
+  const valid = await verifyMessage({
+    address: secondaryAddress,
+    message: singatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await Secondary.create({
+    plyrId: plyrId.toLowerCase(),
+    secondaryAddress: getAddress(secondaryAddress),
+  });
+
+  ctx.status = 200;
+  ctx.body = {
+    plyrId: plyrId.toLowerCase(),
+    secondaryAddress: getAddress(secondaryAddress),
+  };
+}

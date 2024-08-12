@@ -12,7 +12,7 @@ const { generateJwtToken } = require('../../src/utils/jwt');
 jest.mock('../../src/models/userInfo');
 
 describe('User API', () => {
-  let userApiKey, privateKey, account;
+  let userApiKey, privateKey, account, secondary;
 
   beforeAll(async () => {
     await connectDB();
@@ -24,6 +24,8 @@ describe('User API', () => {
     });
     privateKey = generatePrivateKey();
     account = privateKeyToAccount(privateKey);
+    privateKey = generatePrivateKey();
+    secondary = privateKeyToAccount(privateKey);
   });
 
   afterAll(async () => {
@@ -120,6 +122,40 @@ describe('User API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(userInfo);
+    });
+  });
+
+  describe('POST /api/user/secondary/bind', () => {
+    it('should success bind secondary address', async () => {
+      const signatureMessage = `PLYR[ID] Secondary Bind`;
+      const signature = await secondary.signMessage({ message: signatureMessage });
+
+      const plyrId = 'testUser';
+      const userInfo = {
+        plyrId: plyrId,
+        primaryAddress: account.address,
+        mirror: calcMirrorAddress(account.address),
+        chainId: 62831,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
+        createdAt: Date.now()
+      };
+
+      UserInfo.findOne.mockResolvedValue(userInfo);
+
+      const response = await makeAuthenticatedRequest(
+        'post', 
+        '/api/user/secondary/bind', 
+        userApiKey.apiKey, 
+        userApiKey.secretKey, 
+        {
+          plyrId,
+          secondaryAddress: secondary.address,
+          signature,
+        }
+      );
+
+      expect(response.status).toBe(200);
+      
     });
   });
 
