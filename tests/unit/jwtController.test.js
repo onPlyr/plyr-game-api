@@ -13,7 +13,7 @@ describe('JWT Controller', () => {
         }
       }
     };
-    jwtController.getVerifyJWT(ctx);
+    jwtController.getVerifyJwt(ctx);
     expect(ctx.status).toBe(200);
     expect(ctx.body.success).toBe(true);
     expect(ctx.body).toHaveProperty('payload');
@@ -33,7 +33,7 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
       }
     };
     
-    jwtController.getVerifyJWT(ctx);
+    jwtController.getVerifyJwt(ctx);
     expect(ctx.status).toBe(401);
     expect(ctx.body.error).toBe('Invalid token');
   });
@@ -43,5 +43,39 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     jwtController.getPublicKey(ctx);
     expect(ctx.body).toHaveProperty('publicKey');
     expect(ctx.body.publicKey).toBe(process.env.JWT_PUBLIC_KEY);
-  })
+  });
+
+  test('should verify a valid user JWT token', () => {
+    const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() + 10000 });
+    const ctx = {
+      request: {
+        query: {
+          token: token,
+          plyrId: 'newTestUser',
+          gamePartnerId: 'testPartner',
+          deadline: Date.now() + 10000
+        }
+      }
+    };
+    jwtController.getVerifyUserJwt(ctx);
+    expect(ctx.status).toBe(200);
+    expect(ctx.body.success).toBe(true);
+    expect(ctx.body).toHaveProperty('payload');
+  });
+
+  test('should reject an invalid user JWT token', () => {
+    const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() - 10000 });
+    const ctx = {
+      request: {
+        query: {
+          token: token,
+          plyrId: 'newTestUser',
+          gamePartnerId: 'testPartner',
+        }
+      }
+    };
+    jwtController.getVerifyUserJwt(ctx);
+    expect(ctx.status).toBe(401);
+    expect(ctx.body.error).toBe('Token expired');
+  });
 });

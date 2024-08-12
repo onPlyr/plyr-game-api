@@ -27,6 +27,7 @@ router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus)
 
 
 router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
-router.get('/jwt/verify', hmacAuth('user'), jwtController.getVerifyJWT);
+router.get('/jwt/verify', hmacAuth('user'), jwtController.getVerifyJwt);
+router.get('/jwt/verifyUser', hmacAuth('user'), jwtController.getVerifyUserJwt);
 
 module.exports = router;

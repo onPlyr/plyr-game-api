@@ -126,4 +126,20 @@ describe('User API', () => {
       expect(response.body).toHaveProperty('payload');
     });
   });
+
+  describe("GET /api/jwt/verifyUser", () => {
+    it('should verify a valid user JWT token', async () => {
+      const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() + 10000 });
+      const response = await makeAuthenticatedRequest(
+        'get',
+        '/api/jwt/verifyUser?token=' + token + '&plyrId=newTestUser&gamePartnerId=testPartner&deadline=' + (Date.now() + 10000),
+        userApiKey.apiKey,
+        userApiKey.secretKey
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty('payload');
+    });
+  });
 });
