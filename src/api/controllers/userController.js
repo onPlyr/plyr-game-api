@@ -198,6 +198,7 @@ exports.getUserInfo = async (ctx) => {
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
         avatar,
+        createdAt: user.createdAt,
       };
     }
   } else {
@@ -226,6 +227,7 @@ exports.getUserInfo = async (ctx) => {
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
         avatar,
+        createdAt: user.createdAt,
       };
     }
   }
@@ -272,3 +274,4 @@ exports.postModifyAvatar = async (ctx) => {
     avatar: updatedUser.avatar,
   };
 };
+

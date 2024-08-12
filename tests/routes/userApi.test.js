@@ -97,6 +97,32 @@ describe('User API', () => {
     });
   });
 
+  describe('GET /api/user/info/:plyrId', () => {
+    it('should return user info', async () => {
+      const plyrId = 'testUser';
+      const userInfo = {
+        plyrId: plyrId,
+        primaryAddress: account.address,
+        mirror: calcMirrorAddress(account.address),
+        chainId: 62831,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
+        createdAt: Date.now()
+      };
+
+      UserInfo.findOne.mockResolvedValue(userInfo);
+
+      const response = await makeAuthenticatedRequest(
+        'get',
+        `/api/user/info/${plyrId}`,
+        userApiKey.apiKey,
+        userApiKey.secretKey,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(userInfo);
+    });
+  });
+
   describe("GET /api/jwt/publicKey", () => {
     it('should return the public key', async () => {
       const response = await makeAuthenticatedRequest(
