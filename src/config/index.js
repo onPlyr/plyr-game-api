@@ -49,4 +49,6 @@ module.exports = {
   ROUTER_ABI,
   REGISTER_ABI,
   MIRROR_BYTECODE,
+  jwtPrivateKey: Buffer.from(process.env.JWT_PRIVATE_KEY, 'base64').toString('utf-8'),
+  jwtPublicKey: Buffer.from(process.env.JWT_PUBLIC_KEY, 'base64').toString('utf-8'),
 };

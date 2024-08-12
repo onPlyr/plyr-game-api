@@ -7,6 +7,7 @@ const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { generateHmacSignature } = require('../../src/utils/hmacUtils');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
 const { closeRedisConnection } = require('../../src/db/redis');
+const { generateJwtToken } = require('../../src/utils/jwt');
 
 jest.mock('../../src/models/userInfo');
 
@@ -93,6 +94,36 @@ describe('User API', () => {
         primaryAddress: newUser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
+    });
+  });
+
+  describe("GET /api/jwt/publicKey", () => {
+    it('should return the public key', async () => {
+      const response = await makeAuthenticatedRequest(
+        'get',
+        '/api/jwt/publicKey',
+        userApiKey.apiKey,
+        userApiKey.secretKey
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('publicKey');
+    });
+  });
+
+  describe("GET /api/jwt/verify", () => {
+    it('should verify a valid JWT token', async () => {
+      const token = generateJwtToken({ id: 1 });
+      const response = await makeAuthenticatedRequest(
+        'get',
+        '/api/jwt/verify?token=' + token,
+        userApiKey.apiKey,
+        userApiKey.secretKey
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty('payload');
     });
   });
 });
