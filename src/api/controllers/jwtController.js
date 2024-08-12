@@ -8,8 +8,8 @@ exports.getPublicKey = (ctx) => {
   };
 };
 
-exports.getVerifyJwt = (ctx) => {
-  const token = ctx.request.query.token;
+exports.postVerifyJwt = (ctx) => {
+  const token = ctx.request.body.token;
   const payload = verifyToken(token);
   if (!payload) {
     ctx.status = 401;
@@ -26,8 +26,8 @@ exports.getVerifyJwt = (ctx) => {
   };
 }
 
-exports.getVerifyUserJwt = (ctx) => {
-  const { token, plyrId, gamePartnerId } = ctx.request.query;
+exports.postVerifyUserJwt = (ctx) => {
+  const { token, plyrId, gamePartnerId } = ctx.request.body;
   const payload = verifyToken(token);
   if (!payload) {
     ctx.status = 401;

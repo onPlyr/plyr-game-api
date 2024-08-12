@@ -8,12 +8,12 @@ describe('JWT Controller', () => {
   test('generate and verify JWT token', () => {
     const ctx = {
       request: {
-        query: {
+        body: {
           token: generateJwtToken({ id: 1 })
         }
       }
     };
-    jwtController.getVerifyJwt(ctx);
+    jwtController.postVerifyJwt(ctx);
     expect(ctx.status).toBe(200);
     expect(ctx.body.success).toBe(true);
     expect(ctx.body).toHaveProperty('payload');
@@ -27,13 +27,13 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
 -----END PRIVATE KEY-----`;
     const ctx = {
       request: {
-        query: {
+        body: {
           token: generateJwtToken({ id: 1 }, pk)
         }
       }
     };
     
-    jwtController.getVerifyJwt(ctx);
+    jwtController.postVerifyJwt(ctx);
     expect(ctx.status).toBe(401);
     expect(ctx.body.error).toBe('Invalid token');
   });
@@ -49,7 +49,7 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() + 10000 });
     const ctx = {
       request: {
-        query: {
+        body: {
           token: token,
           plyrId: 'newTestUser',
           gamePartnerId: 'testPartner',
@@ -57,7 +57,7 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
         }
       }
     };
-    jwtController.getVerifyUserJwt(ctx);
+    jwtController.postVerifyUserJwt(ctx);
     expect(ctx.status).toBe(200);
     expect(ctx.body.success).toBe(true);
     expect(ctx.body).toHaveProperty('payload');
@@ -67,14 +67,14 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() - 10000 });
     const ctx = {
       request: {
-        query: {
+        body: {
           token: token,
           plyrId: 'newTestUser',
           gamePartnerId: 'testPartner',
         }
       }
     };
-    jwtController.getVerifyUserJwt(ctx);
+    jwtController.postVerifyUserJwt(ctx);
     expect(ctx.status).toBe(401);
     expect(ctx.body.error).toBe('Token expired');
   });
