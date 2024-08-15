@@ -37,6 +37,7 @@ const client = createWalletClient({
 const ROUTER_ABI = require('./Router.json').abi;
 const REGISTER_ABI = require('./Register.json').abi;
 const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
+const AIRDROP_ABI = require('./Airdrop.json');
 
 module.exports = {
   port: process.env.PORT || 3000,
@@ -49,6 +50,8 @@ module.exports = {
   ROUTER_ABI,
   REGISTER_ABI,
   MIRROR_BYTECODE,
+  airdropSC: '0xD2137C9A96aB14F9AAD6b0799568d70aCf416b5A',
+  AIRDROP_ABI,
   jwtPrivateKey: Buffer.from(process.env.JWT_PRIVATE_KEY, 'base64').toString('utf-8'),
   jwtPublicKey: Buffer.from(process.env.JWT_PUBLIC_KEY, 'base64').toString('utf-8'),
 };

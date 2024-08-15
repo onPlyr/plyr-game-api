@@ -3,6 +3,7 @@ const { getRedisClient } = require('../db/redis');
 const { createUser } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
+const { claimAirdropReward } = require('../services/airdrop');
 
 const redis = getRedisClient();
 
@@ -54,6 +55,12 @@ async function processMessage(id, message) {
           chainId: obj.chainId,
         });
       }
+
+      if (key === 'claimAirdropReward') {
+        console.log('Claiming airdrop reward:', obj);
+        await claimAirdropReward(obj);
+      }
+
       await storeTaskResult(id, message, 'SUCCESS');
       return; // success, exit loop
     } catch (error) {

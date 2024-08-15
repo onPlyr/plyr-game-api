@@ -3,6 +3,7 @@ const baseController = require('../controllers/baseController');
 const userController = require('../controllers/userController');
 const statusController = require('../controllers/statusController');
 const jwtController = require('../controllers/jwtController');
+const airdropController = require('../controllers/airdropController');
 const hmacAuth = require('../middlewares/hmacAuth');
 
 const router = new Router({
@@ -31,5 +32,8 @@ router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus)
 router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
 router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
 router.post('/jwt/verifyUser', hmacAuth('user'), jwtController.postVerifyUserJwt);
+
+
+router.post('/airdrop/compaign/:compaignId/claim', hmacAuth('user'), airdropController.postClaim);
 
 module.exports = router;
