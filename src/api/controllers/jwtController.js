@@ -1,6 +1,7 @@
 const config = require("../../config");
 const jwt = require('jsonwebtoken');
 const { verifyToken } = require('../../utils/jwt');
+const UserInfo = require('../../models/userInfo');
 
 exports.getPublicKey = (ctx) => {
   ctx.body = {
@@ -26,8 +27,8 @@ exports.postVerifyJwt = (ctx) => {
   };
 }
 
-exports.postVerifyUserJwt = (ctx) => {
-  const { token, plyrId, gamePartnerId } = ctx.request.body;
+exports.postVerifyUserJwt = async (ctx) => {
+  const { token, plyrId, gameId } = ctx.request.body;
   const payload = verifyToken(token);
   if (!payload) {
     ctx.status = 401;
@@ -37,10 +38,10 @@ exports.postVerifyUserJwt = (ctx) => {
     return;
   }
 
-  if (payload.plyrId !== plyrId || payload.gamePartnerId !== gamePartnerId) {
+  if (payload.plyrId !== plyrId || payload.gameId !== gameId) {
     ctx.status = 401;
     ctx.body = {
-      error: 'Invalid plyrId or gamePartnerId',
+      error: 'Invalid plyrId or gameId',
     };
     return;
   }
@@ -49,6 +50,25 @@ exports.postVerifyUserJwt = (ctx) => {
     ctx.status = 401;
     ctx.body = {
       error: 'Token expired',
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId });
+  if (!user) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'User not found',
+    };
+    return;
+  }
+
+  const nonce = user.nonce ? user.nonce : {};
+  const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
+  if (isNaN(payload.nonce) || payload.nonce < gameNonce) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'JWT nonce is expired',
     };
     return;
   }

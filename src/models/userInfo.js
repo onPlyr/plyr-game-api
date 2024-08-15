@@ -8,6 +8,7 @@ const userInfoSchema = new mongoose.Schema({
   chainId: { type: Number, required: true },
   avatar: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  nonce: { type: Object, default: {} },
   createdAt: { type: Date, default: Date.now }
 });
 

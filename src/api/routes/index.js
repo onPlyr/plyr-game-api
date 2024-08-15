@@ -24,6 +24,8 @@ router.get('/user/info/:plyrId', hmacAuth('user'), userController.getUserInfo);
 router.post('/user/modify/:plyrId/avatar', hmacAuth('user'), userController.postModifyAvatar);
 router.post('/user/secondary/bind', hmacAuth('user'), userController.postSecondaryBind);
 router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecondary);
+router.post('/user/login', hmacAuth('user'), userController.postLogin);
+router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);

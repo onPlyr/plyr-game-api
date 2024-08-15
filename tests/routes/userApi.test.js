@@ -194,7 +194,7 @@ describe('User API', () => {
 
   describe("POST /api/jwt/verifyUser", () => {
     it('should verify a valid user JWT token', async () => {
-      const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() + 10000 });
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() + 10000 });
       const response = await makeAuthenticatedRequest(
         'post',
         '/api/jwt/verifyUser',
@@ -203,7 +203,7 @@ describe('User API', () => {
         {
           token,
           plyrId: 'newTestUser',
-          gamePartnerId: 'testPartner',
+          gameId: 'testPartner',
           deadline: Date.now() + 10000
         }
       );

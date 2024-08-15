@@ -4,9 +4,16 @@ const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
 const Secondary = require('../../models/secondary');
+const ApiKey = require('../../models/apiKey');
+const { authenticator } = require('otplib');
+const { generateJwtToken } = require('../../utils/jwt');
 
 const redis = getRedisClient();
 
+authenticator.options = {
+  step: 30,
+  window: 1
+};
 
 exports.getUserExists = async (ctx) => {
   let { queryStr } = ctx.params;
@@ -372,4 +379,112 @@ exports.getSecondary = async (ctx) => {
   ctx.status = 200;
   ctx.body = secondary;
   return;
+}
+
+exports.postLogin = async (ctx) => {
+  const { apikey } = ctx.headers;
+  const { plyrId, token, deadline } = ctx.request.body;
+  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
+  if (!userApiKey) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Unauthorized API key'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const isValid = authenticator.verify({ token, secret: user.secret });
+  if (!isValid) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Invalid token'
+    };
+    return;
+  }
+
+  const gameId = userApiKey.plyrId;
+
+  const nonce = user.nonce ? user.nonce : {};
+  let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
+  nonce[gameId] = gameNonce;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce } });
+
+  const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
+
+  const payload = { plyrId, nonce: gameNonce, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirror: user.mirror };
+  const JWT = generateJwtToken(payload);
+
+  ctx.status = 200;
+  ctx.body = {
+    token: JWT,
+    ...payload,
+  }
+}
+
+exports.postLogout = async (ctx) => {
+  const { apikey } = ctx.headers;
+  const { plyrId, token } = ctx.request.body;
+  const payload = verifyToken(token);
+  if (!payload) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Invalid token',
+    };
+    return;
+  }
+
+  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
+  if (!userApiKey) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Unauthorized API key'
+    };
+    return;
+  }
+
+  const gameId = userApiKey.plyrId;
+
+  if (payload.plyrId !== plyrId || payload.gameId !== gameId) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Invalid plyrId or gameId',
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'User not found',
+    };
+    return;
+  }
+
+  const nonce = user.nonce ? user.nonce : {};
+  const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
+  if (payload.nonce + 1 < gameNonce) {
+    ctx.status = 200;
+    ctx.body = {
+      message: 'JWT nonce is expired',
+    };
+    return;
+  }
+
+  nonce[gameId] = gameNonce + 1;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Logout success',
+  };
 }

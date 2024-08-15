@@ -1,5 +1,8 @@
 const jwtController = require("../../src/api/controllers/jwtController");
 const { generateJwtToken } = require('../../src/utils/jwt');
+const UserInfo = require('../../src/models/userInfo');
+
+jest.mock('../../src/models/userInfo');
 
 describe('JWT Controller', () => {
   afterAll(async () => {
@@ -45,36 +48,41 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     expect(ctx.body.publicKey).toBe(process.env.JWT_PUBLIC_KEY);
   });
 
-  test('should verify a valid user JWT token', () => {
-    const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() + 10000 });
+  it('should verify a valid user JWT token', async () => {
+    const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() + 10000 });
     const ctx = {
       request: {
+        header: {apiKey: 'testApiKey'},
         body: {
           token: token,
           plyrId: 'newTestUser',
-          gamePartnerId: 'testPartner',
+          gameId: 'testPartner',
           deadline: Date.now() + 10000
         }
       }
     };
-    jwtController.postVerifyUserJwt(ctx);
+
+    UserInfo.findOne.mockResolvedValue({ plyrId: 'newTestUser' });
+
+    await jwtController.postVerifyUserJwt(ctx);
+    console.log(ctx.body);
     expect(ctx.status).toBe(200);
     expect(ctx.body.success).toBe(true);
     expect(ctx.body).toHaveProperty('payload');
   });
 
-  test('should reject an invalid user JWT token', () => {
-    const token = generateJwtToken({ plyrId: 'newTestUser', gamePartnerId: 'testPartner', deadline: Date.now() - 10000 });
+  test('should reject an invalid user JWT token', async () => {
+    const token = generateJwtToken({ plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() - 10000 });
     const ctx = {
       request: {
         body: {
           token: token,
           plyrId: 'newTestUser',
-          gamePartnerId: 'testPartner',
+          gameId: 'testPartner',
         }
       }
     };
-    jwtController.postVerifyUserJwt(ctx);
+    await jwtController.postVerifyUserJwt(ctx);
     expect(ctx.status).toBe(401);
     expect(ctx.body.error).toBe('Token expired');
   });
