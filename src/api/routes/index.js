@@ -22,6 +22,7 @@ router.post('/user/register', hmacAuth('user'), userController.postRegister);
 router.get('/user/info/:plyrId', hmacAuth('user'), userController.getUserInfo);
 router.post('/user/modify/:plyrId/avatar', hmacAuth('user'), userController.postModifyAvatar);
 router.post('/user/secondary/bind', hmacAuth('user'), userController.postSecondaryBind);
+router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecondary);
 
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);

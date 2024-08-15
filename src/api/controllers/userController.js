@@ -356,3 +356,20 @@ exports.postSecondaryBind = async (ctx) => {
     secondaryAddress: getAddress(secondaryAddress),
   };
 }
+
+exports.getSecondary = async (ctx) => {
+  const { plyrId } = ctx.params;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  const secondary = await Secondary.find({ plyrId: plyrId.toLowerCase() });
+  ctx.status = 200;
+  ctx.body = secondary;
+  return;
+}
