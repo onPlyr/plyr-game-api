@@ -5,6 +5,7 @@ const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
 const { closeRedisConnection } = require('../../src/db/redis');
 const { params } = require('../../src/api/routes');
+const { generateJwtToken } = require('../../src/utils/jwt');
 
 const privateKey = generatePrivateKey();
 
@@ -159,6 +160,47 @@ describe('User Controller', () => {
         plyrId: 'testid', 
         avatar: 'https://example.com/avatar.jpg'
       });
+    });
+  });
+
+  describe("Verify User Session", () => {
+    test('should verify a valid user JWT token', async () => {
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() + 10000 });
+      const ctx = {
+        request: {
+          header: {apiKey: 'testApiKey'},
+          body: {
+            sessionJwt: token,
+            plyrId: 'newTestUser',
+            gameId: 'testPartner',
+            deadline: Date.now() + 10000
+          }
+        }
+      };
+  
+      UserInfo.findOne.mockResolvedValue({ plyrId: 'newTestUser' });
+  
+      await userController.postUserSessionVerify(ctx);
+      console.log(ctx.body);
+      expect(ctx.status).toBe(200);
+      expect(ctx.body.success).toBe(true);
+      expect(ctx.body).toHaveProperty('payload');
+    });
+  
+    test('should reject an invalid user JWT token', async () => {
+      const token = generateJwtToken({ plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() - 10000 });
+      const ctx = {
+        request: {
+          body: {
+            sessionJwt: token,
+            plyrId: 'newTestUser',
+            gameId: 'testPartner',
+          }
+        }
+      };
+      await userController.postUserSessionVerify(ctx);
+      expect(ctx.status).toBe(401);
+      expect(ctx.body.error).toBe('Token expired');
     });
   });
 });

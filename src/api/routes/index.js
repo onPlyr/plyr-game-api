@@ -26,14 +26,13 @@ router.post('/user/secondary/bind', hmacAuth('user'), userController.postSeconda
 router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecondary);
 router.post('/user/login', hmacAuth('user'), userController.postLogin);
 router.post('/user/logout', hmacAuth('user'), userController.postLogout);
-
+router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 
 
 router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
 router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
-router.post('/jwt/verifyUser', hmacAuth('user'), jwtController.postVerifyUserJwt);
 
 
 router.post('/airdrop/compaign/:compaignId/claim', hmacAuth('user'), airdropController.postClaim);
