@@ -7,6 +7,13 @@ const MONGODB_URI = config.mongodbUri;
 
 mongoose.connect(MONGODB_URI);
 
+const plyrId = process.argv[2];
+
+if (!plyrId) {
+  console.error('Please provide a plyrId as a command line argument');
+  process.exit(1);
+}
+
 function generateApiKey() {
   return crypto.randomBytes(16).toString('hex');
 }
@@ -17,9 +24,7 @@ function generateSecretKey() {
 
 async function generateApiKeys() {
   const apiKeys = [
-    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
-    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
-    { plyrId: 'tester', apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'admin' }
+    { plyrId, apiKey: generateApiKey(), secretKey: generateSecretKey(), role: 'user' },
   ];
 
   try {
