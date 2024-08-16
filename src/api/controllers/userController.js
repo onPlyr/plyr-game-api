@@ -383,7 +383,7 @@ exports.getSecondary = async (ctx) => {
 
 exports.postLogin = async (ctx) => {
   const { apikey } = ctx.headers;
-  const { plyrId, token, deadline } = ctx.request.body;
+  const { plyrId, otp, deadline } = ctx.request.body;
   const userApiKey = await ApiKey.findOne({ apiKey: apikey });
   if (!userApiKey) {
     ctx.status = 401;
@@ -402,11 +402,11 @@ exports.postLogin = async (ctx) => {
     return;
   }
 
-  const isValid = authenticator.verify({ token, secret: user.secret });
+  const isValid = authenticator.verify({ token: otp, secret: user.secret });
   if (!isValid) {
     ctx.status = 401;
     ctx.body = {
-      error: 'Invalid token'
+      error: 'Invalid 2fa token'
     };
     return;
   }
@@ -425,19 +425,19 @@ exports.postLogin = async (ctx) => {
 
   ctx.status = 200;
   ctx.body = {
-    token: JWT,
+    sessionJwt: JWT,
     ...payload,
   }
 }
 
 exports.postLogout = async (ctx) => {
   const { apikey } = ctx.headers;
-  const { plyrId, token } = ctx.request.body;
-  const payload = verifyToken(token);
+  const { plyrId, sessionJwt } = ctx.request.body;
+  const payload = verifyToken(sessionJwt);
   if (!payload) {
     ctx.status = 401;
     ctx.body = {
-      error: 'Invalid token',
+      error: 'Invalid sessionJwt',
     };
     return;
   }
