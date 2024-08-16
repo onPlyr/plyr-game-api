@@ -167,7 +167,7 @@ exports.postRegister = async (ctx) => {
 
     ctx.body = {
       plyrId,
-      mirror,
+      mirrorAddress: mirror,
       primaryAddress: getAddress(address),
       avatar: getAvatarUrl(avatar),
       task: {
@@ -178,7 +178,7 @@ exports.postRegister = async (ctx) => {
   } else {
     ctx.body = {
       plyrId,
-      mirror,
+      mirrorAddress: mirror,
       primaryAddress: getAddress(address),
       avatar: getAvatarUrl(avatar),
     };
@@ -202,7 +202,7 @@ exports.getUserInfo = async (ctx) => {
 
       ctx.body = {
         plyrId: user.plyrId,
-        mirror: user.mirror,
+        mirrorAddress: user.mirror,
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
         avatar,
@@ -231,7 +231,7 @@ exports.getUserInfo = async (ctx) => {
       let avatar = getAvatarUrl(user.avatar);
       ctx.body = {
         plyrId: user.plyrId,
-        mirror: user.mirror,
+        mirrorAddress: user.mirror,
         primaryAddress: user.primaryAddress,
         chainId: user.chainId,
         avatar,
@@ -420,7 +420,7 @@ exports.postLogin = async (ctx) => {
 
   const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
 
-  const payload = { plyrId, nonce: gameNonce, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirror: user.mirror };
+  const payload = { plyrId, nonce: gameNonce, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload);
 
   ctx.status = 200;

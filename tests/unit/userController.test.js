@@ -99,7 +99,7 @@ describe('User Controller', () => {
       console.log('ctx.body', ctx.body);
       expect(ctx.body).toEqual({ 
         plyrId: testUser.plyrId.toLowerCase(), 
-        mirror, 
+        mirrorAddress: mirror, 
         primaryAddress: testUser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });

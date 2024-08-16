@@ -92,7 +92,7 @@ describe('User API', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ 
         plyrId: newUser.plyrId.toLowerCase(), 
-        mirror: expectedMirror,
+        mirrorAddress: expectedMirror,
         primaryAddress: newUser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
@@ -121,6 +121,8 @@ describe('User API', () => {
       );
 
       expect(response.status).toBe(200);
+      userInfo.mirrorAddress = userInfo.mirror;
+      delete userInfo.mirror;
       expect(response.body).toEqual(userInfo);
     });
   });
