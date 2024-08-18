@@ -9,6 +9,8 @@ const userInfoSchema = new mongoose.Schema({
   avatar: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   nonce: { type: Object, default: {} },
+  loginFailedCount: { type: Number, default: 0 },
+  bannedAt: { type: Number, default: 0},
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -402,12 +402,27 @@ exports.postLogin = async (ctx) => {
     return;
   }
 
+  if (user.bannedAt > 0 && user.bannedAt > Date.now() - 1000*60*5) {
+    ctx.status = 403;
+    ctx.body = {
+      error: 'User is banned'
+    };
+    return;
+  }
+
   const isValid = authenticator.verify({ token: otp, secret: user.secret });
   if (!isValid) {
     ctx.status = 401;
     ctx.body = {
       error: 'Invalid 2fa token'
     };
+
+    if (user.loginFailedCount >= 3) {
+      await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { bannedAt: Date.now(), loginFailedCount: 0 } });
+    } else {
+      await UserInfo.updateOne({ plyrId: user.plyrId }, { $inc: { loginFailedCount: 1 } });
+    }
+    
     return;
   }
 
