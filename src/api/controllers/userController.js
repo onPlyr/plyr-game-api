@@ -431,7 +431,7 @@ exports.postLogin = async (ctx) => {
   const nonce = user.nonce ? user.nonce : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce } });
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
 
   const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
 
