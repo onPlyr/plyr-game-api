@@ -100,7 +100,7 @@ exports.postRegister = async (ctx) => {
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
     ctx.body = {
-      error: 'Invalid PLYR[ID}'
+      error: 'Invalid PLYR[ID]'
     };
     return;
   }
@@ -213,7 +213,7 @@ exports.getUserInfo = async (ctx) => {
     if (!verifyPlyrid(plyrId)) {
       ctx.status = 400;
       ctx.body = {
-        error: 'Invalid PLYR[ID}'
+        error: 'Invalid PLYR[ID]'
       };
       return;
     }
