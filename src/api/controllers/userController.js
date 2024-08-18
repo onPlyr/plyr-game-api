@@ -447,7 +447,7 @@ exports.postLogin = async (ctx) => {
 
 exports.postLogout = async (ctx) => {
   const { apikey } = ctx.headers;
-  const { plyrId, sessionJwt } = ctx.request.body;
+  const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
     ctx.status = 401;
@@ -467,14 +467,7 @@ exports.postLogout = async (ctx) => {
   }
 
   const gameId = userApiKey.plyrId;
-
-  if (payload.plyrId !== plyrId || payload.gameId !== gameId) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Invalid plyrId or gameId',
-    };
-    return;
-  }
+  const plyrId = payload.plyrId;
 
   const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
   if (!user) {
