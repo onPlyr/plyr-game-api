@@ -171,9 +171,6 @@ describe('User Controller', () => {
           header: {apiKey: 'testApiKey'},
           body: {
             sessionJwt: token,
-            plyrId: 'newTestUser',
-            gameId: 'testPartner',
-            deadline: Date.now() + 10000
           }
         }
       };

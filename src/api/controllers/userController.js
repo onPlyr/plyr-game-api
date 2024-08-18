@@ -420,7 +420,7 @@ exports.postLogin = async (ctx) => {
 
   const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
 
-  const payload = { plyrId, nonce: gameNonce, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const payload = { plyrId, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload);
 
   ctx.status = 200;
@@ -490,20 +490,12 @@ exports.postLogout = async (ctx) => {
 }
 
 exports.postUserSessionVerify = async (ctx) => {
-  const { sessionJwt, plyrId, gameId } = ctx.request.body;
+  const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
     ctx.status = 401;
     ctx.body = {
       error: 'Invalid sessionJwt',
-    };
-    return;
-  }
-
-  if (payload.plyrId !== plyrId || payload.gameId !== gameId) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Invalid plyrId or gameId',
     };
     return;
   }
@@ -516,7 +508,7 @@ exports.postUserSessionVerify = async (ctx) => {
     return;
   }
 
-  const user = await UserInfo.findOne({ plyrId });
+  const user = await UserInfo.findOne({ plyrId: payload.plyrId });
   if (!user) {
     ctx.status = 401;
     ctx.body = {
@@ -524,7 +516,7 @@ exports.postUserSessionVerify = async (ctx) => {
     };
     return;
   }
-
+  const gameId = payload.gameId;
   const nonce = user.nonce ? user.nonce : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (isNaN(payload.nonce) || payload.nonce < gameNonce) {
