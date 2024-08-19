@@ -36,5 +36,6 @@ router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
 
 
 router.post('/airdrop/compaign/:compaignId/claim', hmacAuth('user'), airdropController.postClaim);
+router.get('/airdrop/compaign/info', hmacAuth('user'), airdropController.getCampaginInfo);
 
 module.exports = router;

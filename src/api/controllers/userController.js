@@ -435,9 +435,11 @@ exports.postLogin = async (ctx) => {
 
   const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
 
-  const payload = { plyrId, deadline: _deadline, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const payload = { plyrId, deadline: _deadline, nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload);
 
+  delete payload.nonce;
+  
   ctx.status = 200;
   ctx.body = {
     sessionJwt: JWT,

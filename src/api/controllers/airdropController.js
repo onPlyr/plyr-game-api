@@ -27,3 +27,14 @@ exports.postClaim = async (ctx) => {
     ctx.body = {};
   }
 }
+
+exports.getCampaginInfo = async (ctx) => {
+  let ret = await config.chain.readContract({
+    address: config.airdropSC,
+    abi: config.AIRDROP_ABI,
+    functionName: 'getCampaigns'
+  });
+  console.log(ret);
+  ctx.status = 200;
+  ctx.body = ret;
+}
