@@ -26,7 +26,7 @@ async function main() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/airdrop/compaign/0/claimableReward/0xc472803f504468387fa97fc03c4f2a87ce4e7460",
+      process.env.API_ENDPOINT + "/api/airdrop/compaign/0/claimableReward/0xc472803f504468387fa97fc03c4f2a87ce4e7460",
       {
         headers: {
           apikey: apiKey,

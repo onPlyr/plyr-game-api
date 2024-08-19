@@ -57,7 +57,7 @@ exports.getCampaginClaimableReward = async (ctx) => {
     address: config.airdropSC,
     abi: config.AIRDROP_ABI,
     functionName: 'getClaimableReward',
-    params: [compaignId, address]
+    args: [compaignId, address]
   });
   console.log(ret);
 
