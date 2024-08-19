@@ -29,7 +29,7 @@ exports.postClaim = async (ctx) => {
   }
 }
 
-exports.getCampaginInfo = async (ctx) => {
+exports.getCampaignInfo = async (ctx) => {
   let ret = await config.chain.readContract({
     address: config.airdropSC,
     abi: config.AIRDROP_ABI,
@@ -50,7 +50,7 @@ exports.getCampaginInfo = async (ctx) => {
   ctx.body = returnBody;
 }
 
-exports.getCampaginClaimableReward = async (ctx) => {
+exports.getCampaignClaimableReward = async (ctx) => {
   const { campaignId, address } = ctx.params;
 
   let ret = await config.chain.readContract({
