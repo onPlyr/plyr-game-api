@@ -17,7 +17,8 @@ async function claimAirdropReward({ campaignId, address, playedGame }) {
     hash: hash,
   });
 
-  console.log('createUser receipt:', receipt);
+  console.log('claimAirdropReward receipt:', receipt);
+  return hash;
 }
 
 module.exports = { claimAirdropReward };

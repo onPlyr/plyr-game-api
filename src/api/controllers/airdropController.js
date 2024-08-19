@@ -14,6 +14,22 @@ exports.postClaim = async (ctx) => {
     return;
   }
 
+  let ret = await config.chain.readContract({
+    address: config.airdropSC,
+    abi: config.AIRDROP_ABI,
+    functionName: 'getClaimableReward',
+    args: [campaignId, address]
+  });
+  console.log(ret);
+
+  if (ret === 0n || Number(ret) === 0) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'No claimable reward',
+    };
+    return;
+  }
+
   ctx.status = 200;
 
   if (process.env.NODE_ENV !== 'test') {

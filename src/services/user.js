@@ -17,6 +17,7 @@ async function createUser({ primaryAddress, plyrId, chainId = 62831}) {
   });
 
   console.log('createUser receipt:', receipt);
+  return hash;
 }
 
 module.exports = { createUser };
