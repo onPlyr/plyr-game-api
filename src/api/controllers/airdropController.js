@@ -1,10 +1,18 @@
-const { formatEther, getAddress } = require("viem");
+const { formatEther, getAddress, isAddress } = require("viem");
 const config = require("../../config");
 const { getRedisClient } = require("../../db/redis");
 const redis = getRedisClient();
 
 exports.postClaim = async (ctx) => {
   const { campaignId, address, playedGame } = ctx.request.body;
+
+  if (typeof playedGame !== 'boolean' || !isAddress(address) || isNaN(campaignId)) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Invalid Input params',
+    };
+    return;
+  }
 
   ctx.status = 200;
 

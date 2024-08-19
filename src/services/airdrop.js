@@ -9,7 +9,7 @@ async function claimAirdropReward({ campaignId, address, playedGame }) {
     args: [
       campaignId,
       address,
-      playedGame
+      playedGame,
     ]
   });
 
