@@ -417,7 +417,7 @@ exports.postLogin = async (ctx) => {
       error: 'Invalid 2fa token'
     };
 
-    if (user.loginFailedCount >= 5) {
+    if (user.loginFailedCount >= 4) {
       await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { bannedAt: Date.now(), loginFailedCount: 0 } });
     } else {
       await UserInfo.updateOne({ plyrId: user.plyrId }, { $inc: { loginFailedCount: 1 } });
@@ -482,7 +482,7 @@ exports.postLogout = async (ctx) => {
 
   const nonce = user.nonce ? user.nonce : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
-  if (payload.nonce + 1 < gameNonce) {
+  if (payload.nonce < gameNonce) {
     ctx.status = 401;
     ctx.body = {
       message: 'JWT nonce is expired',
