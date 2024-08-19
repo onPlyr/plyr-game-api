@@ -1,5 +1,6 @@
 const config = require("../../config");
 const userInfo = require("../../models/userInfo");
+const { verifyPlyrid } = require("../../utils/utils");
 
 exports.postClaim = async (ctx) => {
   const { compaignId } = ctx.params;
@@ -36,9 +37,10 @@ exports.getCampaginInfo = async (ctx) => {
   });
   console.log(ret);
   let returnBody = [];
-  ret.map((item) => {
+  ret.map((item, i) => {
     let obj = {};
-    Object.keys(item).forEach((key) => {
+    obj.compaignId = i;
+    Object.keys(item).map((key) => {
       obj[key] = item[key].toString();
     });
     returnBody.push(obj);
@@ -46,4 +48,21 @@ exports.getCampaginInfo = async (ctx) => {
   
   ctx.status = 200;
   ctx.body = returnBody;
+}
+
+exports.getCampaginClaimableReward = async (ctx) => {
+  const { compaignId, address } = ctx.params;
+
+  let ret = await config.chain.readContract({
+    address: config.airdropSC,
+    abi: config.AIRDROP_ABI,
+    functionName: 'getClaimableReward',
+    params: [compaignId, address]
+  });
+  console.log(ret);
+
+  ctx.status = 200;
+  ctx.body = {
+    claimableReward: ret.toString()
+  };
 }
