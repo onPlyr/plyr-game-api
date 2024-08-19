@@ -10,6 +10,10 @@ function verifyToken(token) {
 }
 
 function generateJwtToken(payload, expiresIn = 86400, privateKey) {
+  if (!expiresIn) {
+    expiresIn = 86400;
+  }
+  
   return jwt.sign(payload, privateKey || config.jwtPrivateKey, { algorithm: 'ES256', expiresIn });
 }
 
