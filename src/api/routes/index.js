@@ -32,7 +32,7 @@ router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus)
 
 
 router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
-router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
+// router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
 
 
 router.post('/airdrop/compaign/:compaignId/claim', hmacAuth('user'), airdropController.postClaim);
