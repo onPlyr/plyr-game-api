@@ -35,6 +35,15 @@ exports.getCampaginInfo = async (ctx) => {
     functionName: 'getCampaigns'
   });
   console.log(ret);
+  let returnBody = [];
+  ret.map((item) => {
+    let obj = {};
+    Object.keys(item).forEach((key) => {
+      obj[key] = item[key].toString();
+    });
+    returnBody.push(obj);
+  });
+  
   ctx.status = 200;
-  ctx.body = ret;
+  ctx.body = returnBody;
 }

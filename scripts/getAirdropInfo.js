@@ -10,7 +10,7 @@ async function main() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/compaign/info",
+      process.env.API_ENDPOINT + "/api/airdrop/compaign/info",
       {
         headers: {
           apikey: apiKey,
