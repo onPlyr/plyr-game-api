@@ -439,7 +439,7 @@ exports.postLogin = async (ctx) => {
   const JWT = generateJwtToken(payload);
 
   delete payload.nonce;
-  
+
   ctx.status = 200;
   ctx.body = {
     sessionJwt: JWT,
@@ -483,7 +483,7 @@ exports.postLogout = async (ctx) => {
   const nonce = user.nonce ? user.nonce : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (payload.nonce + 1 < gameNonce) {
-    ctx.status = 200;
+    ctx.status = 401;
     ctx.body = {
       message: 'JWT nonce is expired',
     };
