@@ -1,5 +1,7 @@
 const { formatEther } = require("viem");
 const config = require("../../config");
+const { getRedisClient } = require("../../db/redis");
+const redis = getRedisClient();
 
 exports.postClaim = async (ctx) => {
   const { campaignId, address, playedGame } = ctx.request.body;
