@@ -1,4 +1,4 @@
-const { formatEther } = require("viem");
+const { formatEther, getAddress } = require("viem");
 const config = require("../../config");
 const { getRedisClient } = require("../../db/redis");
 const redis = getRedisClient();
