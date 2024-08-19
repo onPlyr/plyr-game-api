@@ -74,7 +74,7 @@ module.exports = {
   ROUTER_ABI,
   REGISTER_ABI,
   MIRROR_BYTECODE,
-  airdropSC: '0x60318fC530b84dD548867CF23E602b5427533852',
+  airdropSC: '0x81256E05eC6f2630fA2454c820265F4FF75adf4A',
   AIRDROP_ABI,
   jwtPrivateKey: Buffer.from(process.env.JWT_PRIVATE_KEY, 'base64').toString('utf-8'),
   jwtPublicKey: Buffer.from(process.env.JWT_PUBLIC_KEY, 'base64').toString('utf-8'),
