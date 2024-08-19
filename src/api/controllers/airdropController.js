@@ -1,11 +1,8 @@
 const { formatEther } = require("viem");
 const config = require("../../config");
-const userInfo = require("../../models/userInfo");
-const { verifyPlyrid } = require("../../utils/utils");
 
 exports.postClaim = async (ctx) => {
-  const { campaignId } = ctx.params;
-  const { address, playedGame } = ctx.request.body;
+  const { campaignId, address, playedGame } = ctx.request.body;
 
   ctx.status = 200;
 
@@ -45,6 +42,17 @@ exports.getCampaignInfo = async (ctx) => {
       obj[key] = item[key].toString();
     });
     obj.unclaimedReward = formatEther(obj.unclaimedReward);
+    if (obj.startTime * 1000 < Date.now()) {
+      obj.status = 'not started';
+    } else if (obj.startTime * 1000 + obj.vestPeriodCount * obj.vestPeriodLength * 1000 < Date.now()) {
+      obj.status = 'ended';
+    } else {
+      obj.status = 'ongoing';
+      obj.periodId = Math.floor((Date.now() - obj.startTime * 1000) / (obj.vestPeriodLength * 1000));
+      if (obj.periodId < obj.vestPeriodCount) {
+        obj.nextPeriodTime = obj.startTime * 1000 + (obj.periodId + 1) * obj.vestPeriodLength * 1000;
+      }
+    }
     returnBody.push(obj);
   });
   
