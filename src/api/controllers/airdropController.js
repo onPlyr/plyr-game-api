@@ -3,7 +3,7 @@ const userInfo = require("../../models/userInfo");
 const { verifyPlyrid } = require("../../utils/utils");
 
 exports.postClaim = async (ctx) => {
-  const { compaignId } = ctx.params;
+  const { campaignId } = ctx.params;
   const { address, playedGame } = ctx.request.body;
 
   ctx.status = 200;
@@ -12,7 +12,7 @@ exports.postClaim = async (ctx) => {
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
     const messageId = await redis.xadd(STREAM_KEY, '*', 'claimAirdropReward', JSON.stringify({
-      compaignId,
+      campaignId,
       address: getAddress(address),
       playedGame,
     }));
@@ -39,7 +39,7 @@ exports.getCampaginInfo = async (ctx) => {
   let returnBody = [];
   ret.map((item, i) => {
     let obj = {};
-    obj.compaignId = i;
+    obj.campaignId = i;
     Object.keys(item).map((key) => {
       obj[key] = item[key].toString();
     });
@@ -51,13 +51,13 @@ exports.getCampaginInfo = async (ctx) => {
 }
 
 exports.getCampaginClaimableReward = async (ctx) => {
-  const { compaignId, address } = ctx.params;
+  const { campaignId, address } = ctx.params;
 
   let ret = await config.chain.readContract({
     address: config.airdropSC,
     abi: config.AIRDROP_ABI,
     functionName: 'getClaimableReward',
-    args: [compaignId, address]
+    args: [campaignId, address]
   });
   console.log(ret);
 

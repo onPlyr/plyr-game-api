@@ -35,8 +35,8 @@ router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
 // router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
 
 
-router.post('/airdrop/compaign/:compaignId/claim', hmacAuth('user'), airdropController.postClaim);
-router.get('/airdrop/compaign/info', hmacAuth('user'), airdropController.getCampaginInfo);
-router.get('/airdrop/compaign/:compaignId/claimableReward/:address', hmacAuth('user'), airdropController.getCampaginClaimableReward);
+router.post('/airdrop/campaign/:campaignId/claim', hmacAuth('user'), airdropController.postClaim);
+router.get('/airdrop/campaign/info', hmacAuth('user'), airdropController.getCampaginInfo);
+router.get('/airdrop/campaign/:campaignId/claimableReward/:address', hmacAuth('user'), airdropController.getCampaginClaimableReward);
 
 module.exports = router;
