@@ -50,7 +50,7 @@ exports.getCampaignInfo = async (ctx) => {
       obj.status = 'ongoing';
       obj.periodId = Math.floor((Date.now() - obj.startTime * 1000) / (obj.vestPeriodLength * 1000));
       if (obj.periodId < obj.vestPeriodCount) {
-        obj.nextPeriodTime = obj.startTime * 1000 + (obj.periodId + 1) * obj.vestPeriodLength * 1000;
+        obj.nextPeriodTime = obj.startTime + (obj.periodId + 1) * obj.vestPeriodLength;
       }
     }
     returnBody.push(obj);
