@@ -42,7 +42,7 @@ exports.getCampaignInfo = async (ctx) => {
       obj[key] = item[key].toString();
     });
     obj.unclaimedReward = formatEther(obj.unclaimedReward);
-    if (obj.startTime * 1000 < Date.now()) {
+    if (obj.startTime * 1000 > Date.now()) {
       obj.status = 'not started';
     } else if (obj.startTime * 1000 + obj.vestPeriodCount * obj.vestPeriodLength * 1000 < Date.now()) {
       obj.status = 'ended';
