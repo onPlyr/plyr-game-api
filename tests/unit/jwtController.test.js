@@ -31,7 +31,7 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     const ctx = {
       request: {
         body: {
-          token: generateJwtToken({ id: 1 }, pk)
+          token: generateJwtToken({ id: 1 }, 3600, pk)
         }
       }
     };

@@ -383,7 +383,7 @@ exports.getSecondary = async (ctx) => {
 
 exports.postLogin = async (ctx) => {
   const { apikey } = ctx.headers;
-  const { plyrId, otp, deadline } = ctx.request.body;
+  const { plyrId, otp, expiresIn } = ctx.request.body;
   const userApiKey = await ApiKey.findOne({ apiKey: apikey });
   if (!userApiKey) {
     ctx.status = 401;
@@ -433,10 +433,10 @@ exports.postLogin = async (ctx) => {
   nonce[gameId] = gameNonce;
   await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
 
-  const _deadline = deadline ? deadline : Date.now() + 1000 * 60 * 60 * 24;
+  const _deadline = ttl ? Date.now() + ttl*1000 : Date.now() + 1000 * 60 * 60 * 24;
 
-  const payload = { plyrId, deadline: _deadline, nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
-  const JWT = generateJwtToken(payload);
+  const payload = { plyrId, nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const JWT = generateJwtToken(payload, expiresIn);
 
   delete payload.nonce;
 
@@ -506,14 +506,6 @@ exports.postUserSessionVerify = async (ctx) => {
     ctx.status = 401;
     ctx.body = {
       error: 'Invalid sessionJwt',
-    };
-    return;
-  }
-
-  if (payload.deadline < Date.now()) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Token expired',
     };
     return;
   }

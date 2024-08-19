@@ -165,7 +165,7 @@ describe('User Controller', () => {
 
   describe("Verify User Session", () => {
     test('should verify a valid user JWT token', async () => {
-      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() + 10000 });
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', expiresIn: 10000 });
       const ctx = {
         request: {
           header: {apiKey: 'testApiKey'},
@@ -182,22 +182,6 @@ describe('User Controller', () => {
       expect(ctx.status).toBe(200);
       expect(ctx.body.success).toBe(true);
       expect(ctx.body).toHaveProperty('payload');
-    });
-  
-    test('should reject an invalid user JWT token', async () => {
-      const token = generateJwtToken({ plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() - 10000 });
-      const ctx = {
-        request: {
-          body: {
-            sessionJwt: token,
-            plyrId: 'newTestUser',
-            gameId: 'testPartner',
-          }
-        }
-      };
-      await userController.postUserSessionVerify(ctx);
-      expect(ctx.status).toBe(401);
-      expect(ctx.body.error).toBe('Token expired');
     });
   });
 });

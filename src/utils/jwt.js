@@ -9,8 +9,8 @@ function verifyToken(token) {
   }
 }
 
-function generateJwtToken(payload, privateKey) {
-  return jwt.sign(payload, privateKey || config.jwtPrivateKey, { algorithm: 'ES256' });
+function generateJwtToken(payload, expiresIn = 86400, privateKey) {
+  return jwt.sign(payload, privateKey || config.jwtPrivateKey, { algorithm: 'ES256', expiresIn });
 }
 
 module.exports = {

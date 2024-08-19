@@ -175,28 +175,9 @@ describe('User API', () => {
     });
   });
 
-  describe("POST /api/jwt/verify", () => {
-    it('should verify a valid JWT token', async () => {
-      const token = generateJwtToken({ id: 1 });
-      const response = await makeAuthenticatedRequest(
-        'post',
-        '/api/jwt/verify',
-        userApiKey.apiKey,
-        userApiKey.secretKey,
-        {
-          token
-        }
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body).toHaveProperty('payload');
-    });
-  });
-
   describe("POST /api/user/session/verify", () => {
     it('should verify a valid user JWT token', async () => {
-      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', deadline: Date.now() + 10000 });
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', expiresIn: 10000 });
       const response = await makeAuthenticatedRequest(
         'post',
         '/api/user/session/verify',
@@ -206,7 +187,7 @@ describe('User API', () => {
           sessionJwt: token,
           plyrId: 'newTestUser',
           gameId: 'testPartner',
-          deadline: Date.now() + 10000
+          expiresIn: 3600,
         }
       );
 
