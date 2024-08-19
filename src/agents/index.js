@@ -3,6 +3,7 @@ const { getRedisClient } = require('../db/redis');
 const { createUser } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
+const { claimAirdropReward } = require('../services/airdrop');
 
 const redis = getRedisClient();
 
@@ -23,11 +24,12 @@ async function setupConsumerGroup() {
   }
 }
 
-async function storeTaskResult(messageId, taskData, status, errorMessage = null) {
+async function storeTaskResult(messageId, taskData, status, hash, errorMessage = null) {
   const taskResult = new Task({
       messageId,
       taskData,
       status,
+      hash,
       errorMessage,
   });
   await taskResult.save();
@@ -46,15 +48,22 @@ async function processMessage(id, message) {
 
   while (retries < maxRetries) {
     try {
+      let hash;
       if (key === 'createUser') {
         console.log('Creating user:', obj);
-        await createUser({
+        hash = await createUser({
           primaryAddress: obj.address,
           plyrId: obj.plyrId,
           chainId: obj.chainId,
         });
       }
-      await storeTaskResult(id, message, 'SUCCESS');
+
+      if (key === 'claimAirdropReward') {
+        console.log('Claiming airdrop reward:', obj);
+        hash = await claimAirdropReward(obj);
+      }
+
+      await storeTaskResult(id, message, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
       retries++;

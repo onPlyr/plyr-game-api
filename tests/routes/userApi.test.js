@@ -7,11 +7,12 @@ const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { generateHmacSignature } = require('../../src/utils/hmacUtils');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
 const { closeRedisConnection } = require('../../src/db/redis');
+const { generateJwtToken } = require('../../src/utils/jwt');
 
 jest.mock('../../src/models/userInfo');
 
 describe('User API', () => {
-  let userApiKey, privateKey, account;
+  let userApiKey, privateKey, account, secondary;
 
   beforeAll(async () => {
     await connectDB();
@@ -23,6 +24,8 @@ describe('User API', () => {
     });
     privateKey = generatePrivateKey();
     account = privateKeyToAccount(privateKey);
+    privateKey = generatePrivateKey();
+    secondary = privateKeyToAccount(privateKey);
   });
 
   afterAll(async () => {
@@ -89,10 +92,108 @@ describe('User API', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ 
         plyrId: newUser.plyrId.toLowerCase(), 
-        mirror: expectedMirror,
+        mirrorAddress: expectedMirror,
         primaryAddress: newUser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
+    });
+  });
+
+  describe('GET /api/user/info/:plyrId', () => {
+    it('should return user info', async () => {
+      const plyrId = 'testUser';
+      const userInfo = {
+        plyrId: plyrId,
+        primaryAddress: account.address,
+        mirror: calcMirrorAddress(account.address),
+        chainId: 62831,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
+        createdAt: Date.now()
+      };
+
+      UserInfo.findOne.mockResolvedValue(userInfo);
+
+      const response = await makeAuthenticatedRequest(
+        'get',
+        `/api/user/info/${plyrId}`,
+        userApiKey.apiKey,
+        userApiKey.secretKey,
+      );
+
+      expect(response.status).toBe(200);
+      userInfo.mirrorAddress = userInfo.mirror;
+      delete userInfo.mirror;
+      expect(response.body).toEqual(userInfo);
+    });
+  });
+
+  describe('POST /api/user/secondary/bind', () => {
+    it('should success bind secondary address', async () => {
+      const signatureMessage = `PLYR[ID] Secondary Bind`;
+      const signature = await secondary.signMessage({ message: signatureMessage });
+
+      const plyrId = 'testUser';
+      const userInfo = {
+        plyrId: plyrId,
+        primaryAddress: account.address,
+        mirror: calcMirrorAddress(account.address),
+        chainId: 62831,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
+        createdAt: Date.now()
+      };
+
+      UserInfo.findOne.mockResolvedValue(userInfo);
+
+      const response = await makeAuthenticatedRequest(
+        'post', 
+        '/api/user/secondary/bind', 
+        userApiKey.apiKey, 
+        userApiKey.secretKey, 
+        {
+          plyrId,
+          secondaryAddress: secondary.address,
+          signature,
+        }
+      );
+
+      expect(response.status).toBe(200);
+      
+    });
+  });
+
+  describe("GET /api/jwt/publicKey", () => {
+    it('should return the public key', async () => {
+      const response = await makeAuthenticatedRequest(
+        'get',
+        '/api/jwt/publicKey',
+        userApiKey.apiKey,
+        userApiKey.secretKey
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('publicKey');
+    });
+  });
+
+  describe("POST /api/user/session/verify", () => {
+    it('should verify a valid user JWT token', async () => {
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', expiresIn: 10000 });
+      const response = await makeAuthenticatedRequest(
+        'post',
+        '/api/user/session/verify',
+        userApiKey.apiKey,
+        userApiKey.secretKey,
+        {
+          sessionJwt: token,
+          plyrId: 'newTestUser',
+          gameId: 'testPartner',
+          expiresIn: 3600,
+        }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body).toHaveProperty('payload');
     });
   });
 });

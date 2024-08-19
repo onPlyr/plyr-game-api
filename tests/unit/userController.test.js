@@ -5,6 +5,7 @@ const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
 const { calcMirrorAddress } = require('../../src/utils/calcMirror');
 const { closeRedisConnection } = require('../../src/db/redis');
 const { params } = require('../../src/api/routes');
+const { generateJwtToken } = require('../../src/utils/jwt');
 
 const privateKey = generatePrivateKey();
 
@@ -99,7 +100,7 @@ describe('User Controller', () => {
       console.log('ctx.body', ctx.body);
       expect(ctx.body).toEqual({ 
         plyrId: testUser.plyrId.toLowerCase(), 
-        mirror, 
+        mirrorAddress: mirror, 
         primaryAddress: testUser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
@@ -159,6 +160,28 @@ describe('User Controller', () => {
         plyrId: 'testid', 
         avatar: 'https://example.com/avatar.jpg'
       });
+    });
+  });
+
+  describe("Verify User Session", () => {
+    test('should verify a valid user JWT token', async () => {
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', expiresIn: 10000 });
+      const ctx = {
+        request: {
+          header: {apiKey: 'testApiKey'},
+          body: {
+            sessionJwt: token,
+          }
+        }
+      };
+  
+      UserInfo.findOne.mockResolvedValue({ plyrId: 'newTestUser' });
+  
+      await userController.postUserSessionVerify(ctx);
+      console.log(ctx.body);
+      expect(ctx.status).toBe(200);
+      expect(ctx.body.success).toBe(true);
+      expect(ctx.body).toHaveProperty('payload');
     });
   });
 });
