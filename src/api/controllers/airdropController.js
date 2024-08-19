@@ -1,3 +1,4 @@
+const { formatEther } = require("viem");
 const config = require("../../config");
 const userInfo = require("../../models/userInfo");
 const { verifyPlyrid } = require("../../utils/utils");
@@ -43,6 +44,7 @@ exports.getCampaignInfo = async (ctx) => {
     Object.keys(item).map((key) => {
       obj[key] = item[key].toString();
     });
+    obj.unclaimedReward = formatEther(obj.unclaimedReward);
     returnBody.push(obj);
   });
   
@@ -63,6 +65,6 @@ exports.getCampaignClaimableReward = async (ctx) => {
 
   ctx.status = 200;
   ctx.body = {
-    claimableReward: ret.toString()
+    claimableReward: formatEther(ret)
   };
 }
