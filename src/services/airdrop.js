@@ -1,6 +1,7 @@
 const { chain, airdropSC, AIRDROP_ABI } = require('../config');
 
 async function claimAirdropReward({ campaignId, address, playedGame }) {
+  console.log('claimAirdropReward:', campaignId, address, playedGame);
   const hash = await chain.writeContract({
     address: airdropSC,
     abi: AIRDROP_ABI,
