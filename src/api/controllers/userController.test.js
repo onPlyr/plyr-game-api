@@ -1,17 +1,17 @@
-const userController = require('../../src/api/controllers/userController');
-const UserInfo = require('../../src/models/userInfo');
+const userController = require('./userController');
+const UserInfo = require('../../models/userInfo');
 const { verifyMessage } = require('viem');
 const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
-const { calcMirrorAddress } = require('../../src/utils/calcMirror');
-const { closeRedisConnection } = require('../../src/db/redis');
-const { params } = require('../../src/api/routes');
-const { generateJwtToken } = require('../../src/utils/jwt');
+const { calcMirrorAddress } = require('../../utils/calcMirror');
+const { closeRedisConnection } = require('../../db/redis');
+const { params } = require('../routes');
+const { generateJwtToken } = require('../../utils/jwt');
 
 const privateKey = generatePrivateKey();
 
 const account = privateKeyToAccount(privateKey);
 
-jest.mock('../../src/models/userInfo');
+jest.mock('../../models/userInfo');
 
 describe('User Controller', () => {
   let ctx;
