@@ -65,7 +65,7 @@ exports.getCampaignInfo = async (ctx) => {
     let obj = {};
     obj.campaignId = i;
     Object.keys(item).map((key) => {
-      obj[key] = item[key].toString();
+      obj[key] = Number(item[key].toString());
     });
     obj.unclaimedReward = formatEther(obj.unclaimedReward);
     if (obj.startTime * 1000 > Date.now()) {
