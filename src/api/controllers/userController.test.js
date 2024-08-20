@@ -294,8 +294,6 @@ describe('User Controller', () => {
 
       await userController.postLogin(ctx);
 
-      console.log(ctx.body);
-
       expect(ctx.status).toBe(200);
       expect(ctx.body).toHaveProperty('sessionJwt', 'mockedjwttoken');
       expect(ctx.body).toHaveProperty('plyrId', 'testuser');
