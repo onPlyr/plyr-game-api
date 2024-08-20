@@ -336,11 +336,11 @@ exports.postSecondaryBind = async (ctx) => {
     return;
   }
 
-  const singatureMessage = `PLYR[ID] Secondary Bind`;
+  const signatureMessage = `PLYR[ID] Secondary Bind`;
 
   const valid = await verifyMessage({
     address: secondaryAddress,
-    message: singatureMessage,
+    message: signatureMessage,
     signature
   });
 
