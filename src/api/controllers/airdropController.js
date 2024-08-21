@@ -120,8 +120,8 @@ exports.getCampaignUserReward = async (ctx) => {
 
   ctx.status = 200;
   ctx.body = {
-    totalReward: '0',
-    claimedReward: '0',
-    unclaimedReward: '0',
+    totalReward: formatEther(ret[0]),
+    claimedReward: formatEther(ret[1]),
+    unclaimedReward: formatEther(ret[2]),
   };
 }
