@@ -107,3 +107,22 @@ exports.getCampaignClaimableReward = async (ctx) => {
     claimableReward: formatEther(ret)
   };
 }
+
+exports.getCampaignUserReward = async (ctx) => {
+  const { campaignId, address } = ctx.params;
+
+  let ret = await config.chain.readContract({
+    address: config.airdropSC,
+    abi: config.AIRDROP_ABI,
+    functionName: 'userRewards',
+    args: [campaignId, address]
+  });
+  console.log(ret);
+
+  ctx.status = 200;
+  ctx.body = {
+    claimedReward: formatEther(ret[0]),
+    totalReward: formatEther(ret[1]),
+    unclaimedReward: formatEther(ret[1] - ret[0]),
+  };
+}

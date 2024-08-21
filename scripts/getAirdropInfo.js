@@ -39,6 +39,22 @@ async function main() {
   } catch (error) {
     console.log(error.response.data);
   }
+
+  try {
+    let ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/airdrop/campaign/0/userReward/0xc472803f504468387fa97fc03c4f2a87ce4e7460",
+      {
+        headers: {
+          apikey: apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("ret", ret.data);
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
 main().catch(console.error);
