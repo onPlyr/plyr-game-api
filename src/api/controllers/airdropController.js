@@ -5,6 +5,7 @@ const redis = getRedisClient();
 
 exports.postClaim = async (ctx) => {
   const { campaignId, address, playedGame } = ctx.request.body;
+  console.log('postClaim:', campaignId, address, playedGame);
 
   if (typeof playedGame !== 'boolean' || !isAddress(address) || isNaN(campaignId)) {
     ctx.status = 401;
