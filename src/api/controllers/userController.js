@@ -498,6 +498,17 @@ exports.postLogout = async (ctx) => {
 }
 
 exports.postUserSessionVerify = async (ctx) => {
+  const { apikey } = ctx.headers;
+  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
+  if (!userApiKey) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Unauthorized API key'
+    };
+    return;
+  }
+  console.log('userApiKey', userApiKey);
+
   const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
@@ -517,6 +528,14 @@ exports.postUserSessionVerify = async (ctx) => {
     return;
   }
   const gameId = payload.gameId;
+  if (gameId !== userApiKey.plyrId) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'JWT and API key mismatch',
+    };
+    return;
+  }
+
   const nonce = user.nonce ? user.nonce : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (isNaN(payload.nonce) || payload.nonce < gameNonce) {
