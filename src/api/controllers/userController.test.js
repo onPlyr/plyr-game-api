@@ -375,4 +375,89 @@ describe('User Controller', () => {
       expect(ctx.body).toHaveProperty('payload');
     });
   });
+
+  describe('postReset2fa', () => {
+    beforeEach(() => {
+      ctx = {
+        headers: {},
+        request: { body: {} },
+        status: 200,
+        body: {}
+      };
+    });
+
+    test('returns 400 when signature is not a hex string', async () => {
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature: 'invalid-signature',
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Signature must be a hex string' });
+    });
+
+    test('returns 404 when user does not exist', async () => {
+      UserInfo.findOne.mockResolvedValue(null);
+
+      ctx.request.body = {
+        plyrId: 'nonexistentuser',
+        signature: '0x1234',
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(404);
+      expect(ctx.body).toEqual({ error: 'User not found' });
+    });
+
+    test('returns 400 when signature is invalid', async () => {
+      const mockUser = { plyrId: 'testuser', primaryAddress: account.address };
+      UserInfo.findOne.mockResolvedValue(mockUser);
+
+      const signature = await account.signMessage({
+        message: 'Invalid message',
+      });
+
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature,
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Invalid signature' });
+    });
+
+    test('successfully resets 2FA and returns 200', async () => {
+      const mockUser = { plyrId: 'testuser', primaryAddress: account.address };
+      UserInfo.findOne.mockResolvedValue(mockUser);
+      UserInfo.updateOne.mockResolvedValue({});
+
+      const signatureMessage = `PLYR[ID] Reset Two-Factor Authentication`;
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature,
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ message: 'Two-Factor Authentication reset successfully' });
+      expect(UserInfo.updateOne).toHaveBeenCalledWith(
+        { plyrId: 'testuser' },
+        { $set: { secret: 'new-secret' } }
+      );
+    });
+  });
 });

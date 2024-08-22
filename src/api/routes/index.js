@@ -27,6 +27,8 @@ router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecond
 router.post('/user/login', hmacAuth('user'), userController.postLogin);
 router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
+router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);
+
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 

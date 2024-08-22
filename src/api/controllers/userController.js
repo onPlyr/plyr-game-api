@@ -585,3 +585,46 @@ exports.postUserSessionVerify = async (ctx) => {
     payload,
   };
 }
+
+exports.postReset2fa = async (ctx) => {
+  const { plyrId, signature, secret } = ctx.request.body;
+  const signatureMessage = `PLYR[ID] Reset Two-Factor Authentication`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { secret } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Two-Factor Authentication reset successfully'
+  };
+}
