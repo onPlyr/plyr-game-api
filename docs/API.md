@@ -31,7 +31,14 @@ All API requests require HMAC authentication. Include the following headers with
 #### Modify User Avatar
 - **POST** `/api/user/modify/:plyrId/avatar`
 - Update user's avatar
-- Body: `{ avatar }`
+- Body: `{ avatar, signature }`
+- Response: Updated user information including PLYR ID and avatar
+
+#### Reset Two-Factor Authentication
+- **POST** `/api/user/reset2fa`
+- Reset user's two-factor authentication
+- Body: `{ plyrId, signature, secret }`
+- Response: Success message
 
 #### Bind Secondary Address
 - **POST** `/api/user/secondary/bind`
