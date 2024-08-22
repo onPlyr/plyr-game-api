@@ -243,7 +243,7 @@ exports.getUserInfo = async (ctx) => {
 
 exports.postModifyAvatar = async (ctx) => {
   const { plyrId } = ctx.params;
-  const { avatar } = ctx.request.body;
+  const { avatar, signature } = ctx.request.body;
 
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
@@ -261,7 +261,40 @@ exports.postModifyAvatar = async (ctx) => {
     return;
   }
 
+  const signatureMessage = `PLYR[ID] Update Profile Image`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
   const normalizedPlyrId = plyrId.toLowerCase();
+
+  const user = await UserInfo.findOne({ plyrId: normalizedPlyrId });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
 
   const updatedUser = await UserInfo.findOneAndUpdate(
     { plyrId: normalizedPlyrId },

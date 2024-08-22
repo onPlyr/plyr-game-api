@@ -133,6 +133,17 @@ describe('User Controller', () => {
 
     test('returns 400 when avatar is not provided', async () => {
       ctx.request.body = {};
+      UserInfo.findOne.mockResolvedValue(null);
+      UserInfo.findOne.mockResolvedValue(null);
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: '',
+        signature: signature,
+      };
       await userController.postModifyAvatar(ctx);
       expect(ctx.status).toBe(400);
       expect(ctx.body).toEqual({ error: 'Avatar must be a non-empty string' });
@@ -140,6 +151,16 @@ describe('User Controller', () => {
 
     test('returns 404 when user is not found', async () => {
       UserInfo.findOneAndUpdate.mockResolvedValue(null);
+      UserInfo.findOne.mockResolvedValue(null);
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: 'https://example.com/avatar.jpg',
+        signature: signature,
+      };
       await userController.postModifyAvatar(ctx);
       expect(ctx.status).toBe(404);
       expect(ctx.body).toEqual({ error: 'PLYR[ID] not found' });
@@ -148,9 +169,22 @@ describe('User Controller', () => {
     test('successfully updates avatar when all inputs are valid', async () => {
       const updatedUser = {
         plyrId: 'testid',
+        primaryAddress: account.address,
         avatar: 'https://example.com/avatar.jpg',
       };
       UserInfo.findOneAndUpdate.mockResolvedValue(updatedUser);
+      UserInfo.findOne.mockResolvedValue(updatedUser);
+
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: 'https://example.com/avatar.jpg',
+        signature: signature,
+      };
 
       await userController.postModifyAvatar(ctx);
       
