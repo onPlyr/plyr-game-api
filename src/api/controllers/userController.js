@@ -1,7 +1,7 @@
 const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
-const { verifyPlyrid, getAvatarUrl } = require('../../utils/utils');
+const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
 const Secondary = require('../../models/secondary');
 const ApiKey = require('../../models/apiKey');
@@ -422,6 +422,14 @@ exports.postLogin = async (ctx) => {
     ctx.status = 401;
     ctx.body = {
       error: 'Unauthorized API key'
+    };
+    return;
+  }
+
+  if (is2faUsed(plyrId, otp)) {
+    ctx.status = 401;
+    ctx.body = {
+      error: '2FA token already used'
     };
     return;
   }
