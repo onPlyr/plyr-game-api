@@ -415,19 +415,10 @@ exports.getSecondary = async (ctx) => {
 }
 
 exports.postLogin = async (ctx) => {
-  const { apikey } = ctx.headers;
-  const { plyrId, otp, expiresIn } = ctx.request.body;
+  const { plyrId, expiresIn } = ctx.request.body;
+  console.log('ctx.state', ctx.state);
   const user = ctx.state.user;
-
-  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
-  if (!userApiKey) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Unauthorized API key'
-    };
-    return;
-  }
-
+  const userApiKey = ctx.state.apiKey;
   const gameId = userApiKey.plyrId;
 
   const nonce = user.nonce ? user.nonce : {};
@@ -448,7 +439,6 @@ exports.postLogin = async (ctx) => {
 }
 
 exports.postLogout = async (ctx) => {
-  const { apikey } = ctx.headers;
   const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
@@ -459,14 +449,7 @@ exports.postLogout = async (ctx) => {
     return;
   }
 
-  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
-  if (!userApiKey) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Unauthorized API key'
-    };
-    return;
-  }
+  const userApiKey = ctx.state.apiKey;
 
   const gameId = userApiKey.plyrId;
   const plyrId = payload.plyrId;
@@ -500,17 +483,7 @@ exports.postLogout = async (ctx) => {
 }
 
 exports.postUserSessionVerify = async (ctx) => {
-  const { apikey } = ctx.headers;
-  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
-  if (!userApiKey) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Unauthorized API key'
-    };
-    return;
-  }
-  console.log('userApiKey', userApiKey);
-
+  const userApiKey = ctx.state.apiKey;
   const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {

@@ -325,6 +325,7 @@ describe('User Controller', () => {
 
       ctx.state = {
         user: mockUser,
+        apiKey: { plyrId: 'testgame' },
       }
 
       generateJwtToken.mockReturnValue('mockedjwttoken');
@@ -354,6 +355,9 @@ describe('User Controller', () => {
 
       ctx.headers = { apikey: 'validapikey' };
       ctx.request.body = { sessionJwt: 'validjwt' };
+      ctx.state = {
+        apiKey: { plyrId: 'testgame' }
+      };
 
       await userController.postLogout(ctx);
 
@@ -372,6 +376,8 @@ describe('User Controller', () => {
       verifyToken.mockReturnValue({ plyrId: 'testuser', nonce: 1, gameId: 'testgame' });
 
       UserInfo.findOne.mockResolvedValue({ plyrId: 'testuser', nonce: { testgame: 0 } });
+
+      ctx.state = { apiKey: { plyrId: 'testgame' } };
 
       await userController.postUserSessionVerify(ctx);
       expect(ctx.status).toBe(200);
