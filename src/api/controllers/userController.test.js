@@ -323,6 +323,10 @@ describe('User Controller', () => {
         expiresIn: 3600,
       };
 
+      ctx.state = {
+        user: mockUser,
+      }
+
       generateJwtToken.mockReturnValue('mockedjwttoken');
       authenticator.verify.mockReturnValue(true);
 
