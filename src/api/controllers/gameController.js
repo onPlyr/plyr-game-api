@@ -1,15 +1,22 @@
 const { getRedisClient } = require("../../db/redis");
 const ApiKey = require('../../models/apiKey');
 const UserInfo = require('../../models/userInfo');
+const UserApprove = require('../../models/userApprove');
 
 const redis = getRedisClient();
 
+const approve = async ({plyrId, gameId, amount, expiresIn}) => {
+  await UserApprove.updateOne({plyrId, gameId}, {plyrId, gameId, amount, expiresIn}, {upsert: true});
+}
 
+const getAllowance = async ({plyrId, gameId}) => {
+  const userApprove = await UserApprove.findOne({plyrId, gameId});
+  return userApprove.amount;
+}
 
-
-const approve = async ({plyrId, gameId, amount, expiresIn}) => {}
-
-const revoke = async ({plyrId, gameId}) => {}
+const revoke = async ({plyrId, gameId}) => {
+  await UserApprove.deleteOne({plyrId, gameId});
+}
 
 const create = async ({gameId, expiresIn}) => {}
 
@@ -29,13 +36,39 @@ const multicall = async ({gameId, functionDatas}) => {}
 
 const postGameApprove = async (ctx) => {
   const { plyrId, gameId, amount, expiresIn } = ctx.request.body;
-  const user = ctx.state.user;
-
-  ctx.status = 200;
-  ctx.body = { message: 'Approved' };
+  try {
+    await approve({ plyrId, gameId, amount, expiresIn });
+    ctx.status = 200;
+    ctx.body = { message: 'Approved' };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
 }
 
-const postGameRevoke = async (ctx) => {}
+const getGameAllowance = async (ctx) => {
+  const { plyrId, gameId } = ctx.request.body;
+  try {
+    const allowance = await getAllowance({ plyrId, gameId });
+    ctx.status = 200;
+    ctx.body = { allowance };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const postGameRevoke = async (ctx) => {
+  const { plyrId, gameId } = ctx.request.body;
+  try {
+    await revoke({ plyrId, gameId });
+    ctx.status = 200;
+    ctx.body = { message: 'Revoked' };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
 const postGameCreate = async (ctx) => {}
 
@@ -55,6 +88,7 @@ const postGameMulticall = async (ctx) => {}
 
 module.exports = {
   postGameApprove,
+  getGameAllowance,
   postGameRevoke,
   postGameCreate,
   postGameJoin,
