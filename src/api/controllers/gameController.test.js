@@ -25,6 +25,7 @@ describe('Game Controller', () => {
       const approveData = {
         plyrId: 'testPlayer',
         gameId: 'testGame',
+        token: 'plyr',
         amount: 100,
         expiresIn: 3600
       };
@@ -36,7 +37,7 @@ describe('Game Controller', () => {
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({ message: 'Approved' });
       expect(UserApprove.updateOne).toHaveBeenCalledWith(
-        { plyrId: 'testPlayer', gameId: 'testGame' },
+        { plyrId: 'testPlayer', gameId: 'testGame', token: 'plyr' },
         approveData,
         { upsert: true }
       );
@@ -59,6 +60,42 @@ describe('Game Controller', () => {
   });
 
   describe('getGameAllowance', () => {
+    test('successfully gets allowance for non-expired approval', async () => {
+      const now = new Date();
+      ctx.request.body = {
+        plyrId: 'testPlayer',
+        gameId: 'testGame',
+        token: 'plyr'
+      };
+      UserApprove.findOne.mockResolvedValue({
+        amount: 100,
+        expiresIn: 3600,
+        createdAt: new Date(now.getTime() - 1000000) // 1000 seconds ago
+      });
+
+      await gameController.getGameAllowance(ctx);
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ allowance: 100 });
+    });
+
+    test('returns 0 allowance for expired approval', async () => {
+      const now = new Date();
+      ctx.request.body = {
+        plyrId: 'testPlayer',
+        gameId: 'testGame',
+        token: 'plyr'
+      };
+      UserApprove.findOne.mockResolvedValue({
+        amount: 100,
+        expiresIn: 3600,
+        createdAt: new Date(now.getTime() - 4000000) // 4000 seconds ago, which is more than expiresIn
+      });
+
+      await gameController.getGameAllowance(ctx);
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ allowance: 0 });
+    });
+
     test('successfully gets allowance', async () => {
       ctx.request.body = {
         plyrId: 'testPlayer',
@@ -87,6 +124,43 @@ describe('Game Controller', () => {
   });
 
   describe('postGameRevoke', () => {
+    test('successfully revokes approval for specific token', async () => {
+      ctx.request.body = {
+        plyrId: 'testPlayer',
+        gameId: 'testGame',
+        token: 'plyr'
+      };
+      UserApprove.deleteOne.mockResolvedValue({});
+
+      await gameController.postGameRevoke(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ message: 'Revoked' });
+      expect(UserApprove.deleteOne).toHaveBeenCalledWith({
+        plyrId: 'testPlayer',
+        gameId: 'testGame',
+        token: 'plyr'
+      });
+    });
+
+    test('successfully revokes all approvals', async () => {
+      ctx.request.body = {
+        plyrId: 'testPlayer',
+        gameId: 'testGame',
+        token: 'all'
+      };
+      UserApprove.deleteMany.mockResolvedValue({});
+
+      await gameController.postGameRevoke(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ message: 'Revoked' });
+      expect(UserApprove.deleteMany).toHaveBeenCalledWith({
+        plyrId: 'testPlayer',
+        gameId: 'testGame'
+      });
+    });
+
     test('successfully revokes approval', async () => {
       ctx.request.body = {
         plyrId: 'testPlayer',

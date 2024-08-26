@@ -5,17 +5,29 @@ const UserApprove = require('../../models/userApprove');
 
 const redis = getRedisClient();
 
-const approve = async ({plyrId, gameId, amount, expiresIn}) => {
-  await UserApprove.updateOne({plyrId, gameId}, {plyrId, gameId, amount, expiresIn}, {upsert: true});
+const TOKEN_LIST = {
+  'plyr': '0x0000000000000000000000000000000000000000',
+  'gamr': '0xa875625fe8A955406523E52E485f351b92908ce1', // testnet
+};
+
+const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
+  await UserApprove.updateOne({plyrId, gameId, token}, {plyrId, gameId, token, amount, expiresIn}, {upsert: true});
 }
 
-const getAllowance = async ({plyrId, gameId}) => {
-  const userApprove = await UserApprove.findOne({plyrId, gameId});
+const getAllowance = async ({plyrId, gameId, token}) => {
+  const userApprove = await UserApprove.findOne({plyrId, gameId, token});
+  if ((userApprove.expiresIn * 1000) + new Date(userApprove.createdAt).getTime() < Date.now()) {
+    return 0;
+  }
   return userApprove.amount;
 }
 
-const revoke = async ({plyrId, gameId}) => {
-  await UserApprove.deleteOne({plyrId, gameId});
+const revoke = async ({plyrId, gameId, token}) => {
+  if (token === 'all') {
+    await UserApprove.deleteMany({plyrId, gameId});
+  } else {
+    await UserApprove.deleteOne({plyrId, gameId, token});
+  }
 }
 
 const create = async ({gameId, expiresIn}) => {}
@@ -35,9 +47,9 @@ const close = async ({gameId, roomId}) => {}
 const multicall = async ({gameId, functionDatas}) => {}
 
 const postGameApprove = async (ctx) => {
-  const { plyrId, gameId, amount, expiresIn } = ctx.request.body;
+  const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
   try {
-    await approve({ plyrId, gameId, amount, expiresIn });
+    await approve({ plyrId, gameId, token, amount, expiresIn });
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
   } catch (error) {
@@ -47,9 +59,9 @@ const postGameApprove = async (ctx) => {
 }
 
 const getGameAllowance = async (ctx) => {
-  const { plyrId, gameId } = ctx.request.body;
+  const { plyrId, gameId, token } = ctx.request.body;
   try {
-    const allowance = await getAllowance({ plyrId, gameId });
+    const allowance = await getAllowance({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { allowance };
   } catch (error) {
@@ -59,9 +71,9 @@ const getGameAllowance = async (ctx) => {
 }
 
 const postGameRevoke = async (ctx) => {
-  const { plyrId, gameId } = ctx.request.body;
+  const { plyrId, gameId, token } = ctx.request.body;
   try {
-    await revoke({ plyrId, gameId });
+    await revoke({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
   } catch (error) {
