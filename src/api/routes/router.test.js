@@ -62,7 +62,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
       expect(response.status).toBe(200);
     });
@@ -78,7 +78,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(401);
@@ -97,7 +97,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(404);
@@ -122,7 +122,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(403);
@@ -150,7 +150,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp: invalidOtp, gameId: 'testGame', amount: '100', expiresIn: 3600 }
+        { plyrId, otp: invalidOtp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(401);
@@ -159,6 +159,33 @@ describe('OTP Auth Middleware', () => {
         { plyrId: user.plyrId },
         { $inc: { loginFailedCount: 1 } }
       );
+    });
+
+    it('should return 401 if token is invalid', async () => {
+      const plyrId = 'testUser';
+      const secret = 'TESTSECRET';
+      const otp = authenticator.generate(secret);
+      const invalidToken = 'invalidToken';
+
+      const user = {
+        plyrId,
+        secret,
+        bannedAt: 0,
+      };
+
+      UserInfo.findOne.mockResolvedValue(user);
+      is2faUsed.mockReturnValue(false);
+
+      const response = await makeAuthenticatedRequest(
+        'post',
+        '/api/game/approve',
+        userApiKey.apiKey,
+        userApiKey.secretKey,
+        { plyrId, otp, gameId: 'testGame', token: invalidToken, amount: '100', expiresIn: 3600 }
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({ error: 'Invalid token' });
     });
   });
 

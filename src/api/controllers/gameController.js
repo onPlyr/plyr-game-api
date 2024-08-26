@@ -5,11 +5,6 @@ const UserApprove = require('../../models/userApprove');
 
 const redis = getRedisClient();
 
-const TOKEN_LIST = {
-  'plyr': '0x0000000000000000000000000000000000000000',
-  'gamr': '0xa875625fe8A955406523E52E485f351b92908ce1', // testnet
-};
-
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token}, {plyrId, gameId, token, amount, expiresIn}, {upsert: true});
 }

@@ -7,6 +7,7 @@ const airdropController = require('../controllers/airdropController');
 const gameController = require('../controllers/gameController');
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
+const checkToken = require('../middlewares/checkToken');
 
 const router = new Router({
   prefix: '/api'
@@ -44,9 +45,9 @@ router.get('/airdrop/campaign/info', hmacAuth('user'), airdropController.getCamp
 router.get('/airdrop/campaign/:campaignId/claimableReward/:address', hmacAuth('user'), airdropController.getCampaignClaimableReward);
 router.get('/airdrop/campaign/:campaignId/userReward/:address', hmacAuth('user'), airdropController.getCampaignUserReward);
 
-router.post('/game/approve', hmacAuth('user'), otpAuth, gameController.postGameApprove);
+router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, gameController.postGameApprove);
 router.get('/game/allowance', hmacAuth('user'), gameController.getGameAllowance);
-router.post('/game/revoke', hmacAuth('user'), otpAuth, gameController.postGameRevoke);
+router.post('/game/revoke', hmacAuth('user'), otpAuth, checkToken, gameController.postGameRevoke);
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), gameController.postGameJoin);
 router.post('/game/leave', hmacAuth('user'), gameController.postGameLeave);
