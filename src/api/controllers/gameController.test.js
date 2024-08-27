@@ -1,9 +1,18 @@
-const gameController = require('./gameController');
 const UserApprove = require('../../models/userApprove');
-const { closeRedisConnection } = require('../../db/redis');
+const { getRedisClient, closeRedisConnection } = require('../../db/redis');
+const redis = require('../../db/redis');
+const gameController = require('./gameController');
 
 jest.mock('../../models/userApprove');
 jest.mock('../../db/redis');
+
+const mockXadd = jest.fn().mockResolvedValue('mockedTaskId');
+const mockRedisClient = {
+  xadd: mockXadd,
+};
+
+// Mock the getRedisClient function to always return our mockRedisClient
+redis.getRedisClient.mockReturnValue(mockRedisClient);
 
 describe('Game Controller', () => {
   let ctx;
@@ -189,6 +198,60 @@ describe('Game Controller', () => {
 
       expect(ctx.status).toBe(500);
       expect(ctx.body).toEqual({ error: 'Database error' });
+    });
+  });
+
+  describe('postGameCreate', () => {
+    test('successfully creates a game', async () => {
+      ctx.request.body = { expiresIn: 3600 };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameCreate(ctx);
+      console.log(ctx.body);
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'createGameRoom',
+        JSON.stringify({
+          gameId: 'testGameId',
+          expiresIn: 3600,
+        })
+      );
+    });
+
+    test('uses default expiresIn when not provided', async () => {
+      ctx.request.body = {};
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameCreate(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'createGameRoom',
+        JSON.stringify({
+          gameId: 'testGameId',
+          expiresIn: 30 * 24 * 60 * 60,
+        })
+      );
     });
   });
 

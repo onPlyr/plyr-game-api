@@ -3,8 +3,6 @@ const ApiKey = require('../../models/apiKey');
 const UserInfo = require('../../models/userInfo');
 const UserApprove = require('../../models/userApprove');
 
-const redis = getRedisClient();
-
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token}, {plyrId, gameId, token, amount, expiresIn}, {upsert: true});
 }
@@ -25,7 +23,18 @@ const revoke = async ({plyrId, gameId, token}) => {
   }
 }
 
-const create = async ({gameId, expiresIn}) => {}
+const create = async ({gameId, expiresIn}) => {
+  if (!expiresIn) {
+    expiresIn = 30 * 24 * 60 * 60;
+  }
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'createGameRoom', JSON.stringify({
+    gameId,
+    expiresIn,
+  }));
+  return taskId;
+}
 
 const join = async ({plyrId, gameId, roomId}) => {}
 
@@ -77,7 +86,21 @@ const postGameRevoke = async (ctx) => {
   }
 }
 
-const postGameCreate = async (ctx) => {}
+const postGameCreate = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { expiresIn } = ctx.request.body;
+  try {
+    const taskId = await create({ gameId, expiresIn });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
 const postGameJoin = async (ctx) => {}
 
