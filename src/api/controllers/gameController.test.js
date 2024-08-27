@@ -255,5 +255,211 @@ describe('Game Controller', () => {
     });
   });
 
+  describe('postGameJoin', () => {
+    test('successfully joins a game', async () => {
+      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom' };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameJoin(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'joinGameRoom',
+        JSON.stringify({
+          plyrId: 'testPlayer',
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+        })
+      );
+    });
+  });
+
+  describe('postGameLeave', () => {
+    test('successfully leaves a game', async () => {
+      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom' };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameLeave(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'leaveGameRoom',
+        JSON.stringify({
+          plyrId: 'testPlayer',
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+        })
+      );
+    });
+  });
+
+  describe('postGamePay', () => {
+    test('successfully processes a payment', async () => {
+      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom', token: 'testToken', amount: 100 };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGamePay(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'payGameRoom',
+        JSON.stringify({
+          plyrId: 'testPlayer',
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+          token: 'testToken',
+          amount: 100,
+        })
+      );
+    });
+  });
+
+  describe('postGameEarn', () => {
+    test('successfully processes earnings', async () => {
+      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom', token: 'testToken', amount: 200 };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameEarn(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'earnGameRoom',
+        JSON.stringify({
+          plyrId: 'testPlayer',
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+          token: 'testToken',
+          amount: 200,
+        })
+      );
+    });
+  });
+
+  describe('postGameEnd', () => {
+    test('successfully ends a game', async () => {
+      ctx.request.body = { roomId: 'testRoom' };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameEnd(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'endGameRoom',
+        JSON.stringify({
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+        })
+      );
+    });
+  });
+
+  describe('postGameClose', () => {
+    test('successfully closes a game', async () => {
+      ctx.request.body = { gameId: 'testGameId', roomId: 'testRoom' };
+
+      await gameController.postGameClose(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'closeGameRoom',
+        JSON.stringify({
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+        })
+      );
+    });
+  });
+
+  describe('postGameMulticall', () => {
+    test('successfully processes multiple calls', async () => {
+      const functionDatas = [
+        { function: 'join', params: { plyrId: 'player1', roomId: 'room1' } },
+        { function: 'pay', params: { plyrId: 'player1', roomId: 'room1', token: 'token1', amount: 50 } },
+      ];
+      ctx.request.body = { roomId: 'testRoom', functionDatas };
+      ctx.state = {
+        apiKey: { plyrId: 'testGameId' },
+      };
+
+      await gameController.postGameMulticall(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({
+        task: {
+          id: 'mockedTaskId',
+          status: 'PENDING',
+        },
+      });
+      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
+        'mystream',
+        '*',
+        'multicallGameRoom',
+        JSON.stringify({
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+          functionDatas,
+        })
+      );
+    });
+  });
+
   // Add more tests for other functions as needed
 });

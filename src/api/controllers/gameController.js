@@ -36,19 +36,84 @@ const create = async ({gameId, expiresIn}) => {
   return taskId;
 }
 
-const join = async ({plyrId, gameId, roomId}) => {}
+const join = async ({plyrId, gameId, roomId}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'joinGameRoom', JSON.stringify({
+    plyrId,
+    gameId,
+    roomId,
+  }));
+  return taskId;
+}
 
-const leave = async ({plyrId, gameId, roomId}) => {}
+const leave = async ({plyrId, gameId, roomId}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'leaveGameRoom', JSON.stringify({
+    plyrId,
+    gameId,
+    roomId,
+  }));
+  return taskId;
+}
 
-const pay = async ({plyrId, gameId, roomId, amount}) => {}
+const pay = async ({plyrId, gameId, roomId, token, amount}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'payGameRoom', JSON.stringify({
+    plyrId,
+    gameId,
+    roomId,
+    token,
+    amount,
+  }));
+  return taskId;
+}
 
-const earn = async ({plyrId, gameId, roomId, amount}) => {}
+const earn = async ({plyrId, gameId, roomId, token, amount}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'earnGameRoom', JSON.stringify({
+    plyrId,
+    gameId,
+    roomId,
+    token,
+    amount,
+  }));
+  return taskId;
+}
 
-const end = async ({gameId, roomId}) => {}
+const end = async ({gameId, roomId}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'endGameRoom', JSON.stringify({
+    gameId,
+    roomId,
+  }));
+  return taskId;
+}
 
-const close = async ({gameId, roomId}) => {}
+const close = async ({gameId, roomId}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'closeGameRoom', JSON.stringify({
+    gameId,
+    roomId,
+  }));
+  return taskId;
+}
 
-const multicall = async ({gameId, functionDatas}) => {}
+const multicall = async ({gameId, roomId, functionDatas}) => {
+  const redis = getRedisClient();
+  const STREAM_KEY = 'mystream';
+  const taskId = await redis.xadd(STREAM_KEY, '*', 'multicallGameRoom', JSON.stringify({
+    gameId,
+    roomId,
+    functionDatas,
+  }));
+  return taskId;
+}
 
 const postGameApprove = async (ctx) => {
   const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
@@ -102,19 +167,116 @@ const postGameCreate = async (ctx) => {
   }
 }
 
-const postGameJoin = async (ctx) => {}
+const postGameJoin = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { plyrId, roomId } = ctx.request.body;
+  try {
+    const taskId = await join({ gameId, plyrId, roomId });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGameLeave = async (ctx) => {}
+const postGameLeave = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { plyrId, roomId } = ctx.request.body;
+  try {
+    const taskId = await leave({ gameId, plyrId, roomId });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGamePay = async (ctx) => {}
+const postGamePay = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { plyrId, roomId, token, amount } = ctx.request.body;
+  try {
+    const taskId = await pay({ gameId, plyrId, roomId, token, amount });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGameEarn = async (ctx) => {}
+const postGameEarn = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { plyrId, roomId, token, amount } = ctx.request.body;
+  try {
+    const taskId = await earn({ gameId, plyrId, roomId, token, amount });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGameEnd = async (ctx) => {}
+const postGameEnd = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { roomId } = ctx.request.body;  
+  try {
+    const taskId = await end({ gameId, roomId });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGameClose = async (ctx) => {}
+const postGameClose = async (ctx) => {
+  const { gameId, roomId } = ctx.request.body;
+  try {
+    const taskId = await close({ gameId, roomId });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
-const postGameMulticall = async (ctx) => {}
+const postGameMulticall = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { roomId, functionDatas } = ctx.request.body;
+  try {
+    const taskId = await multicall({ gameId, roomId, functionDatas });
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
 
 module.exports = {
   postGameApprove,
