@@ -51,7 +51,7 @@ router.get('/game/allowance', hmacAuth('user'), gameController.getGameAllowance)
 router.post('/game/revoke', hmacAuth('user'), otpAuth, checkToken, gameController.postGameRevoke);
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), checkSessionJwts, gameController.postGameJoin);
-router.post('/game/leave', hmacAuth('user'), gameController.postGameLeave);
+router.post('/game/leave', hmacAuth('user'), checkSessionJwts, gameController.postGameLeave);
 router.post('/game/pay', hmacAuth('user'), checkSessionJwts, gameController.postGamePay);
 router.post('/game/earn', hmacAuth('user'), checkSessionJwts, gameController.postGameEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
