@@ -4,6 +4,7 @@ const { createUser } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
 const { claimAirdropReward } = require('../services/airdrop');
+const gameRoom = require('../services/game');
 
 const redis = getRedisClient();
 
@@ -61,6 +62,12 @@ async function processMessage(id, message) {
       if (key === 'claimAirdropReward') {
         console.log('Claiming airdrop reward:', obj);
         hash = await claimAirdropReward(obj);
+      }
+
+      if (key.includes('GameRoom')) {
+        console.log('Processing game room task:', key, obj);
+        let func = key.split('GameRoom')[0];
+        hash = await gameRoom[func](obj);
       }
 
       await storeTaskResult(id, message, 'SUCCESS', hash);
