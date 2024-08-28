@@ -28,7 +28,7 @@ async function main() {
 
     try {
       let ret = await axios.post(
-        "https://api-testnet.plyr.network/api/user/register",
+        process.env.API_ENDPOINT + "/api/user/register",
         // "http://localhost:3000/api/user/register",
         newUser,
         {
