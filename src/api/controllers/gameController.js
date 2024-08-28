@@ -184,10 +184,32 @@ const postGameClose = async (ctx) => {
   }
 }
 
+
+// Input:
+// const functionDatas = [
+//   { function: 'join', params: { roomId: 'room1' } },
+//   { function: 'pay', params: { roomId: 'room1', plyrId: 'player1', token: 'token1', amount: 50 } },
+// ];
 const postGameMulticall = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { roomId, functionDatas, sessionJwts } = ctx.request.body;
   try {
+    if (!functionDatas || functionDatas.length === 0) {
+      ctx.status = 400;
+      ctx.body = { error: 'functionDatas is required' };
+      return;
+    }
+
+    // check function in functionDatas, only support join, pay, earn, end
+    const allowedFunctions = ['join', 'pay', 'earn', 'end'];
+    for (let i=0; i<functionDatas.length; i++) {
+      if (!allowedFunctions.includes(functionDatas[i].function)) {
+        ctx.status = 400;
+        ctx.body = { error: `function ${functionDatas[i].function} is not allowed` };
+        return;
+      }
+    }
+
     const taskId = await insertTask({ gameId, roomId, functionDatas, sessionJwts }, 'multicallGameRoom');
     ctx.status = 200;
     ctx.body = { task: {

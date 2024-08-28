@@ -1,9 +1,5 @@
 const { isAddress } = require("viem");
-
-const TOKEN_LIST = {
-  'plyr': '0x0000000000000000000000000000000000000000',
-  'gamr': '0xa875625fe8A955406523E52E485f351b92908ce1', // testnet
-};
+const { TOKEN_LIST } = require('../../config');
 
 const checkToken = async (ctx, next) => {
   const { token } = ctx.request.body;

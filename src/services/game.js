@@ -1,4 +1,6 @@
 const { chain, gameRuleV1SC, GAME_RULE_V1_ABI } = require('../config');
+import { encodeFunctionData, erc20Abi, isAddress } from 'viem';
+
 
 async function create({gameId, expiresIn}) {
   const hash = await chain.writeContract({
@@ -14,6 +16,8 @@ async function create({gameId, expiresIn}) {
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
   });
+
+  // TODO: get GameRoom ID and Contract Address from receipt
 
   console.log('create receipt:', receipt);
   return hash;
@@ -60,6 +64,23 @@ async function leave({plyrIds, gameId, roomId}) {
 }
 
 async function pay({plyrId, gameId, roomId, token, amount}) {
+  let tokenAddress;
+  let decimals;
+  if (isAddress(token)) {
+    tokenAddress = token;
+    decimals = await chain.readContract({
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: 'decimals',
+      args: [],
+    });
+  } else if (TOKEN_LIST[token.toLowerCase()]) {
+    tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+    decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+  } else {
+    throw new Error('Invalid token: ' + token);
+  }
+
   const hash = await chain.writeContract({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
@@ -68,8 +89,8 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
       gameId,
       roomId,
       plyrId,
-      token, 
-      amount
+      tokenAddress, 
+      parseUnits(amount, decimals),
     ]
   });
 
@@ -82,6 +103,23 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
 }
 
 async function earn({plyrId,gameId, roomId, token, amount}) {
+  let tokenAddress;
+  let decimals;
+  if (isAddress(token)) {
+    tokenAddress = token;
+    decimals = await chain.readContract({
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: 'decimals',
+      args: [],
+    });
+  } else if (TOKEN_LIST[token.toLowerCase()]) {
+    tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+    decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+  } else {
+    throw new Error('Invalid token: ' + token);
+  }
+
   const hash = await chain.writeContract({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
@@ -90,8 +128,8 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
       gameId,
       roomId,
       plyrId,
-      token, 
-      amount
+      tokenAddress, 
+      parseUnits(amount, decimals),
     ]
   });
 
@@ -138,6 +176,91 @@ async function close({gameId, roomId}) {
   });
 
   console.log('close receipt:', receipt);
+  return hash;
+}
+
+// Input:
+// const functionDatas = [
+//   { function: 'join', params: { roomId: 'room1' } },
+//   { function: 'pay', params: { roomId: 'room1', plyrId: 'plyr1', token: 'token1', amount: 50 } },
+// ];
+async function multicall({ gameId, roomId, functionDatas, sessionJwts }) {
+  let datas = [];
+  for (const functionData of functionDatas) {
+    const { function: functionName, params } = functionData;
+    if (functionName === 'join' || functionName === 'leave') {
+      const plyrIds = Object.keys(sessionJwts);
+      const _data = encodeFunctionData({
+        abi: GAME_RULE_V1_ABI,
+        functionName,
+        args: [
+          gameId,
+          roomId,
+          plyrIds,
+        ],
+      });
+      datas.push(_data);
+    }
+
+    if (functionName === 'pay' || functionName === 'earn') {
+      let tokenAddress;
+      let decimals;
+      if (isAddress(params.token)) {
+        tokenAddress = params.token;
+        decimals = await chain.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'decimals',
+          args: [],
+        });
+      } else if (TOKEN_LIST[params.token.toLowerCase()]) {
+        tokenAddress = TOKEN_LIST[params.token.toLowerCase()].address;
+        decimals = TOKEN_LIST[params.token.toLowerCase()].decimals;
+      } else {
+        throw new Error('Invalid token: ' + params.token);
+      }
+      
+      const _data = encodeFunctionData({
+        abi: GAME_RULE_V1_ABI,
+        functionName,
+        args: [
+          gameId,
+          roomId,
+          params.plyrId,
+          tokenAddress,
+          parseUnits(params.amount, decimals),
+        ],
+      });
+      datas.push(_data);
+    }
+
+    if (functionName === 'end' || functionName === 'close') {
+      const _data = encodeFunctionData({
+        abi: GAME_RULE_V1_ABI,
+        functionName,
+        args: [
+          gameId,
+          roomId,
+        ],
+      });
+      datas.push(_data);
+    }
+  }
+
+  const hash = await chain.writeContract({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'multicall',
+    args: [
+      datas,
+    ],
+  });
+
+  const receipt = await chain.waitForTransactionReceipt({
+    hash: hash,
+  });
+
+  console.log('multicall receipt:', receipt);
   return hash;
 }
 
