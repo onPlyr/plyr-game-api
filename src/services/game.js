@@ -1,5 +1,7 @@
 const { chain, gameRuleV1SC, GAME_RULE_V1_ABI } = require('../config');
-import { encodeFunctionData, erc20Abi, isAddress } from 'viem';
+const { encodeFunctionData, erc20Abi, isAddress, parseUnits } = require('viem');
+const { TOKEN_LIST } = require('../config');
+
 
 
 async function create({gameId, expiresIn}) {
