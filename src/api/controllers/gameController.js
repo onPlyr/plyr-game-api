@@ -36,22 +36,22 @@ const create = async ({gameId, expiresIn}) => {
   return taskId;
 }
 
-const join = async ({plyrId, gameId, roomId}) => {
+const join = async ({plyrIds, gameId, roomId}) => {
   const redis = getRedisClient();
   const STREAM_KEY = 'mystream';
   const taskId = await redis.xadd(STREAM_KEY, '*', 'joinGameRoom', JSON.stringify({
-    plyrId,
+    plyrIds,
     gameId,
     roomId,
   }));
   return taskId;
 }
 
-const leave = async ({plyrId, gameId, roomId}) => {
+const leave = async ({plyrIds, gameId, roomId}) => {
   const redis = getRedisClient();
   const STREAM_KEY = 'mystream';
   const taskId = await redis.xadd(STREAM_KEY, '*', 'leaveGameRoom', JSON.stringify({
-    plyrId,
+    plyrIds,
     gameId,
     roomId,
   }));
@@ -104,13 +104,14 @@ const close = async ({gameId, roomId}) => {
   return taskId;
 }
 
-const multicall = async ({gameId, roomId, functionDatas}) => {
+const multicall = async ({gameId, roomId, functionDatas, sessionJwts}) => {
   const redis = getRedisClient();
   const STREAM_KEY = 'mystream';
   const taskId = await redis.xadd(STREAM_KEY, '*', 'multicallGameRoom', JSON.stringify({
     gameId,
     roomId,
     functionDatas,
+    sessionJwts,
   }));
   return taskId;
 }
@@ -169,9 +170,10 @@ const postGameCreate = async (ctx) => {
 
 const postGameJoin = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { plyrId, roomId } = ctx.request.body;
+  const { roomId, sessionJwts } = ctx.request.body;
   try {
-    const taskId = await join({ gameId, plyrId, roomId });
+    const plyrIds = Object.keys(sessionJwts);
+    const taskId = await join({ plyrIds, gameId, roomId });
     ctx.status = 200;
     ctx.body = { task: {
       id: taskId,
@@ -185,9 +187,10 @@ const postGameJoin = async (ctx) => {
 
 const postGameLeave = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { plyrId, roomId } = ctx.request.body;
+  const { sessionJwts, roomId } = ctx.request.body;
   try {
-    const taskId = await leave({ gameId, plyrId, roomId });
+    const plyrIds = Object.keys(sessionJwts);
+    const taskId = await leave({ gameId, plyrIds, roomId });
     ctx.status = 200;
     ctx.body = { task: {
       id: taskId,
@@ -201,8 +204,9 @@ const postGameLeave = async (ctx) => {
 
 const postGamePay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { plyrId, roomId, token, amount } = ctx.request.body;
+  const { sessionJwts, roomId, token, amount } = ctx.request.body;
   try {
+    const plyrId = Object.keys(sessionJwts)[0];
     const taskId = await pay({ gameId, plyrId, roomId, token, amount });
     ctx.status = 200;
     ctx.body = { task: {
@@ -217,8 +221,9 @@ const postGamePay = async (ctx) => {
 
 const postGameEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { plyrId, roomId, token, amount } = ctx.request.body;
+  const { sessionJwts, roomId, token, amount } = ctx.request.body;
   try {
+    const plyrId = Object.keys(sessionJwts)[0];
     const taskId = await earn({ gameId, plyrId, roomId, token, amount });
     ctx.status = 200;
     ctx.body = { task: {
@@ -264,9 +269,9 @@ const postGameClose = async (ctx) => {
 
 const postGameMulticall = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { roomId, functionDatas } = ctx.request.body;
+  const { roomId, functionDatas, sessionJwts } = ctx.request.body;
   try {
-    const taskId = await multicall({ gameId, roomId, functionDatas });
+    const taskId = await multicall({ gameId, roomId, functionDatas, sessionJwts });
     ctx.status = 200;
     ctx.body = { task: {
       id: taskId,

@@ -257,13 +257,13 @@ describe('Game Controller', () => {
 
   describe('postGameJoin', () => {
     test('successfully joins a game', async () => {
-      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom' };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
-
+  
       await gameController.postGameJoin(ctx);
-
+  
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
         task: {
@@ -276,23 +276,23 @@ describe('Game Controller', () => {
         '*',
         'joinGameRoom',
         JSON.stringify({
-          plyrId: 'testPlayer',
+          plyrIds: ['player1', 'player2'],
           gameId: 'testGameId',
           roomId: 'testRoom',
         })
       );
     });
   });
-
+  
   describe('postGameLeave', () => {
     test('successfully leaves a game', async () => {
-      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom' };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
-
+  
       await gameController.postGameLeave(ctx);
-
+  
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
         task: {
@@ -305,23 +305,23 @@ describe('Game Controller', () => {
         '*',
         'leaveGameRoom',
         JSON.stringify({
-          plyrId: 'testPlayer',
+          plyrIds: ['player1', 'player2'],
           gameId: 'testGameId',
           roomId: 'testRoom',
         })
       );
     });
   });
-
+  
   describe('postGamePay', () => {
     test('successfully processes a payment', async () => {
-      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom', token: 'testToken', amount: 100 };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: { testPlayer: 'jwt1' }, token: 'testToken', amount: 100 };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
-
+  
       await gameController.postGamePay(ctx);
-
+  
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
         task: {
@@ -343,16 +343,16 @@ describe('Game Controller', () => {
       );
     });
   });
-
+  
   describe('postGameEarn', () => {
     test('successfully processes earnings', async () => {
-      ctx.request.body = { plyrId: 'testPlayer', roomId: 'testRoom', token: 'testToken', amount: 200 };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: { testPlayer: 'jwt1' }, token: 'testToken', amount: 200 };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
-
+  
       await gameController.postGameEarn(ctx);
-
+  
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
         task: {
@@ -431,16 +431,16 @@ describe('Game Controller', () => {
   describe('postGameMulticall', () => {
     test('successfully processes multiple calls', async () => {
       const functionDatas = [
-        { function: 'join', params: { plyrId: 'player1', roomId: 'room1' } },
-        { function: 'pay', params: { plyrId: 'player1', roomId: 'room1', token: 'token1', amount: 50 } },
+        { function: 'join', params: { roomId: 'room1' } },
+        { function: 'pay', params: { roomId: 'room1', token: 'token1', amount: 50 } },
       ];
-      ctx.request.body = { roomId: 'testRoom', functionDatas };
+      ctx.request.body = { roomId: 'testRoom', functionDatas, sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
-
+  
       await gameController.postGameMulticall(ctx);
-
+  
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
         task: {
@@ -456,6 +456,7 @@ describe('Game Controller', () => {
           gameId: 'testGameId',
           roomId: 'testRoom',
           functionDatas,
+          sessionJwts: { player1: 'jwt1', player2: 'jwt2' },
         })
       );
     });

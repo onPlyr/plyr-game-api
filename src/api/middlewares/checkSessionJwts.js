@@ -23,6 +23,11 @@ const checkSessionJwts = async (ctx, next) => {
   let invalidPlyrIds = {};
   let users = {};
   try {
+    if (!sessionJwts || Object.keys(sessionJwts).length === 0) {
+      ctx.status = 400;
+      ctx.body = { error: 'sessionJwts is empty' };
+      return;
+    }
     await Promise.all(Object.keys(sessionJwts).map(async (plyrId) => {
       const sessionJwt = sessionJwts[plyrId];
       const payload = verifyToken(sessionJwt);
