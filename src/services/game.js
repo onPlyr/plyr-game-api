@@ -35,10 +35,10 @@ async function create({gameId, expiresIn}) {
         topics: log.topics,
       });
       console.log('Decoded log', i, ':', decodedLog);
-      if (decodedLog.name === 'GameRoomCreated') {
+      if (decodedLog.eventName === 'GameRoomCreated') {
         const { gameId, roomId, roomAddress } = decodedLog.args;
-        await GameRoom.updateOne({ gameId, roomId }, { $set: { gameId, roomId, roomAddress } }, { upsert: true });
-        result = { gameId, roomId, roomAddress };
+        await GameRoom.updateOne({ gameId, roomId }, { $set: { gameId, roomId: roomId.toString(), roomAddress } }, { upsert: true });
+        result = { gameId, roomId: roomId.toString(), roomAddress };
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
