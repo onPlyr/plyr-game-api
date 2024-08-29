@@ -50,6 +50,31 @@ async function main() {
     }
   );
   console.log("ret", ret.data);
+  let taskId = ret.data.task.id;
+  let roomId = null;
+  while (true) {
+    // get roomId 
+    hmac = generateHmacSignature(timestamp, {}, game.secKey);
+    ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/task/status/" + taskId,
+      {
+        headers: {
+          apikey: game.apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("ret", ret.data);
+    if (ret.data.status !== 'PENDING') {
+      roomId = ret.data.taskData.result.roomId;
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  console.log("roomId", roomId);
+
+  // users login and get sessionJwts
   // join game
   // pay
   // earn
