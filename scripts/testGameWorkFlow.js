@@ -7,65 +7,49 @@ const apiKey = process.env.TEST_APIKEY;
 const secretKey = process.env.TEST_SECRET;
 
 let game = {
-  privateKey: generatePrivateKey(),
-  plyrId: "testgame-" + Date.now(),
+  plyrId: "testgame-1724945535246",
+  secret: "testgame-1724945535246",
+  apiKey: "19be0c4e364031ba643bde49e7341e8e",
+  secKey: "feef5477c9e118e128b08f4e8ad9f0ad59e1db33d143aef8c4e994929d0d9db7",
+  primaryAddress: '0x27Db722f2440E6A679dd1B3728010604CBBD22a9',
+  mirrorAddress: '0x73320d7d76610629913b61fB3F3c9fADACe98bD5',
 }
 
 let users = [
   {
-    privateKey: generatePrivateKey(),
-    plyrId: "testuser1-" + Date.now(),
+    plyrId: 'testuser1-1724945535246',
+    secret: 'testuser1-1724945535246',
+    mirrorAddress: '0x70682a6511cDA6B0d71C689b7d0e30146fE7cf79',
+    primaryAddress: '0x9fA92d80df311c249DE11E66BA1BAE8C7Aca354C',
   },
   {
-    privateKey: generatePrivateKey(),
-    plyrId: "testuser2-" + Date.now(),
+    plyrId: 'testuser2-1724945535246',
+    secret: 'testuser2-1724945535246',
+    mirrorAddress: '0x12786413b79dE9B2472d067dcBc5A34D45Fb12D2',
+    primaryAddress: '0xE54e7A4212c2957163d2e69280Ee95C3d338ecBC',
   },
 ]
 
-async function registerUsers(user) {
-  const signatureMessage = `PLYR[ID] Registration`;
-  const account = privateKeyToAccount(user.privateKey);
-  const signature = await account.signMessage({ message: signatureMessage });
-
-  const newUser = {
-    address: account.address,
-    signature: signature,
-    plyrId: user.plyrId,
-    secret: user.plyrId,
-  };
-  
-  user.account = account;
-  user.address = account.address;
-  user.secret = user.plyrId;
-
-  const timestamp = Date.now().toString();
-
-  let hmac = generateHmacSignature(timestamp, newUser, secretKey);
-
-  try {
-    let ret = await axios.post(
-      process.env.API_ENDPOINT + "/api/user/register",
-      newUser,
-      {
-        headers: {
-          apikey: apiKey,
-          signature: hmac,
-          timestamp: timestamp,
-        },
-      }
-    );
-    console.log("ret", ret.data);
-  } catch (error) {
-    console.log(error.response.data);
-  }
-}
-
 async function main() {
-  // register 3 users (the first one is the game creator)
-  await registerUsers(game);
-  await registerUsers(users[0]);
-  await registerUsers(users[1]);
+  // register 3 users (the first one is the game creator), game, user1, user2
   // create game
+  const body = {
+    expiresIn: 86400,
+  }
+  const timestamp = Date.now().toString();
+  let hmac = generateHmacSignature(timestamp, body, game.secKey);
+  let ret = await axios.post(
+    process.env.API_ENDPOINT + "/api/game/create",
+    body,
+    {
+      headers: {
+        apikey: game.apiKey,
+        signature: hmac,
+        timestamp: timestamp,
+      },
+    }
+  );
+  console.log("ret", ret.data);
   // join game
   // pay
   // earn

@@ -50,6 +50,7 @@ async function processMessage(id, message) {
   while (retries < maxRetries) {
     try {
       let hash;
+      let result = {};
       if (key === 'createUser') {
         console.log('Creating user:', obj);
         hash = await createUser({
@@ -67,10 +68,12 @@ async function processMessage(id, message) {
       if (key.includes('GameRoom')) {
         console.log('Processing game room task:', key, obj);
         let func = key.split('GameRoom')[0];
-        hash = await gameRoom[func](obj);
+        const {hash: _hash, result: _result} = await gameRoom[func](obj);
+        hash = _hash;
+        result = _result;
       }
 
-      await storeTaskResult(id, message, 'SUCCESS', hash);
+      await storeTaskResult(id, {...message, result}, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
       retries++;
