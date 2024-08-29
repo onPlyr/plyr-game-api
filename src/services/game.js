@@ -1,7 +1,7 @@
 const { chain, gameRuleV1SC, GAME_RULE_V1_ABI } = require('../config');
 const { encodeFunctionData, erc20Abi, isAddress, parseUnits } = require('viem');
 const { TOKEN_LIST } = require('../config');
-
+const UserApprove = require('../models/userApprove');
 
 
 async function create({gameId, expiresIn}) {
@@ -99,6 +99,20 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
   });
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  } else {
+    // update userApprove sub amount
+    const userApprove = await UserApprove.findOne({ gameId, plyrId, token });
+    if (userApprove) {
+      if (userApprove.amount >= amount) {
+        await UserApprove.updateOne({ gameId, plyrId, token }, { $inc: { amount: -amount } });
+      } else {
+        await UserApprove.deleteOne({ gameId, plyrId, token });
+      }
+    }
+  }
 
   console.log('pay receipt:', receipt);
   return hash;

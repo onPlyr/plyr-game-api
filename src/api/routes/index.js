@@ -9,6 +9,7 @@ const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
 const checkSessionJwts = require('../middlewares/checkSessionJwts');
+const checkAllowance = require('../middlewares/checkAllowance');
 
 const router = new Router({
   prefix: '/api'
@@ -52,10 +53,10 @@ router.post('/game/revoke', hmacAuth('user'), otpAuth, checkToken, gameControlle
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), checkSessionJwts, gameController.postGameJoin);
 router.post('/game/leave', hmacAuth('user'), checkSessionJwts, gameController.postGameLeave);
-router.post('/game/pay', hmacAuth('user'), checkSessionJwts, gameController.postGamePay);
+router.post('/game/pay', hmacAuth('user'), checkSessionJwts, checkAllowance, gameController.postGamePay);
 router.post('/game/earn', hmacAuth('user'), checkSessionJwts, gameController.postGameEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
-router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
+// router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
 
 module.exports = router;
