@@ -97,7 +97,7 @@ All API requests require HMAC authentication. Include the following headers with
 #### Game Approve
 - **POST** `/api/game/approve`
 - Approve a game action
-- Body: `{ plyrId, gameId, token, amount, expiresIn }`
+- Body: `{ plyrId, gameId, otp, token, amount, expiresIn }`
 - Response: Success message
 
 #### Game Allowance

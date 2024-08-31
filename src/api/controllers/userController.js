@@ -416,7 +416,6 @@ exports.getSecondary = async (ctx) => {
 
 exports.postLogin = async (ctx) => {
   const { plyrId, expiresIn } = ctx.request.body;
-  console.log('ctx.state', ctx.state);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
   const gameId = userApiKey.plyrId;

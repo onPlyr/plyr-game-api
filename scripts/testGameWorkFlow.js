@@ -1,6 +1,7 @@
 const { generatePrivateKey, privateKeyToAccount } = require("viem/accounts");
 const { generateHmacSignature } = require("../src/utils/hmacUtils");
 const axios = require("axios");
+const { authenticator } = require("otplib");
 require('dotenv').config();
 
 const apiKey = process.env.TEST_APIKEY;
@@ -30,9 +31,25 @@ let users = [
   },
 ]
 
-async function main() {
-  // register 3 users (the first one is the game creator), game, user1, user2
-  // create game
+async function makeAuthenticatedRequest(method, endpoint, apiKey, secretKey, body = {}) {
+  const timestamp = Date.now().toString();
+  const signature = generateHmacSignature(timestamp, body, secretKey);
+
+  let ret = await axios[method](
+    process.env.API_ENDPOINT + endpoint, 
+    body,
+    {
+      headers: {
+        apikey: apiKey,
+        signature: signature,
+        timestamp: timestamp,
+      },
+    }
+  );
+  return ret.data;
+}
+
+async function createGame() {
   const body = {
     expiresIn: 86400,
   }
@@ -73,8 +90,62 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 5000));
   }
   console.log("roomId", roomId);
+  return roomId;
+}
+
+async function userLogin(user) {
+  console.log("user login", user);
+  const body = {
+    plyrId: user.plyrId,
+    otp: authenticator.generate(user.secret),
+  }
+
+  const response = await makeAuthenticatedRequest(
+    'post',
+    '/api/user/login',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+
+  console.log("response", response);
+  return response.sessionJwt;
+}
+
+async function approveToken(user) {
+  const body = {
+    plyrId: user.plyrId,
+    gameId: game.plyrId,
+    otp: authenticator.generate(user.secret),
+    token: 'plyr', 
+    amount: '0.001', 
+    expiresIn: 3600,
+  }
+  const response = await makeAuthenticatedRequest(
+    'post',
+    '/api/game/approve',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+
+  console.log("response", response);
+  return response;
+}
+
+async function main() {
+  // register 3 users (the first one is the game creator), game, user1, user2
+  // create game
+  // const roomId = await createGame();
 
   // users login and get sessionJwts
+  // let user1SessionJwt = await userLogin(users[0]);
+  // let user2SessionJwt = await userLogin(users[1]);
+
+  // users approve token to game
+  await approveToken(users[0]);
+  await approveToken(users[1]);
+
   // join game
   // pay
   // earn
