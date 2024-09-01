@@ -108,6 +108,8 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
     throw new Error('Invalid token: ' + token);
   }
 
+  console.log('request pay', {gameId, roomId, plyrId, tokenAddress, amount, decimals});
+
   const hash = await chain.writeContract({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,

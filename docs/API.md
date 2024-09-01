@@ -134,6 +134,7 @@ All API requests require HMAC authentication. Include the following headers with
 - **POST** `/api/game/pay`
 - Process a payment in a game
 - Body: `{ roomId, sessionJwts, token, amount }`
+- sessionJwts only support one user per request
 - Response: Task ID and status
 
 #### Game Earn

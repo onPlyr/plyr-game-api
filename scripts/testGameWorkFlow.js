@@ -34,18 +34,32 @@ let users = [
 async function makeAuthenticatedRequest(method, endpoint, apiKey, secretKey, body = {}) {
   const timestamp = Date.now().toString();
   const signature = generateHmacSignature(timestamp, body, secretKey);
-
-  let ret = await axios[method](
-    process.env.API_ENDPOINT + endpoint, 
-    body,
-    {
-      headers: {
-        apikey: apiKey,
-        signature: signature,
-        timestamp: timestamp,
-      },
-    }
-  );
+  let ret;
+  if (method === 'get') {
+    ret = await axios.get(
+      process.env.API_ENDPOINT + endpoint,
+      {
+        headers: {
+          apikey: apiKey,
+          signature: signature,
+          timestamp: timestamp,
+        },
+      }
+    );
+  } else {
+    ret = await axios[method](
+      process.env.API_ENDPOINT + endpoint, 
+      body,
+      {
+        headers: {
+          apikey: apiKey,
+          signature: signature,
+          timestamp: timestamp,
+        },
+      }
+    );
+  }
+  
   return ret.data;
 }
 
@@ -136,19 +150,98 @@ async function approveToken(user) {
 async function main() {
   // register 3 users (the first one is the game creator), game, user1, user2
   // create game
-  // const roomId = await createGame();
+  // let roomId = await createGame();
 
   // users login and get sessionJwts
-  // let user1SessionJwt = await userLogin(users[0]);
-  // let user2SessionJwt = await userLogin(users[1]);
+  let user1SessionJwt = await userLogin(users[0]);
+  let user2SessionJwt = await userLogin(users[1]);
 
   // users approve token to game
-  await approveToken(users[0]);
-  await approveToken(users[1]);
+  // await approveToken(users[0]);
+  // await approveToken(users[1]);
 
   // join game
+  // const body = {
+  //   roomId: roomId,
+  //   sessionJwts: {
+  //     [users[0].plyrId]: user1SessionJwt,
+  //     [users[1].plyrId]: user2SessionJwt,
+  //   }
+  // }
+  // const response = await makeAuthenticatedRequest(
+  //   'post',
+  //   '/api/game/join',
+  //   game.apiKey,
+  //   game.secKey,
+  //   body
+  // );
+  // console.log("join game response", response);
+  // // sleep 5s
+  // await new Promise(resolve => setTimeout(resolve, 5000));
+  // const status = await makeAuthenticatedRequest(
+  //   'get',
+  //   '/api/task/status/' + response.task.id,
+  //   game.apiKey,
+  //   game.secKey,
+  //   {}
+  // );
+  // console.log("join gamestatus", status);
+
+  let roomId = 11;
   // pay
+  let body = {
+    roomId: roomId,
+    sessionJwts: {
+      [users[0].plyrId]: user1SessionJwt,
+    },
+    token: 'plyr',
+    amount: '0.000001',
+  }
+  let response = await makeAuthenticatedRequest(
+    'post',
+    '/api/game/pay',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+  console.log("pay response", response);
+  // sleep 5s
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  let status = await makeAuthenticatedRequest(
+    'get',
+    '/api/task/status/' + response.task.id,
+    game.apiKey,
+    game.secKey,
+    {}
+  );
+  console.log("pay status", status);
   // earn
+  body = {
+    roomId: roomId,
+    sessionJwts: {
+      [users[1].plyrId]: user2SessionJwt,
+    },
+    token: 'plyr',
+    amount: '0.000001',
+  }
+  response = await makeAuthenticatedRequest(
+    'post',
+    '/api/game/earn',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+  console.log("earn response", response);
+  // sleep 5s
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  status = await makeAuthenticatedRequest(
+    'get',
+    '/api/task/status/' + response.task.id,
+    game.apiKey,
+    game.secKey,
+    {}
+  );
+  console.log("earn status", status);
   // end game
 }
 
