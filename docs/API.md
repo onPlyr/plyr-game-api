@@ -146,7 +146,14 @@ All API requests require HMAC authentication. Include the following headers with
 #### Game Multicall
 - **POST** `/api/game/multicall`
 - Process multiple game actions in one call
+- This API currently not enabled
 - Body: `{ roomId, functionDatas, sessionJwts }`
+- Response: Task ID and status
+
+#### Game End
+- **POST** `/api/game/end`
+- End a game
+- Body: `{ roomId }`
 - Response: Task ID and status
 
 ### Miscellaneous
