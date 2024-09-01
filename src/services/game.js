@@ -70,6 +70,7 @@ async function join({plyrIds, gameId, roomId}) {
 }
 
 async function leave({plyrIds, gameId, roomId}) {
+  let result = {};
   const hash = await chain.writeContract({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
