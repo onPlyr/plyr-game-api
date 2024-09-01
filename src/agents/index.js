@@ -34,7 +34,9 @@ async function storeTaskResult(messageId, taskData, status, hash, errorMessage =
       errorMessage,
   });
   await taskResult.save();
-  await redis.xack(STREAM_KEY, CONSUMER_GROUP, messageId);
+  if (status !== 'FAILED') {
+    await redis.xack(STREAM_KEY, CONSUMER_GROUP, messageId);
+  }
   console.log(`Task result stored in MongoDB: ${JSON.stringify(taskResult)}`);
 }
 
