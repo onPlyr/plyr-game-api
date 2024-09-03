@@ -5,6 +5,7 @@ function hmacAuth(requiredRole) {
   return async (ctx, next) => {
     const { signature, timestamp, apikey } = ctx.headers;
     const bodyString = JSON.stringify(ctx.request.body);
+    console.log('using apiKey:', apikey);
 
     if (!signature || !timestamp || !apikey) {
       ctx.status = 401;
