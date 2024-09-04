@@ -2,6 +2,7 @@ const { getRedisClient } = require("../../db/redis");
 const ApiKey = require('../../models/apiKey');
 const UserInfo = require('../../models/userInfo');
 const UserApprove = require('../../models/userApprove');
+const { isJoined } = require("../../services/game");
 
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token}, {plyrId, gameId, token, amount, expiresIn}, {upsert: true});
@@ -184,6 +185,27 @@ const postGameClose = async (ctx) => {
   }
 }
 
+const getIsJoined = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { roomId, plyrId } = ctx.request.query;
+
+  if (!plyrId) {
+    ctx.status = 400;
+    ctx.body = { error: 'plyrId is required' };
+    return;
+  }
+
+  if (roomId === undefined) {
+    ctx.status = 400;
+    ctx.body = { error: 'roomId is required' };
+    return;
+  }
+  
+  const ret = await isJoined({plyrId, gameId, roomId});
+  ctx.status = 200;
+  ctx.body = { isJoined: ret };
+}
+
 
 // Input:
 // const functionDatas = [
@@ -234,4 +256,5 @@ module.exports = {
   postGameEnd,
   postGameClose,
   postGameMulticall,
+  getIsJoined,
 }

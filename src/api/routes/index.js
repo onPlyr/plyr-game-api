@@ -57,6 +57,7 @@ router.post('/game/pay', hmacAuth('user'), checkSessionJwts, checkAllowance, gam
 router.post('/game/earn', hmacAuth('user'), checkSessionJwts, gameController.postGameEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
+router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 // router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
 
 module.exports = router;

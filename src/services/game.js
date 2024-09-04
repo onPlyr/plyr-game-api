@@ -69,6 +69,20 @@ async function join({plyrIds, gameId, roomId}) {
   return {hash, result};
 }
 
+async function isJoined({plyrId, gameId, roomId}) {
+  let ret = await chain.readContract({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'isJoined',
+    args: [
+      gameId,
+      roomId,
+      plyrId,
+    ]
+  });
+  return ret;
+}
+
 async function leave({plyrIds, gameId, roomId}) {
   let result = {};
   const hash = await chain.writeContract({
@@ -320,4 +334,5 @@ module.exports = {
   earn,
   end,
   close,
+  isJoined,
 }

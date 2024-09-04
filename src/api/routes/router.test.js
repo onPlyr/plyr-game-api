@@ -126,7 +126,7 @@ describe('OTP Auth Middleware', () => {
       );
 
       expect(response.status).toBe(403);
-      expect(response.body).toEqual({ error: 'User is banned' });
+      expect(response.body).toEqual({ error: 'User is temporary locked' });
     });
 
     it('should return 401 if OTP is invalid', async () => {
@@ -308,7 +308,7 @@ describe('OTP Auth Middleware', () => {
       );
   
       expect(response.status).toBe(403);
-      expect(response.body).toEqual({ error: 'User is banned' });
+      expect(response.body).toEqual({ error: 'User is temporary locked' });
     });
   });
 });

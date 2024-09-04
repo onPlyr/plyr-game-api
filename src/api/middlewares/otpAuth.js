@@ -24,7 +24,7 @@ const otpAuth = async (ctx, next) => {
 
   if (user.bannedAt > 0 && user.bannedAt > Date.now() - 1000*60) {
     ctx.status = 403;
-    ctx.body = { error: 'User is banned' };
+    ctx.body = { error: 'User is temporary locked' };
     return;
   }
 
