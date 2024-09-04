@@ -5,6 +5,8 @@ const gameController = require('./gameController');
 
 jest.mock('../../models/userApprove');
 jest.mock('../../db/redis');
+jest.mock('../../services/game');
+const { isJoined } = require('../../services/game');
 
 const mockXadd = jest.fn().mockResolvedValue('mockedTaskId');
 const mockRedisClient = {
@@ -23,6 +25,7 @@ describe('Game Controller', () => {
       body: {},
       status: 200,
     };
+    isJoined.mockResolvedValue(true);
   });
 
   afterAll(async () => {
@@ -319,8 +322,11 @@ describe('Game Controller', () => {
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
+
+      isJoined.mockResolvedValue(true);
   
       await gameController.postGamePay(ctx);
+      console.log(ctx.body);
   
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({
@@ -346,10 +352,12 @@ describe('Game Controller', () => {
   
   describe('postGameEarn', () => {
     test('successfully processes earnings', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: { testPlayer: 'jwt1' }, token: 'testToken', amount: 200 };
+      ctx.request.body = { roomId: 'testRoom', plyrId: 'testPlayer', token: 'testToken', amount: 200 };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
       };
+
+      isJoined.mockResolvedValue(true);
   
       await gameController.postGameEarn(ctx);
   

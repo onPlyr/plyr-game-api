@@ -125,6 +125,12 @@ const postGamePay = async (ctx) => {
   const { sessionJwts, roomId, token, amount } = ctx.request.body;
   try {
     const plyrId = Object.keys(sessionJwts)[0];
+    const _joined = await isJoined({plyrId, gameId, roomId});
+    if (!_joined) {
+      ctx.status = 400;
+      ctx.body = { error: 'Player is not joined' };
+      return;
+    }
     const taskId = await insertTask({ plyrId, gameId, roomId, token, amount }, 'payGameRoom');
     ctx.status = 200;
     ctx.body = { task: {
@@ -139,9 +145,14 @@ const postGamePay = async (ctx) => {
 
 const postGameEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts, roomId, token, amount } = ctx.request.body;
+  const { plyrId, roomId, token, amount } = ctx.request.body;
   try {
-    const plyrId = Object.keys(sessionJwts)[0];
+    const _joined = await isJoined({plyrId, gameId, roomId});
+    if (!_joined) {
+      ctx.status = 400;
+      ctx.body = { error: 'Player is not joined' };
+      return;
+    }
     const taskId = await insertTask({ plyrId,gameId, roomId, token, amount }, 'earnGameRoom');
     ctx.status = 200;
     ctx.body = { task: {
