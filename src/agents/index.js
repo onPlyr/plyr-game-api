@@ -48,6 +48,7 @@ async function processMessage(id, message) {
 
   const maxRetries = 3;
   let retries = 0;
+  let errorMessage = null;
 
   while (retries < maxRetries) {
     try {
@@ -80,11 +81,12 @@ async function processMessage(id, message) {
     } catch (error) {
       retries++;
       console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
+      errorMessage = error.shortMessage;
       await new Promise(resolve => setTimeout(resolve, 1000 * retries)); // exponential backoff
     }
   }
 
-  await storeTaskResult(id, message, 'FAILED');
+  await storeTaskResult(id, message, 'FAILED', null, errorMessage);
 }
 
 async function consumeMessages() {
