@@ -11,6 +11,7 @@ async function checkTaskStatus(messageId) {
     return {
       messageId,
       taskData: taskResult.taskData,
+      result: taskResult.result,
       status: taskResult.status,
       hash: taskResult.hash,
       errorMessage: taskResult.errorMessage,

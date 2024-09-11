@@ -35,4 +35,19 @@ function getAvatarUrl(avatar) {
     return avatar.startsWith('ipfs://') ? 'https://ipfs.plyr.network/ipfs/' + avatar.slice(7) : avatar;
 }
 
-module.exports = { verifyPlyrid, getAvatarUrl };
+const cache2fa = {};
+
+function is2faUsed(plyrid, token) {
+    const key = `${plyrid}-${token}`;
+    if (cache2fa[key]) {
+        if (cache2fa[key] + 60 * 5 * 1000 < Date.now()) {
+            delete cache2fa[key];
+            return false;
+        }
+        return true;
+    }
+    cache2fa[key] = Date.now();
+    return false;
+}
+
+module.exports = { verifyPlyrid, getAvatarUrl, is2faUsed };

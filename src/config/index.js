@@ -62,6 +62,18 @@ const ROUTER_ABI = require('./Router.json').abi;
 const REGISTER_ABI = require('./Register.json').abi;
 const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
+const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
+
+const TOKEN_LIST = {
+  'plyr': {
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+  },
+  'gamr': {
+    address: '0xa875625fe8A955406523E52E485f351b92908ce1',
+    decimals: 18,
+  }, // testnet
+};
 
 module.exports = {
   port: process.env.PORT || 3000,
@@ -78,4 +90,7 @@ module.exports = {
   AIRDROP_ABI,
   jwtPrivateKey: Buffer.from(process.env.JWT_PRIVATE_KEY, 'base64').toString('utf-8'),
   jwtPublicKey: Buffer.from(process.env.JWT_PUBLIC_KEY, 'base64').toString('utf-8'),
+  gameRuleV1SC: '0x1c20E9ffD6Fac7a4842286683A8FfBE5B882990e',
+  GAME_RULE_V1_ABI,
+  TOKEN_LIST,
 };

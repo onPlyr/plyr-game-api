@@ -133,6 +133,17 @@ describe('User Controller', () => {
 
     test('returns 400 when avatar is not provided', async () => {
       ctx.request.body = {};
+      UserInfo.findOne.mockResolvedValue(null);
+      UserInfo.findOne.mockResolvedValue(null);
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: '',
+        signature: signature,
+      };
       await userController.postModifyAvatar(ctx);
       expect(ctx.status).toBe(400);
       expect(ctx.body).toEqual({ error: 'Avatar must be a non-empty string' });
@@ -140,6 +151,16 @@ describe('User Controller', () => {
 
     test('returns 404 when user is not found', async () => {
       UserInfo.findOneAndUpdate.mockResolvedValue(null);
+      UserInfo.findOne.mockResolvedValue(null);
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: 'https://example.com/avatar.jpg',
+        signature: signature,
+      };
       await userController.postModifyAvatar(ctx);
       expect(ctx.status).toBe(404);
       expect(ctx.body).toEqual({ error: 'PLYR[ID] not found' });
@@ -148,9 +169,22 @@ describe('User Controller', () => {
     test('successfully updates avatar when all inputs are valid', async () => {
       const updatedUser = {
         plyrId: 'testid',
+        primaryAddress: account.address,
         avatar: 'https://example.com/avatar.jpg',
       };
       UserInfo.findOneAndUpdate.mockResolvedValue(updatedUser);
+      UserInfo.findOne.mockResolvedValue(updatedUser);
+
+      const signatureMessage = "PLYR[ID] Update Profile Image";
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+
+      ctx.request.body = {
+        plyrId: 'testid',
+        avatar: 'https://example.com/avatar.jpg',
+        signature: signature,
+      };
 
       await userController.postModifyAvatar(ctx);
       
@@ -289,6 +323,11 @@ describe('User Controller', () => {
         expiresIn: 3600,
       };
 
+      ctx.state = {
+        user: mockUser,
+        apiKey: { plyrId: 'testgame' },
+      }
+
       generateJwtToken.mockReturnValue('mockedjwttoken');
       authenticator.verify.mockReturnValue(true);
 
@@ -316,6 +355,9 @@ describe('User Controller', () => {
 
       ctx.headers = { apikey: 'validapikey' };
       ctx.request.body = { sessionJwt: 'validjwt' };
+      ctx.state = {
+        apiKey: { plyrId: 'testgame' }
+      };
 
       await userController.postLogout(ctx);
 
@@ -335,10 +377,97 @@ describe('User Controller', () => {
 
       UserInfo.findOne.mockResolvedValue({ plyrId: 'testuser', nonce: { testgame: 0 } });
 
+      ctx.state = { apiKey: { plyrId: 'testgame' } };
+
       await userController.postUserSessionVerify(ctx);
       expect(ctx.status).toBe(200);
       expect(ctx.body.success).toBe(true);
       expect(ctx.body).toHaveProperty('payload');
+    });
+  });
+
+  describe('postReset2fa', () => {
+    beforeEach(() => {
+      ctx = {
+        headers: {},
+        request: { body: {} },
+        status: 200,
+        body: {}
+      };
+    });
+
+    test('returns 400 when signature is not a hex string', async () => {
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature: 'invalid-signature',
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Signature must be a hex string' });
+    });
+
+    test('returns 404 when user does not exist', async () => {
+      UserInfo.findOne.mockResolvedValue(null);
+
+      ctx.request.body = {
+        plyrId: 'nonexistentuser',
+        signature: '0x1234',
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(404);
+      expect(ctx.body).toEqual({ error: 'User not found' });
+    });
+
+    test('returns 400 when signature is invalid', async () => {
+      const mockUser = { plyrId: 'testuser', primaryAddress: account.address };
+      UserInfo.findOne.mockResolvedValue(mockUser);
+
+      const signature = await account.signMessage({
+        message: 'Invalid message',
+      });
+
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature,
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(400);
+      expect(ctx.body).toEqual({ error: 'Invalid signature' });
+    });
+
+    test('successfully resets 2FA and returns 200', async () => {
+      const mockUser = { plyrId: 'testuser', primaryAddress: account.address };
+      UserInfo.findOne.mockResolvedValue(mockUser);
+      UserInfo.updateOne.mockResolvedValue({});
+
+      const signatureMessage = `PLYR[ID] Reset Two-Factor Authentication`;
+      const signature = await account.signMessage({
+        message: signatureMessage,
+      });
+
+      ctx.request.body = {
+        plyrId: 'testuser',
+        signature,
+        secret: 'new-secret'
+      };
+
+      await userController.postReset2fa(ctx);
+
+      expect(ctx.status).toBe(200);
+      expect(ctx.body).toEqual({ message: 'Two-Factor Authentication reset successfully' });
+      expect(UserInfo.updateOne).toHaveBeenCalledWith(
+        { plyrId: 'testuser' },
+        { $set: { secret: 'new-secret' } }
+      );
     });
   });
 });

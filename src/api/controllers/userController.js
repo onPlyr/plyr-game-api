@@ -1,7 +1,7 @@
 const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
-const { verifyPlyrid, getAvatarUrl } = require('../../utils/utils');
+const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
 const Secondary = require('../../models/secondary');
 const ApiKey = require('../../models/apiKey');
@@ -243,7 +243,7 @@ exports.getUserInfo = async (ctx) => {
 
 exports.postModifyAvatar = async (ctx) => {
   const { plyrId } = ctx.params;
-  const { avatar } = ctx.request.body;
+  const { avatar, signature } = ctx.request.body;
 
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
@@ -261,7 +261,40 @@ exports.postModifyAvatar = async (ctx) => {
     return;
   }
 
+  const signatureMessage = `PLYR[ID] Update Profile Image`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
   const normalizedPlyrId = plyrId.toLowerCase();
+
+  const user = await UserInfo.findOne({ plyrId: normalizedPlyrId });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
 
   const updatedUser = await UserInfo.findOneAndUpdate(
     { plyrId: normalizedPlyrId },
@@ -382,50 +415,9 @@ exports.getSecondary = async (ctx) => {
 }
 
 exports.postLogin = async (ctx) => {
-  const { apikey } = ctx.headers;
-  const { plyrId, otp, expiresIn } = ctx.request.body;
-  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
-  if (!userApiKey) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Unauthorized API key'
-    };
-    return;
-  }
-
-  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
-  if (!user) {
-    ctx.status = 404;
-    ctx.body = {
-      error: 'User not found'
-    };
-    return;
-  }
-
-  if (user.bannedAt > 0 && user.bannedAt > Date.now() - 1000*60) {
-    ctx.status = 403;
-    ctx.body = {
-      error: 'User is banned'
-    };
-    return;
-  }
-
-  const isValid = authenticator.verify({ token: otp, secret: user.secret });
-  if (!isValid) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Invalid 2fa token'
-    };
-
-    if (user.loginFailedCount >= 4) {
-      await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { bannedAt: Date.now(), loginFailedCount: 0 } });
-    } else {
-      await UserInfo.updateOne({ plyrId: user.plyrId }, { $inc: { loginFailedCount: 1 } });
-    }
-    
-    return;
-  }
-
+  const { plyrId, expiresIn } = ctx.request.body;
+  const user = ctx.state.user;
+  const userApiKey = ctx.state.apiKey;
   const gameId = userApiKey.plyrId;
 
   const nonce = user.nonce ? user.nonce : {};
@@ -446,7 +438,6 @@ exports.postLogin = async (ctx) => {
 }
 
 exports.postLogout = async (ctx) => {
-  const { apikey } = ctx.headers;
   const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
@@ -457,14 +448,7 @@ exports.postLogout = async (ctx) => {
     return;
   }
 
-  const userApiKey = await ApiKey.findOne({ apiKey: apikey });
-  if (!userApiKey) {
-    ctx.status = 401;
-    ctx.body = {
-      error: 'Unauthorized API key'
-    };
-    return;
-  }
+  const userApiKey = ctx.state.apiKey;
 
   const gameId = userApiKey.plyrId;
   const plyrId = payload.plyrId;
@@ -498,6 +482,7 @@ exports.postLogout = async (ctx) => {
 }
 
 exports.postUserSessionVerify = async (ctx) => {
+  const userApiKey = ctx.state.apiKey;
   const { sessionJwt } = ctx.request.body;
   const payload = verifyToken(sessionJwt);
   if (!payload) {
@@ -517,6 +502,14 @@ exports.postUserSessionVerify = async (ctx) => {
     return;
   }
   const gameId = payload.gameId;
+  if (gameId !== userApiKey.plyrId) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'JWT and API key mismatch',
+    };
+    return;
+  }
+
   const nonce = user.nonce ? user.nonce : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (isNaN(payload.nonce) || payload.nonce < gameNonce) {
@@ -531,5 +524,75 @@ exports.postUserSessionVerify = async (ctx) => {
   ctx.body = {
     success: true,
     payload,
+  };
+}
+
+exports.postReset2fa = async (ctx) => {
+  const { plyrId, signature, secret } = ctx.request.body;
+  const signatureMessage = `PLYR[ID] Reset Two-Factor Authentication`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { secret } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Two-Factor Authentication reset successfully'
+  };
+}
+
+exports.getUserBasicInfo = async (ctx) => {
+  let { address } = ctx.params;
+
+  if (!isAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid address'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ primaryAddress: getAddress(address) });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  ctx.status = 200;
+  ctx.body = {
+    plyrId: user.plyrId,
+    avatar: user.avatar,
   };
 }

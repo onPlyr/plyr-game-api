@@ -4,6 +4,7 @@ const { createUser } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
 const { claimAirdropReward } = require('../services/airdrop');
+const gameRoom = require('../services/game');
 
 const redis = getRedisClient();
 
@@ -33,7 +34,9 @@ async function storeTaskResult(messageId, taskData, status, hash, errorMessage =
       errorMessage,
   });
   await taskResult.save();
-  await redis.xack(STREAM_KEY, CONSUMER_GROUP, messageId);
+  if (status !== 'FAILED') {
+    await redis.xack(STREAM_KEY, CONSUMER_GROUP, messageId);
+  }
   console.log(`Task result stored in MongoDB: ${JSON.stringify(taskResult)}`);
 }
 
@@ -45,10 +48,12 @@ async function processMessage(id, message) {
 
   const maxRetries = 3;
   let retries = 0;
+  let errorMessage = null;
 
   while (retries < maxRetries) {
     try {
       let hash;
+      let result = {};
       if (key === 'createUser') {
         console.log('Creating user:', obj);
         hash = await createUser({
@@ -63,16 +68,25 @@ async function processMessage(id, message) {
         hash = await claimAirdropReward(obj);
       }
 
-      await storeTaskResult(id, message, 'SUCCESS', hash);
+      if (key.includes('GameRoom')) {
+        console.log('Processing game room task:', key, obj);
+        let func = key.split('GameRoom')[0];
+        const {hash: _hash, result: _result} = await gameRoom[func](obj);
+        hash = _hash;
+        result = _result;
+      }
+
+      await storeTaskResult(id, {...message, result}, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
       retries++;
       console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
+      errorMessage = error.shortMessage;
       await new Promise(resolve => setTimeout(resolve, 1000 * retries)); // exponential backoff
     }
   }
 
-  await storeTaskResult(id, message, 'FAILED');
+  await storeTaskResult(id, message, 'FAILED', null, errorMessage);
 }
 
 async function consumeMessages() {

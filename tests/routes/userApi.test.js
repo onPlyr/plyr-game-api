@@ -177,7 +177,7 @@ describe('User API', () => {
 
   describe("POST /api/user/session/verify", () => {
     it('should verify a valid user JWT token', async () => {
-      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'testPartner', expiresIn: 10000 });
+      const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'tester', expiresIn: 10000 });
       const response = await makeAuthenticatedRequest(
         'post',
         '/api/user/session/verify',
