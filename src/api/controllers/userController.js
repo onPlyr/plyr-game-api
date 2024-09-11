@@ -569,3 +569,30 @@ exports.postReset2fa = async (ctx) => {
     message: 'Two-Factor Authentication reset successfully'
   };
 }
+
+exports.getUserBasicInfo = async (ctx) => {
+  let { address } = ctx.params;
+
+  if (!isAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid address'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ primaryAddress: getAddress(address) });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  ctx.status = 200;
+  ctx.body = {
+    plyrId: user.plyrId,
+    avatar: user.avatar,
+  };
+}
