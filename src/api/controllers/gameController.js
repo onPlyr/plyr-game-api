@@ -10,7 +10,7 @@ const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
 
 const getAllowance = async ({plyrId, gameId, token}) => {
   const userApprove = await UserApprove.findOne({plyrId, gameId, token});
-  if ((userApprove.expiresIn * 1000) + new Date(userApprove.createdAt).getTime() < Date.now()) {
+  if (!userApprove || (userApprove.expiresIn * 1000) + new Date(userApprove.createdAt).getTime() < Date.now()) {
     return 0;
   }
   return userApprove.amount;
