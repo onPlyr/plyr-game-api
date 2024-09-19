@@ -1,5 +1,4 @@
-const { isAddress } = require("viem");
-const { TOKEN_LIST } = require('../../config');
+const UserInfo = require('../../models/userInfo');
 
 const checkUserExistsInParams = async (ctx, next) => {
   const { plyrId } = ctx.params;
