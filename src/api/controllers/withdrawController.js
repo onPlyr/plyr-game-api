@@ -80,7 +80,7 @@ async function isGame(plyrId) {
 }
 
 exports.getIsGame = async (ctx) => {
-  const { plyrId } = ctx.request.body;
+  const { plyrId } = ctx.params;
   if (!plyrId) {
     ctx.status = 400;
     ctx.body = {

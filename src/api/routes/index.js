@@ -70,6 +70,6 @@ router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 // router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
 
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
-router.get('/isGame', hmacAuth('user'), withdrawController.getIsGame);
+router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
 
 module.exports = router;

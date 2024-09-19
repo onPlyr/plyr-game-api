@@ -67,6 +67,27 @@ async function userTokenBalance() {
   }
 }
 
+async function isGame() {
+  const timestamp = Date.now().toString();
+  let hmac = generateHmacSignature(timestamp, {}, secretKey);
+
+  try {
+    let ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/isGame",
+      {
+        headers: {
+          apikey: apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("userTokenBalance", ret.data);
+  } catch (error) {
+    console.log(error.response.data);
+  }
+}
+
 async function main() {
   userInfo();
   userBalance();
