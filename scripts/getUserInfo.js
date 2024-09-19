@@ -73,7 +73,7 @@ async function isGame() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/isGame/test-account",
+      process.env.API_ENDPOINT + "/api/isGame/testgame-1724945535246",
       {
         headers: {
           apikey: apiKey,
