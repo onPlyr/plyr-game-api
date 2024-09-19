@@ -46,9 +46,31 @@ async function userBalance() {
   }
 }
 
+async function userTokenBalance() {
+  const timestamp = Date.now().toString();
+  let hmac = generateHmacSignature(timestamp, {}, secretKey);
+
+  try {
+    let ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/user/balance/test-account/0xa875625fe8A955406523E52E485f351b92908ce1",
+      {
+        headers: {
+          apikey: apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("userTokenBalance", ret.data);
+  } catch (error) {
+    console.log(error.response.data);
+  }
+}
+
 async function main() {
   userInfo();
   userBalance();
+  userTokenBalance();
 }
 
 main().catch(console.error);
