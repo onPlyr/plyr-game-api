@@ -73,7 +73,7 @@ async function isGame() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/isGame",
+      process.env.API_ENDPOINT + "/api/isGame/test-account",
       {
         headers: {
           apikey: apiKey,
@@ -82,7 +82,7 @@ async function isGame() {
         },
       }
     );
-    console.log("userTokenBalance", ret.data);
+    console.log("isGame", ret.data);
   } catch (error) {
     console.log(error.response.data);
   }
@@ -92,6 +92,7 @@ async function main() {
   userInfo();
   userBalance();
   userTokenBalance();
+  isGame();
 }
 
 main().catch(console.error);

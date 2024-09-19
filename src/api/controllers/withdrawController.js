@@ -89,10 +89,10 @@ exports.getIsGame = async (ctx) => {
     return;
   }
 
-  const isGame = await isGame(plyrId);
+  const ret = await isGame(plyrId);
 
   ctx.status = 200;
   ctx.body = {
-    isGame
+    isGame: ret
   }
 }
