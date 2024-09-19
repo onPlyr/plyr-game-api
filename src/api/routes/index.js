@@ -5,6 +5,8 @@ const statusController = require('../controllers/statusController');
 const jwtController = require('../controllers/jwtController');
 const airdropController = require('../controllers/airdropController');
 const gameController = require('../controllers/gameController');
+const withdrawController = require('../controllers/withdrawController');
+
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
@@ -12,6 +14,9 @@ const checkSessionJwts = require('../middlewares/checkSessionJwts');
 const checkAllowance = require('../middlewares/checkAllowance');
 const checkUserExistsInParams = require('../middlewares/checkUserExistsInParams');
 const checkTokenInParams = require('../middlewares/checkTokenInParams');
+const checkUserExistsInBody = require('../middlewares/checkUserExistsInBody');
+
+
 
 const router = new Router({
   prefix: '/api'
@@ -36,8 +41,8 @@ router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
 router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);
 router.get('/user/basic/:address', userController.getUserBasicInfo);
-router.get('/user/balance/:plyrId', checkUserExistsInParams, userController.getUserBalance);
-router.get('/user/balance/:plyrId/:tokenName', checkUserExistsInParams, checkTokenInParams, hmacAuth('user'), userController.getUserTokenBalance);
+router.get('/user/balance/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getUserBalance);
+router.get('/user/balance/:plyrId/:tokenName', hmacAuth('user'), checkUserExistsInParams, checkTokenInParams, userController.getUserTokenBalance);
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 
@@ -63,5 +68,8 @@ router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 // router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
+
+router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
+router.get('/isGame', hmacAuth('user'), withdrawController.getIsGame);
 
 module.exports = router;

@@ -1,7 +1,6 @@
 const { verifyMessage, isHex } = require('viem');
 const { getRedisClient } = require("../../db/redis");
 const GameRoom = require('../../models/gameRoom');
-const UserInfo = require('../../models/userInfo');
 
 const insertTask = async (params, taskName) => {
   const redis = getRedisClient();
@@ -12,8 +11,6 @@ const insertTask = async (params, taskName) => {
 
 exports.postWithdraw = async (ctx) => {
   const { plyrId, signature, token, amount, toChain, toAddress } = ctx.request.body;
-  const signatureMessage = `PLYR[ID] Withdraw token: ${token}, amount: ${amount}`;
-
   if (!plyrId || !signature || !token || !amount || !toChain || !toAddress) {
     ctx.status = 400;
     ctx.body = {
@@ -46,14 +43,10 @@ exports.postWithdraw = async (ctx) => {
     return;
   }
 
-  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
-  if (!user) {
-    ctx.status = 404;
-    ctx.body = {
-      error: 'User not found'
-    };
-    return;
-  }
+  const user = ctx.state.user;
+  const tokenAddress = ctx.state.tokenAddress;
+
+  const signatureMessage = `PLYR[ID] Withdraw token: ${token}, amount: ${amount}`;
 
   const valid = await verifyMessage({
     message: signatureMessage,
@@ -70,7 +63,7 @@ exports.postWithdraw = async (ctx) => {
   }
 
   // insert task to create withdraw tx
-  const taskId = await insertTask({ from: user.mirror, to: toAddress, amount, token, toChain }, 'createWithdrawTx');
+  const taskId = await insertTask({ from: user.mirror, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
 
   ctx.status = 200;
   ctx.body = {
