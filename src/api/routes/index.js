@@ -10,6 +10,8 @@ const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
 const checkSessionJwts = require('../middlewares/checkSessionJwts');
 const checkAllowance = require('../middlewares/checkAllowance');
+const checkUserExistsInParams = require('../middlewares/checkUserExistsInParams');
+const checkTokenInParams = require('../middlewares/checkTokenInParams');
 
 const router = new Router({
   prefix: '/api'
@@ -34,6 +36,8 @@ router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
 router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);
 router.get('/user/basic/:address', userController.getUserBasicInfo);
+router.get('/user/balance/:plyrId', checkUserExistsInParams, userController.getUserBalance);
+router.get('/user/balance/:plyrId/:tokenName', checkUserExistsInParams, checkTokenInParams, hmacAuth('user'), userController.getUserTokenBalance);
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 

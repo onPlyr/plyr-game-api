@@ -1,4 +1,4 @@
-const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
+const { verifyMessage, isAddress, isHex, getAddress, formatEther, erc20Abi, formatUnits } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
@@ -7,6 +7,7 @@ const Secondary = require('../../models/secondary');
 const ApiKey = require('../../models/apiKey');
 const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
+const config = require('../../config');
 
 const redis = getRedisClient();
 
@@ -595,4 +596,49 @@ exports.getUserBasicInfo = async (ctx) => {
     plyrId: user.plyrId,
     avatar: user.avatar,
   };
+}
+
+exports.getUserBalance = async (ctx) => {
+  const user = ctx.state.user;
+
+  const ret = await Promise.all([config.chain.getBalance({
+      address: user.mirror,
+    }),
+    config.chain.readContract({
+      abi: erc20Abi,
+      address: config.TOKEN_LIST['gamr'].address,
+      functionName: "balanceOf",
+      args: [user.mirror]
+    })
+  ]);
+
+  ctx.status = 200;
+  ctx.body = {
+    plyr: formatEther(ret[0]),
+    gamr: formatEther(ret[1]),
+  };
+}
+
+exports.getUserTokenBalance = async (ctx) => {
+  const user = ctx.state.user;
+  const tokenAddress = ctx.state.tokenAddress;
+  const ret = await Promise.all([
+    config.chain.readContract({
+      abi: erc20Abi,
+      address: tokenAddress,
+      functionName: 'balanceOf',
+      args: [user.mirror]
+    }),
+    config.chain.readContract({
+      abi: erc20Abi,
+      address: tokenAddress,
+      functionName: 'decimals',
+      args: []
+    })
+  ])
+
+  ctx.status = 200;
+  ctx.body = {
+    balance: formatUnits(ret[0], ret[1])
+  }
 }
