@@ -1,6 +1,4 @@
 const { getRedisClient } = require("../../db/redis");
-const ApiKey = require('../../models/apiKey');
-const UserInfo = require('../../models/userInfo');
 const UserApprove = require('../../models/userApprove');
 const { isJoined } = require("../../services/game");
 
