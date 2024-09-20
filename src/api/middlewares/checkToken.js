@@ -19,7 +19,7 @@ const checkToken = async (ctx, next) => {
   if (isAddress(token)) {
     ctx.state.tokenAddress = token;
   } else {
-    ctx.state.tokenAddress = TOKEN_LIST[token.toLowerCase()];
+    ctx.state.tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
   }
 
   await next();
