@@ -65,6 +65,22 @@ async function userTokenBalance() {
   } catch (error) {
     console.log(error.response.data);
   }
+
+  try {
+    let ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/user/balance/test-account/gamr",
+      {
+        headers: {
+          apikey: apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("userTokenBalance 2", ret.data);
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
 async function isGame() {
