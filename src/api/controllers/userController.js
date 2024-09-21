@@ -435,6 +435,7 @@ exports.postLogin = async (ctx) => {
   ctx.body = {
     sessionJwt: JWT,
     ...payload,
+    avatar: user.avatar,
   }
 }
 
