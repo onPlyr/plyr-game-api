@@ -12,7 +12,7 @@ async function createWithdrawTx({ from, to, amount, token, toChain }) {
       args: [
         from,
         to,
-        parseUnits(amount.toString(), 18),
+        parseUnits(amount.toString(), 18).toString(),
       ]
     });
   } else {
