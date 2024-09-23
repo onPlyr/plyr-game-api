@@ -21,6 +21,7 @@ exports.postWithdraw = async (ctx) => {
   }
 
   if (isGame(plyrId)) {
+    console.log('isGame', isGame(plyrId));
     ctx.status = 400;
     ctx.body = {
       error: 'Game can not use this api'
@@ -156,8 +157,7 @@ exports.postTransfer = async (ctx) => {
 
 async function isGame(plyrId) {
   const room = await GameRoom.findOne({ gameId: plyrId });
-  console.log('isGame', room, room ? true : false);
-  return room ? true : false;
+  return room;
 }
 
 exports.getIsGame = async (ctx) => {
