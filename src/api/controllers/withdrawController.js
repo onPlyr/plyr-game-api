@@ -54,7 +54,7 @@ exports.postWithdraw = async (ctx) => {
   const valid = await verifyMessage({
     message: signatureMessage,
     signature,
-    signer: user.primaryAddress
+    address: user.primaryAddress
   });
 
   if (!valid) {
@@ -133,7 +133,7 @@ exports.postTransfer = async (ctx) => {
   const valid = await verifyMessage({
     message: signatureMessage,
     signature,
-    signer: user.primaryAddress
+    address: user.primaryAddress
   });
 
   if (!valid) {
