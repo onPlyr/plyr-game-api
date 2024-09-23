@@ -4,7 +4,6 @@ const { chain, plyrRouterSC, ROUTER_ABI } = require('../config');
 async function createWithdrawTx({ from, to, amount, token, toChain }) {
   let hash;
   if (token === zeroAddress) {
-    console.log('mirrorNativeTransfer args:', { from, to, amount: parseUnits(amount.toString(), 18) });
     hash = await chain.writeContract({
       address: plyrRouterSC,
       abi: ROUTER_ABI,
@@ -12,7 +11,7 @@ async function createWithdrawTx({ from, to, amount, token, toChain }) {
       args: [
         from,
         to,
-        parseUnits(amount.toString(), 18).toString(),
+        parseUnits(amount.toString(), 18),
       ]
     });
   } else {
