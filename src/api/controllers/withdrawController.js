@@ -20,8 +20,8 @@ exports.postWithdraw = async (ctx) => {
     return;
   }
 
-  if (isGame(plyrId)) {
-    console.log('isGame', isGame(plyrId));
+  const _isGame = await isGame(plyrId);
+  if (_isGame) {
     ctx.status = 400;
     ctx.body = {
       error: 'Game can not use this api'
@@ -88,7 +88,8 @@ exports.postTransfer = async (ctx) => {
     return;
   }
 
-  if (isGame(plyrId)) {
+  const _isGame = await isGame(plyrId);
+  if (_isGame) {
     ctx.status = 400;
     ctx.body = {
       error: 'Game can not use this api'
