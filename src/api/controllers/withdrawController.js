@@ -156,6 +156,7 @@ exports.postTransfer = async (ctx) => {
 
 async function isGame(plyrId) {
   const room = await GameRoom.findOne({ gameId: plyrId });
+  console.log('isGame', room, room ? true : false);
   return room ? true : false;
 }
 
