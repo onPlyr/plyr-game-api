@@ -128,7 +128,7 @@ exports.postTransfer = async (ctx) => {
   const user = ctx.state.user;
   const tokenAddress = ctx.state.tokenAddress;
 
-  const signatureMessage = `PLYR[ID] Withdraw token: ${token}, amount: ${amount}`;
+  const signatureMessage = `PLYR[ID] Transfer token: ${token}, amount: ${amount} to ${toAddress}`;
 
   const valid = await verifyMessage({
     message: signatureMessage,
