@@ -113,6 +113,8 @@ exports.postTransfer = async (ctx) => {
     return;
   }
 
+  const signatureMessage = `PLYR[ID] Transfer token: ${token}, amount: ${amount} to ${toAddress}`;
+
   if (!isAddress(toAddress)) {
     const toUser = await UserInfo.findOne({ plyrId: toAddress.toLowerCase() });
     if (!toUser) {
@@ -127,8 +129,6 @@ exports.postTransfer = async (ctx) => {
 
   const user = ctx.state.user;
   const tokenAddress = ctx.state.tokenAddress;
-
-  const signatureMessage = `PLYR[ID] Transfer token: ${token}, amount: ${amount} to ${toAddress}`;
 
   const valid = await verifyMessage({
     message: signatureMessage,
