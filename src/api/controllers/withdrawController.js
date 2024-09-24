@@ -114,7 +114,7 @@ exports.postTransfer = async (ctx) => {
   }
 
   if (!isAddress(toAddress)) {
-    const toUser = await UserInfo.findOne({ plyrId: toAddress });
+    const toUser = await UserInfo.findOne({ plyrId: toAddress.toLowerCase() });
     if (!toUser) {
       ctx.status = 400;
       ctx.body = {
