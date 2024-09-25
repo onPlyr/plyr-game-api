@@ -435,7 +435,7 @@ exports.postLogin = async (ctx) => {
   ctx.body = {
     sessionJwt: JWT,
     ...payload,
-    avatar: user.avatar,
+    avatar: getAvatarUrl(user.avatar),
   }
 }
 
@@ -642,4 +642,14 @@ exports.getUserTokenBalance = async (ctx) => {
   ctx.body = {
     balance: formatUnits(ret[0], ret[1])
   }
+}
+
+exports.getAvatar = async (ctx) => {
+  const user = ctx.state.user;
+  const avatar = user.avatar;
+  const avatarUrl = getAvatarUrl(avatar);
+  ctx.status = 200;
+  ctx.body = {
+    avatar: avatarUrl,
+  };
 }
