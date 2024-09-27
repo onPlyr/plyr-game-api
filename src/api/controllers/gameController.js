@@ -31,6 +31,7 @@ const insertTask = async (params, taskName) => {
 
 const postGameApprove = async (ctx) => {
   const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
+  console.log('postGameApprove', plyrId, gameId, token, amount, expiresIn);
   try {
     if (isNaN(amount) || Number(amount) <= 0) {
       ctx.status = 401;
