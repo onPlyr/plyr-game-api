@@ -652,9 +652,6 @@ exports.getUserTokenBalance = async (ctx) => {
       balance: formatUnits(ret[0], ret[1])
     }
   }
-  
-
-
 }
 
 exports.getAvatar = async (ctx) => {
