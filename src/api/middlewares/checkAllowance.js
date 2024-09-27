@@ -26,7 +26,7 @@ const checkAllowance = async (ctx, next) => {
 
   const plyrIds = Object.keys(sessionJwts);
   const plyrId = plyrIds[0];
-  const userApprove = await UserApprove.findOne({ gameId, plyrId, token });
+  const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
 
   if (!userApprove) {
     ctx.status = 401;

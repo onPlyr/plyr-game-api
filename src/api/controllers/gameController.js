@@ -3,7 +3,7 @@ const UserApprove = require('../../models/userApprove');
 const { isJoined } = require("../../services/game");
 
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
-  await UserApprove.updateOne({plyrId, gameId, token}, {plyrId, gameId, token, amount, expiresIn}, {upsert: true});
+  await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn}, {upsert: true});
 }
 
 const getAllowance = async ({plyrId, gameId, token}) => {
@@ -32,6 +32,11 @@ const insertTask = async (params, taskName) => {
 const postGameApprove = async (ctx) => {
   const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
   try {
+    if (isNaN(amount) || Number(amount) <= 0) {
+      ctx.status = 401;
+      ctx.body = { error: "Approve amount was incorrect." };
+      return;
+    }
     await approve({ plyrId, gameId, token, amount, expiresIn });
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
