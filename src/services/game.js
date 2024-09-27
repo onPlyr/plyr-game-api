@@ -134,7 +134,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
       roomId,
       plyrId,
       tokenAddress, 
-      parseUnits(amount, decimals),
+      parseUnits(amount.toString(), decimals),
     ]
   });
 
@@ -188,7 +188,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
       roomId,
       plyrId,
       tokenAddress, 
-      parseUnits(amount, decimals),
+      parseUnits(amount.toString(), decimals),
     ]
   });
 
@@ -290,7 +290,7 @@ async function multicall({ gameId, roomId, functionDatas, sessionJwts }) {
           roomId,
           params.plyrId,
           tokenAddress,
-          parseUnits(params.amount, decimals),
+          parseUnits(params.amount.toString(), decimals),
         ],
       });
       datas.push(_data);
