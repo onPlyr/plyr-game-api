@@ -33,6 +33,12 @@ const postGameApprove = async (ctx) => {
   const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
   console.log('postGameApprove', plyrId, gameId, token, amount, expiresIn);
   try {
+    if (!plyrId || !gameId || !token || !amount) {
+      ctx.status = 401;
+      ctx.body = { error: "Input params was incorrect." };
+      return;
+    }
+
     if (isNaN(amount) || Number(amount) <= 0) {
       ctx.status = 401;
       ctx.body = { error: "Approve amount was incorrect." };
