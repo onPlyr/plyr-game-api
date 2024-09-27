@@ -1,4 +1,4 @@
-const { verifyMessage, isAddress, isHex, getAddress, formatEther, erc20Abi, formatUnits } = require('viem');
+const { verifyMessage, isAddress, isHex, getAddress, formatEther, erc20Abi, formatUnits, zeroAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
@@ -623,25 +623,38 @@ exports.getUserBalance = async (ctx) => {
 exports.getUserTokenBalance = async (ctx) => {
   const user = ctx.state.user;
   const tokenAddress = ctx.state.tokenAddress;
-  const ret = await Promise.all([
-    config.chain.readContract({
-      abi: erc20Abi,
-      address: tokenAddress,
-      functionName: 'balanceOf',
-      args: [user.mirror]
-    }),
-    config.chain.readContract({
-      abi: erc20Abi,
-      address: tokenAddress,
-      functionName: 'decimals',
-      args: []
-    })
-  ])
+  if (tokenAddress === zeroAddress) {
+    const ret = await config.chain.getBalance({
+      address: user.mirror,
+    });
+    ctx.status = 200;
+    ctx.body = {
+      balance: formatEther(ret)
+    }
+  } else {
+    const ret = await Promise.all([
+      config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenAddress,
+        functionName: 'balanceOf',
+        args: [user.mirror]
+      }),
+      config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenAddress,
+        functionName: 'decimals',
+        args: []
+      })
+    ]);
 
-  ctx.status = 200;
-  ctx.body = {
-    balance: formatUnits(ret[0], ret[1])
+    ctx.status = 200;
+    ctx.body = {
+      balance: formatUnits(ret[0], ret[1])
+    }
   }
+  
+
+
 }
 
 exports.getAvatar = async (ctx) => {
