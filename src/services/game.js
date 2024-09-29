@@ -486,4 +486,5 @@ module.exports = {
   close,
   isJoined,
   createJoinPay,
+  earnLeaveEnd,
 }
