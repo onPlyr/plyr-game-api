@@ -39,15 +39,29 @@ const cache2fa = {};
 
 function is2faUsed(plyrid, token) {
     const key = `${plyrid}-${token}`;
+    const now = Date.now();
+    
     if (cache2fa[key]) {
-        if (cache2fa[key] + 60 * 5 * 1000 < Date.now()) {
-            delete cache2fa[key];
+        if (now - cache2fa[key].timestamp > 5 * 60 * 1000) {
+            // Reset if more than 5 minutes have passed
+            cache2fa[key] = {
+                timestamp: now,
+                times: 0
+            };
             return false;
+        } else {
+            // Increment usage count
+            cache2fa[key].times++;
+            return cache2fa[key].times > 2;
         }
-        return true;
+    } else {
+        // First use
+        cache2fa[key] = {
+            timestamp: now,
+            times: 1
+        };
+        return false;
     }
-    cache2fa[key] = Date.now();
-    return false;
 }
 
 module.exports = { verifyPlyrid, getAvatarUrl, is2faUsed };
