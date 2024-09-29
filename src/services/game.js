@@ -80,6 +80,7 @@ async function isJoined({plyrId, gameId, roomId}) {
       plyrId,
     ]
   });
+  console.log("isJoined", {plyrId, gameId, roomId, ret});
   return ret;
 }
 
