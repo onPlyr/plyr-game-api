@@ -253,7 +253,9 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
   let result = {};
   let _tokens = [];
   let _amounts = [];
-  for (const token of tokens) {
+  for (let i=0; i<tokens.length; i++) {
+    const token = tokens[i];
+    const amount = amounts[i];
     let tokenAddress;
     let decimals;
     if (isAddress(token)) {
@@ -275,7 +277,7 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
       throw new Error('Invalid token: ' + token);
     }
     _tokens.push(tokenAddress);
-    _amounts.push(parseUnits(amounts[i].toString(), decimals));
+    _amounts.push(parseUnits(amount.toString(), decimals));
   }
 
   const hash = await chain.writeContract({
@@ -340,7 +342,9 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
   let result = {};
   let _tokens = [];
   let _amounts = [];
-  for (const token of tokens) {
+  for (let i=0; i<tokens.length; i++) {
+    const token = tokens[i];
+    const amount = amounts[i];
     let tokenAddress;
     let decimals;
     if (isAddress(token)) {
@@ -362,7 +366,7 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
       throw new Error('Invalid token: ' + token);
     }
     _tokens.push(tokenAddress);
-    _amounts.push(parseUnits(amounts[i].toString(), decimals));
+    _amounts.push(parseUnits(amount.toString(), decimals));
   }
 
   const hash = await chain.writeContract({
