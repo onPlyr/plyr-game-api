@@ -59,13 +59,14 @@ describe('Game Controller', () => {
       ctx.request.body = {
         plyrId: 'testPlayer',
         gameId: 'testGame',
+        token: 'plyr',
         amount: 100,
         expiresIn: 3600
       };
       UserApprove.updateOne.mockRejectedValue(new Error('Database error'));
 
       await gameController.postGameApprove(ctx);
-
+      console.log(ctx);
       expect(ctx.status).toBe(500);
       expect(ctx.body).toEqual({ error: 'Database error' });
     });

@@ -206,6 +206,44 @@ const postGameClose = async (ctx) => {
   }
 }
 
+const postGameCreateJoinPay = async (ctx) => {
+  try {
+    const gameId = ctx.state.apiKey.plyrId;
+    let { expiresIn, sessionJwts, tokens, amounts } = ctx.request.body;
+    if (!expiresIn) {
+      expiresIn = 30 * 24 * 60 * 60;
+    }
+    const plyrIds = Object.keys(sessionJwts);
+
+    const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom');
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const postGameEarnLeaveEnd = async (ctx) => {
+  try {
+    const gameId = ctx.state.apiKey.plyrId;
+    const { roomId, sessionJwts, tokens, amounts } = ctx.request.body;
+    const plyrIds = Object.keys(sessionJwts);
+    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom');
+    ctx.status = 200;
+    ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+    } };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
 const getIsJoined = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { roomId, plyrId } = ctx.request.query;
@@ -277,5 +315,7 @@ module.exports = {
   postGameEnd,
   postGameClose,
   postGameMulticall,
+  postGameCreateJoinPay,
+  postGameEarnLeaveEnd,
   getIsJoined,
 }

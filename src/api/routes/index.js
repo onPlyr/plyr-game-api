@@ -15,6 +15,8 @@ const checkAllowance = require('../middlewares/checkAllowance');
 const checkUserExistsInParams = require('../middlewares/checkUserExistsInParams');
 const checkTokenInParams = require('../middlewares/checkTokenInParams');
 const checkUserExistsInBody = require('../middlewares/checkUserExistsInBody');
+const checkAllowances = require('../middlewares/checkAllowances');
+const checkTokens = require('../middlewares/checkTokens');
 
 
 
@@ -67,8 +69,11 @@ router.post('/game/pay', hmacAuth('user'), checkSessionJwts, checkAllowance, gam
 router.post('/game/earn', hmacAuth('user'), gameController.postGameEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
+router.post('/game/createJoinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameCreateJoinPay);
+router.post('/game/earnLeaveEndClose', hmacAuth('user'), checkSessionJwts, checkTokens, gameController.postGameEarnLeaveEnd);
+
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
-// router.post('/game/multicall', hmacAuth('user'), checkSessionJwts, gameController.postGameMulticall);
+
 
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
 router.post('/transfer', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postTransfer);
