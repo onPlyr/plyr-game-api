@@ -110,12 +110,16 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
   let decimals;
   if (isAddress(token)) {
     tokenAddress = token;
-    decimals = await chain.readContract({
-      address: tokenAddress,
-      abi: erc20Abi,
-      functionName: 'decimals',
-      args: [],
-    });
+    if (token === zeroAddress) {
+      decimals = 18;
+    } else {
+      decimals = await chain.readContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'decimals',
+        args: [],
+      });
+    }
   } else if (TOKEN_LIST[token.toLowerCase()]) {
     tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
     decimals = TOKEN_LIST[token.toLowerCase()].decimals;
@@ -166,12 +170,16 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
   let decimals;
   if (isAddress(token)) {
     tokenAddress = token;
-    decimals = await chain.readContract({
-      address: tokenAddress,
-      abi: erc20Abi,
-      functionName: 'decimals',
-      args: [],
-    });
+    if (token === zeroAddress) {
+      decimals = 18;
+    } else {
+      decimals = await chain.readContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'decimals',
+        args: [],
+      });
+    }
   } else if (TOKEN_LIST[token.toLowerCase()]) {
     tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
     decimals = TOKEN_LIST[token.toLowerCase()].decimals;
@@ -237,6 +245,143 @@ async function close({gameId, roomId}) {
   });
 
   console.log('close receipt:', receipt);
+  return {hash, result};
+}
+
+async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
+  let result = {};
+  let _tokens = [];
+  let _amounts = [];
+  for (const token of tokens) {
+    let tokenAddress;
+    let decimals;
+    if (isAddress(token)) {
+      tokenAddress = token;
+      if (token === zeroAddress) {
+        decimals = 18;
+      } else {
+        decimals = await chain.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'decimals',
+          args: [],
+        });
+      }
+    } else if (TOKEN_LIST[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else {
+      throw new Error('Invalid token: ' + token);
+    }
+    _tokens.push(tokenAddress);
+    _amounts.push(parseUnits(amounts[i].toString(), decimals));
+  }
+
+  const hash = await chain.writeContract({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'createJoinPay',
+    args: [
+      gameId,
+      expiresIn,
+      plyrIds,
+      _tokens,
+      _amounts,
+    ]
+  });
+
+  const receipt = await chain.waitForTransactionReceipt({
+    hash: hash,
+  });
+
+  console.log('createJoinPay receipt:', receipt);
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
+
+  for (let i = 0; i < receipt.logs.length; i++) {
+    const log = receipt.logs[i];
+    try {
+      const decodedLog = decodeEventLog({
+        abi: GAME_RULE_V1_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      console.log('Decoded log', i, ':', decodedLog);
+      if (decodedLog.eventName === 'GameRoomCreated') {
+        const { gameId, roomId, roomAddress } = decodedLog.args;
+        await GameRoom.updateOne({ gameId, roomId }, { $set: { gameId, roomId: roomId.toString(), roomAddress } }, { upsert: true });
+        result = { gameId, roomId: roomId.toString(), roomAddress };
+      }
+    } catch (error) {
+      console.log('Failed to decode log', i, ':', error.message);
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const plyrId = plyrIds[i];
+    const token = tokens[i];
+    const amount = amounts[i];
+    const userApprove = await UserApprove.findOne({ gameId, plyrId, token });
+    if (userApprove) {
+      if (userApprove.amount >= amount) {
+        await UserApprove.updateOne({ gameId, plyrId, token }, { $inc: { amount: -amount } });
+      } else {
+        await UserApprove.deleteOne({ gameId, plyrId, token });
+      }
+    }
+  }
+
+  return {hash, result};
+}
+
+async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
+  let result = {};
+  let _tokens = [];
+  let _amounts = [];
+  for (const token of tokens) {
+    let tokenAddress;
+    let decimals;
+    if (isAddress(token)) {
+      tokenAddress = token;
+      if (token === zeroAddress) {
+        decimals = 18;
+      } else {
+        decimals = await chain.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'decimals',
+          args: [],
+        });
+      }
+    } else if (TOKEN_LIST[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else {
+      throw new Error('Invalid token: ' + token);
+    }
+    _tokens.push(tokenAddress);
+    _amounts.push(parseUnits(amounts[i].toString(), decimals));
+  }
+
+  const hash = await chain.writeContract({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'earnLeaveEnd',
+    args: [
+      gameId,
+      roomId,
+      plyrIds,
+      _tokens,
+      _amounts,
+    ]
+  });
+
+  const receipt = await chain.waitForTransactionReceipt({
+    hash: hash,
+  });
+
+  console.log('earnLeaveEnd receipt:', receipt);
   return {hash, result};
 }
 
@@ -335,4 +480,5 @@ module.exports = {
   end,
   close,
   isJoined,
+  createJoinPay,
 }
