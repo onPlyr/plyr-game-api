@@ -70,7 +70,7 @@ router.post('/game/earn', hmacAuth('user'), gameController.postGameEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
 router.post('/game/createJoinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameCreateJoinPay);
-router.post('/game/earnLeaveEndClose', hmacAuth('user'), checkSessionJwts, checkTokens, gameController.postGameEarnLeaveEnd);
+router.post('/game/earnLeaveEnd', hmacAuth('user'), checkSessionJwts, checkTokens, gameController.postGameEarnLeaveEnd);
 
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
