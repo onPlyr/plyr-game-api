@@ -1,6 +1,7 @@
 const { getRedisClient } = require("../../db/redis");
 const UserApprove = require('../../models/userApprove');
 const { isJoined } = require("../../services/game");
+const { checkTaskStatus } = require("../../services/task");
 
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn}, {upsert: true});
@@ -27,10 +28,27 @@ const revoke = async ({plyrId, gameId, token}) => {
   }
 }
 
-const insertTask = async (params, taskName) => {
+const insertTask = async (params, taskName, sync = false) => {
   const redis = getRedisClient();
   const STREAM_KEY = 'mystream';
   const taskId = await redis.xadd(STREAM_KEY, '*', taskName, JSON.stringify(params));
+  if (sync) {
+    let retry = 0;
+    while (retry < 50) {
+      let ret = await checkTaskStatus(taskId);
+      if (ret.status === 'PENDING' || ret.status === 'NOT_FOUND') {
+        retry++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
+      return ret;
+    }
+    return {
+      taskId,
+      status: 'TIMEOUT',
+      errorMessage: 'Task timeout, but still maybe success, you can check the task status by taskId later',
+    };
+  }
   return taskId;
 }
 
@@ -96,17 +114,21 @@ const postGameRevoke = async (ctx) => {
 
 const postGameCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  let { expiresIn } = ctx.request.body;
+  let { expiresIn, sync } = ctx.request.body;
   try {
     if (!expiresIn) {
       expiresIn = 30 * 24 * 60 * 60;
     }
-    const taskId = await insertTask({ gameId, expiresIn }, 'createGameRoom');
+    const taskId = await insertTask({ gameId, expiresIn }, 'createGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
-      id: taskId,
-      status: 'PENDING',
-    } };
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
+        id: taskId,
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -115,15 +137,19 @@ const postGameCreate = async (ctx) => {
 
 const postGameJoin = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { roomId, sessionJwts } = ctx.request.body;
+  const { roomId, sessionJwts, sync } = ctx.request.body;
   try {
     const plyrIds = Object.keys(sessionJwts);
-    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'joinGameRoom');
+    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -132,15 +158,19 @@ const postGameJoin = async (ctx) => {
 
 const postGameLeave = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts, roomId } = ctx.request.body;
+  const { sessionJwts, roomId, sync } = ctx.request.body;
   try {
     const plyrIds = Object.keys(sessionJwts);
-    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'leaveGameRoom');
+    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'leaveGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -149,7 +179,7 @@ const postGameLeave = async (ctx) => {
 
 const postGamePay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts, roomId, token, amount } = ctx.request.body;
+  const { sessionJwts, roomId, token, amount, sync } = ctx.request.body;
   try {
     const plyrId = Object.keys(sessionJwts)[0];
     const _joined = await isJoined({plyrId, gameId, roomId});
@@ -158,12 +188,16 @@ const postGamePay = async (ctx) => {
       ctx.body = { error: 'Player is not joined' };
       return;
     }
-    const taskId = await insertTask({ plyrId, gameId, roomId, token, amount }, 'payGameRoom');
+    const taskId = await insertTask({ plyrId, gameId, roomId, token, amount }, 'payGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
       status: 'PENDING',
-    } };
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -172,7 +206,7 @@ const postGamePay = async (ctx) => {
 
 const postGameEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { plyrId, roomId, token, amount } = ctx.request.body;
+  const { plyrId, roomId, token, amount, sync } = ctx.request.body;
   try {
     const _joined = await isJoined({plyrId, gameId, roomId});
     if (!_joined) {
@@ -180,12 +214,16 @@ const postGameEarn = async (ctx) => {
       ctx.body = { error: 'Player is not joined' };
       return;
     }
-    const taskId = await insertTask({ plyrId,gameId, roomId, token, amount }, 'earnGameRoom');
+    const taskId = await insertTask({ plyrId,gameId, roomId, token, amount }, 'earnGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -194,14 +232,18 @@ const postGameEarn = async (ctx) => {
 
 const postGameEnd = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { roomId } = ctx.request.body;  
+  const { roomId, sync } = ctx.request.body;  
   try {
-    const taskId = await insertTask({ gameId, roomId }, 'endGameRoom');
+    const taskId = await insertTask({ gameId, roomId }, 'endGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -209,14 +251,18 @@ const postGameEnd = async (ctx) => {
 }
 
 const postGameClose = async (ctx) => {
-  const { gameId, roomId } = ctx.request.body;
+  const { gameId, roomId, sync } = ctx.request.body;
   try {
-    const taskId = await insertTask({ gameId, roomId }, 'closeGameRoom');
+    const taskId = await insertTask({ gameId, roomId }, 'closeGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -226,18 +272,22 @@ const postGameClose = async (ctx) => {
 const postGameCreateJoinPay = async (ctx) => {
   try {
     const gameId = ctx.state.apiKey.plyrId;
-    let { expiresIn, sessionJwts, tokens, amounts } = ctx.request.body;
+    let { expiresIn, sessionJwts, tokens, amounts, sync } = ctx.request.body;
     if (!expiresIn) {
       expiresIn = 30 * 24 * 60 * 60;
     }
     const plyrIds = Object.keys(sessionJwts);
 
-    const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom');
+    const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -247,14 +297,18 @@ const postGameCreateJoinPay = async (ctx) => {
 const postGameEarnLeaveEnd = async (ctx) => {
   try {
     const gameId = ctx.state.apiKey.plyrId;
-    const { roomId, sessionJwts, tokens, amounts } = ctx.request.body;
+    const { roomId, sessionJwts, tokens, amounts, sync } = ctx.request.body;
     const plyrIds = Object.keys(sessionJwts);
-    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom');
+    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom', sync);
     ctx.status = 200;
-    ctx.body = { task: {
+    if (sync) {
+      ctx.body = taskId;
+    } else {
+      ctx.body = { task: {
       id: taskId,
-      status: 'PENDING',
-    } };
+        status: 'PENDING',
+      } };
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
