@@ -14,6 +14,11 @@ const getAllowance = async ({plyrId, gameId, token}) => {
   return userApprove.amount;
 }
 
+const getAllowances = async ({plyrId}) => {
+  const userApproves = await UserApprove.find({plyrId});
+  return userApproves;
+}
+
 const revoke = async ({plyrId, gameId, token}) => {
   if (token === 'all') {
     await UserApprove.deleteMany({plyrId, gameId});
@@ -59,6 +64,18 @@ const getGameAllowance = async (ctx) => {
     const allowance = await getAllowance({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { allowance };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const getGameAllowances = async (ctx) => {
+  const { plyrId } = ctx.request.body;
+  try {
+    const allowances = await getAllowances({ plyrId });
+    ctx.status = 200;
+    ctx.body = { allowances };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -306,6 +323,7 @@ const postGameMulticall = async (ctx) => {
 module.exports = {
   postGameApprove,
   getGameAllowance,
+  getGameAllowances,
   postGameRevoke,
   postGameCreate,
   postGameJoin,
