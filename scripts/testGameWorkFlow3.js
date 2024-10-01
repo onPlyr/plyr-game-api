@@ -194,10 +194,7 @@ async function main() {
   // earn leave end
   body = {
     roomId: roomId,
-    sessionJwts: {
-      [users[0].plyrId]: user1SessionJwt,
-      [users[1].plyrId]: user2SessionJwt,
-    },
+    plyrIds: [users[0].plyrId, users[1].plyrId],
     tokens: ['plyr', 'plyr'],
     amounts: ['0.000001', '0.000001'],
     sync: true,

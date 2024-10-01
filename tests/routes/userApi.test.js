@@ -155,7 +155,7 @@ describe('User API', () => {
           signature,
         }
       );
-
+      console.log('response', response);
       expect(response.status).toBe(200);
       
     });

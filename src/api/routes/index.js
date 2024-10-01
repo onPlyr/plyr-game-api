@@ -63,7 +63,7 @@ router.get('/airdrop/campaign/:campaignId/userReward/:address', hmacAuth('user')
 router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, gameController.postGameApprove);
 router.get('/game/allowance/:plyrId/:gameId/:token', hmacAuth('user'), gameController.getGameAllowance);
 router.get('/game/allowances/:plyrId', hmacAuth('user'), gameController.getGameAllowances);
-router.post('/game/revoke', hmacAuth('user'), otpAuth, checkToken, gameController.postGameRevoke);
+router.post('/game/revoke', hmacAuth('user'), otpAuth, gameController.postGameRevoke);
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), checkSessionJwts, gameController.postGameJoin);
 router.post('/game/leave', hmacAuth('user'), checkSessionJwts, gameController.postGameLeave);
