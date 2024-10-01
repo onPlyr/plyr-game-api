@@ -125,7 +125,7 @@ describe('User Controller', () => {
     });
 
     test('returns 400 when plyrId is invalid', async () => {
-      ctx.params.plyrId = '!!invalid-plyr-id';
+      ctx.request.body.plyrId = '!!invalid-plyr-id';
       await userController.postModifyAvatar(ctx);
       expect(ctx.status).toBe(400);
       expect(ctx.body).toEqual({ error: 'Invalid PLYR[ID]' });
@@ -263,7 +263,12 @@ describe('User Controller', () => {
   describe('postSecondaryBind', () => {
     test('successfully binds secondary address', async () => {
       const mockUser = { plyrId: 'testuser', primaryAddress: account.address };
-      UserInfo.findOne.mockResolvedValue(mockUser);
+      UserInfo.findOne.mockImplementation(async (query) => {
+        if (query.plyrId === mockUser.plyrId) {
+          return mockUser;
+        }
+        return null;
+      });
       Secondary.findOne.mockResolvedValue(null);
       Secondary.create.mockResolvedValue({});
 

@@ -132,7 +132,7 @@ describe('User API', () => {
       const signatureMessage = `PLYR[ID] Secondary Bind`;
       const signature = await secondary.signMessage({ message: signatureMessage });
 
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const userInfo = {
         plyrId: plyrId,
         primaryAddress: account.address,
@@ -142,7 +142,12 @@ describe('User API', () => {
         createdAt: Date.now()
       };
 
-      UserInfo.findOne.mockResolvedValue(userInfo);
+      UserInfo.findOne.mockImplementation(async (query) => {
+        if (query.plyrId === plyrId) {
+          return userInfo;
+        }
+        return null;
+      });
 
       const response = await makeAuthenticatedRequest(
         'post', 
@@ -155,7 +160,6 @@ describe('User API', () => {
           signature,
         }
       );
-      console.log('response', response);
       expect(response.status).toBe(200);
       
     });
@@ -178,6 +182,19 @@ describe('User API', () => {
   describe("POST /api/user/session/verify", () => {
     it('should verify a valid user JWT token', async () => {
       const token = generateJwtToken({nonce: 0, plyrId: 'newTestUser', gameId: 'tester', expiresIn: 10000 });
+
+      const plyrId = 'newTestUser';
+      const userInfo = {
+        plyrId: plyrId,
+        primaryAddress: account.address,
+        mirror: calcMirrorAddress(account.address),
+        chainId: 62831,
+        avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
+        createdAt: Date.now()
+      };
+
+      UserInfo.findOne.mockResolvedValue(userInfo);
+
       const response = await makeAuthenticatedRequest(
         'post',
         '/api/user/session/verify',
@@ -190,7 +207,6 @@ describe('User API', () => {
           expiresIn: 3600,
         }
       );
-
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body).toHaveProperty('payload');
