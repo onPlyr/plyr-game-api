@@ -125,6 +125,8 @@ exports.postRegister = async (ctx) => {
     return;
   }
 
+  await Secondary.deleteMany({ secondaryAddress: getAddress(address) });
+
   let ret = await UserInfo.findOne({ plyrId });
   if (ret && ret.plyrId === plyrId) {
     ctx.status = 400;
@@ -243,8 +245,7 @@ exports.getUserInfo = async (ctx) => {
 }
 
 exports.postModifyAvatar = async (ctx) => {
-  const { plyrId } = ctx.params;
-  const { avatar, signature } = ctx.request.body;
+  const { plyrId, avatar, signature } = ctx.request.body;
 
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
@@ -317,6 +318,50 @@ exports.postModifyAvatar = async (ctx) => {
   };
 };
 
+exports.postSecondaryUnbind = async (ctx) => {
+  const { plyrId, secondaryAddress, signature } = ctx.request.body;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  if (!isAddress(secondaryAddress)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid secondary address'
+    };
+    return;
+  }
+
+  const signatureMessage = `PLYR[ID] Secondary Unbind`;
+
+  const valid = await verifyMessage({
+    address: secondaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await Secondary.deleteMany({ secondaryAddress: getAddress(secondaryAddress) });
+
+  ctx.status = 200;
+  ctx.body = {
+    plyrId: plyrId.toLowerCase(),
+    secondaryAddress: getAddress(secondaryAddress),
+  };
+}
+
 exports.postSecondaryBind = async (ctx) => {
   const { plyrId, secondaryAddress, signature } = ctx.request.body;
 
@@ -344,6 +389,15 @@ exports.postSecondaryBind = async (ctx) => {
     return;
   }
 
+  let secondaryUser = await UserInfo.findOne({ primaryAddress: getAddress(secondaryAddress) });
+  if (secondaryUser) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'You can not bind to this address, because this address is primary address of other user'
+    };
+    return;
+  }
+
   let user = await UserInfo.findOne({ plyrId: verifyPlyrid(plyrId) });
   if (!user) {
     ctx.status = 400;
@@ -358,15 +412,6 @@ exports.postSecondaryBind = async (ctx) => {
     ctx.body = {
       error: 'Secondary must different with primary address'
     }
-    return;
-  }
-
-  let ret = await Secondary.findOne({ secondaryAddress: getAddress(secondaryAddress) });
-  if (ret) {
-    ctx.status = 400;
-    ctx.body = {
-      error: 'Secondary address already exists'
-    };
     return;
   }
 
@@ -386,9 +431,12 @@ exports.postSecondaryBind = async (ctx) => {
     return;
   }
 
+  await Secondary.deleteMany({ secondaryAddress: getAddress(secondaryAddress) });
+
   await Secondary.create({
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
+    boundAt: Date.now(),
   });
 
   ctx.status = 200;
@@ -410,6 +458,8 @@ exports.getSecondary = async (ctx) => {
   }
 
   const secondary = await Secondary.find({ plyrId: plyrId.toLowerCase() });
+  delete secondary._id;
+  delete secondary.__v;
   ctx.status = 200;
   ctx.body = secondary;
   return;

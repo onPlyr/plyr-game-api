@@ -77,7 +77,7 @@ const postGameApprove = async (ctx) => {
 }
 
 const getGameAllowance = async (ctx) => {
-  const { plyrId, gameId, token } = ctx.request.body;
+  const { plyrId, gameId, token } = ctx.params;
   try {
     const allowance = await getAllowance({ plyrId, gameId, token });
     ctx.status = 200;
@@ -89,7 +89,7 @@ const getGameAllowance = async (ctx) => {
 }
 
 const getGameAllowances = async (ctx) => {
-  const { plyrId } = ctx.request.body;
+  const { plyrId } = ctx.params;
   try {
     const allowances = await getAllowances({ plyrId });
     ctx.status = 200;
@@ -277,6 +277,11 @@ const postGameCreateJoinPay = async (ctx) => {
       expiresIn = 30 * 24 * 60 * 60;
     }
     const plyrIds = Object.keys(sessionJwts);
+    if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
+      ctx.status = 400;
+      ctx.body = { error: 'Input params was incorrect.' };
+      return;
+    }
 
     const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom', sync);
     ctx.status = 200;
@@ -297,8 +302,12 @@ const postGameCreateJoinPay = async (ctx) => {
 const postGameEarnLeaveEnd = async (ctx) => {
   try {
     const gameId = ctx.state.apiKey.plyrId;
-    const { roomId, sessionJwts, tokens, amounts, sync } = ctx.request.body;
-    const plyrIds = Object.keys(sessionJwts);
+    const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+    if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
+      ctx.status = 400;
+      ctx.body = { error: 'Input params was incorrect.' };
+      return;
+    }
     const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom', sync);
     ctx.status = 200;
     if (sync) {
