@@ -8,7 +8,7 @@ const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
 }
 
 const getAllowance = async ({plyrId, gameId, token}) => {
-  const userApprove = await UserApprove.findOne({plyrId, gameId, token});
+  const userApprove = await UserApprove.findOne({plyrId, gameId, token: token.toLowerCase()});
   if (!userApprove || (userApprove.expiresIn * 1000) + new Date(userApprove.createdAt).getTime() < Date.now()) {
     return 0;
   }
@@ -21,10 +21,14 @@ const getAllowances = async ({plyrId}) => {
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
-  if (token === 'all') {
-    await UserApprove.deleteMany({plyrId, gameId});
+  if (token === 'all' || gameId === 'all') {
+    await UserApprove.deleteMany({
+      plyrId, 
+      gameId: gameId.toLowerCase() !== 'all' ? gameId : undefined,
+      token: token.toLowerCase() !== 'all' ? token.toLowerCase() : undefined,
+    });
   } else {
-    await UserApprove.deleteOne({plyrId, gameId, token});
+    await UserApprove.deleteOne({plyrId, gameId, token: token.toLowerCase()});
   }
 }
 
@@ -67,7 +71,7 @@ const postGameApprove = async (ctx) => {
       ctx.body = { error: "Approve amount was incorrect." };
       return;
     }
-    await approve({ plyrId, gameId, token, amount, expiresIn });
+    await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
   } catch (error) {
@@ -79,7 +83,7 @@ const postGameApprove = async (ctx) => {
 const getGameAllowance = async (ctx) => {
   const { plyrId, gameId, token } = ctx.params;
   try {
-    const allowance = await getAllowance({ plyrId, gameId, token });
+    const allowance = await getAllowance({ plyrId, gameId, token: token.toLowerCase() });
     ctx.status = 200;
     ctx.body = { allowance };
   } catch (error) {
