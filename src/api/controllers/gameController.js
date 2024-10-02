@@ -1,5 +1,6 @@
 const { getRedisClient } = require("../../db/redis");
 const UserApprove = require('../../models/userApprove');
+const UserInfo = require("../../models/userInfo");
 const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
 
@@ -121,7 +122,7 @@ const postGameRevokeBySignature = async (ctx) => {
   try {
     const singatureMessage = `Revoke ${plyrId.toLowerCase()} allowance of ${gameId.toLowerCase()} ${token.toLowerCase()}`;
 
-    const user = await User.findOne({ plyrId: plyrId.toLowerCase() });
+    const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
     if (!user) {
       ctx.status = 400;
       ctx.body = {
