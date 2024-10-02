@@ -339,8 +339,17 @@ exports.postSecondaryUnbind = async (ctx) => {
 
   const signatureMessage = `PLYR[ID] Secondary Unbind`;
 
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
   const valid = await verifyMessage({
-    address: secondaryAddress,
+    address: user.primaryAddress,
     message: signatureMessage,
     signature
   });

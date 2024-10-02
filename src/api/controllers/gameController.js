@@ -4,7 +4,7 @@ const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
 
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
-  await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn}, {upsert: true});
+  await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
 }
 
 const getAllowance = async ({plyrId, gameId, token}) => {
@@ -107,6 +107,44 @@ const getGameAllowances = async (ctx) => {
 const postGameRevoke = async (ctx) => {
   const { plyrId, gameId, token } = ctx.request.body;
   try {
+    await revoke({ plyrId, gameId, token });
+    ctx.status = 200;
+    ctx.body = { message: 'Revoked' };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const postGameRevokeBySignature = async (ctx) => {
+  const { plyrId, gameId, token, signature } = ctx.request.body;
+  try {
+    const singatureMessage = `Revoke ${plyrId.toLowerCase()} allowance of ${gameId.toLowerCase()} ${token.toLowerCase()}`;
+
+    const user = await User.findOne({ plyrId: plyrId.toLowerCase() });
+    if (!user) {
+      ctx.status = 400;
+      ctx.body = {
+        error: 'User not found'
+      };
+      return;
+    }
+    const address = user.primaryAddress;
+
+    const valid = await verifyMessage({
+      address,
+      message: singatureMessage,
+      signature
+    });
+  
+    if (!valid) {
+      ctx.status = 400;
+      ctx.body = {
+        error: 'Invalid signature'
+      };
+      return;
+    }
+
     await revoke({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
@@ -392,6 +430,7 @@ module.exports = {
   getGameAllowance,
   getGameAllowances,
   postGameRevoke,
+  postGameRevokeBySignature,
   postGameCreate,
   postGameJoin,
   postGameLeave,

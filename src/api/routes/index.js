@@ -17,6 +17,7 @@ const checkTokenInParams = require('../middlewares/checkTokenInParams');
 const checkUserExistsInBody = require('../middlewares/checkUserExistsInBody');
 const checkAllowances = require('../middlewares/checkAllowances');
 const checkTokens = require('../middlewares/checkTokens');
+const checkGameId = require('../middlewares/checkGameId');
 
 
 
@@ -60,10 +61,11 @@ router.get('/airdrop/campaign/info', hmacAuth('user'), airdropController.getCamp
 router.get('/airdrop/campaign/:campaignId/claimableReward/:address', hmacAuth('user'), airdropController.getCampaignClaimableReward);
 router.get('/airdrop/campaign/:campaignId/userReward/:address', hmacAuth('user'), airdropController.getCampaignUserReward);
 
-router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, gameController.postGameApprove);
+router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, checkGameId, gameController.postGameApprove);
 router.get('/game/allowance/:plyrId/:gameId/:token', hmacAuth('user'), gameController.getGameAllowance);
 router.get('/game/allowances/:plyrId', hmacAuth('user'), gameController.getGameAllowances);
 router.post('/game/revoke', hmacAuth('user'), otpAuth, gameController.postGameRevoke);
+router.post('/game/revokeBySignature', hmacAuth('user'), gameController.postGameRevokeBySignature);
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), checkSessionJwts, gameController.postGameJoin);
 router.post('/game/leave', hmacAuth('user'), checkSessionJwts, gameController.postGameLeave);
