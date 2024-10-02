@@ -1,3 +1,4 @@
+const { verifyMessage } = require("viem");
 const { getRedisClient } = require("../../db/redis");
 const UserApprove = require('../../models/userApprove');
 const UserInfo = require("../../models/userInfo");
