@@ -23,7 +23,7 @@ const getAllowances = async ({plyrId}) => {
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
-  if (token === 'all' || gameId === 'all') {
+  if (token.toLowerCase() === 'all' || gameId.toLowerCase() === 'all') {
     await UserApprove.deleteMany({
       plyrId, 
       gameId: gameId.toLowerCase() !== 'all' ? gameId : undefined,
