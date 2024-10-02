@@ -23,15 +23,17 @@ const getAllowances = async ({plyrId}) => {
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
-  if (token.toLowerCase() === 'all' || gameId.toLowerCase() === 'all') {
-    await UserApprove.deleteMany({
-      plyrId, 
-      gameId: gameId.toLowerCase() !== 'all' ? gameId : undefined,
-      token: token.toLowerCase() !== 'all' ? token.toLowerCase() : undefined,
-    });
-  } else {
-    await UserApprove.deleteOne({plyrId, gameId, token: token.toLowerCase()});
+  const query = { plyrId };
+  
+  if (token.toLowerCase() !== 'all') {
+    query.token = token.toLowerCase();
   }
+  
+  if (gameId.toLowerCase() !== 'all') {
+    query.gameId = gameId.toLowerCase();
+  }
+
+  await UserApprove.deleteMany(query);
 }
 
 const insertTask = async (params, taskName, sync = false) => {
