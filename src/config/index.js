@@ -70,9 +70,9 @@ const TOKEN_LIST = {
     decimals: 18,
   },
   'gamr': {
-    address: '0xa875625fe8A955406523E52E485f351b92908ce1',
+    address: '0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731',
     decimals: 18,
-  }, // testnet
+  },
 };
 
 module.exports = {
@@ -90,7 +90,7 @@ module.exports = {
   AIRDROP_ABI,
   jwtPrivateKey: Buffer.from(process.env.JWT_PRIVATE_KEY, 'base64').toString('utf-8'),
   jwtPublicKey: Buffer.from(process.env.JWT_PUBLIC_KEY, 'base64').toString('utf-8'),
-  gameRuleV1SC: '0x1c20E9ffD6Fac7a4842286683A8FfBE5B882990e',
+  gameRuleV1SC: '0xb3Dd279167E0881d41c7D8012cdF618b8b428BF6',
   GAME_RULE_V1_ABI,
   TOKEN_LIST,
 };
