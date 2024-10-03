@@ -6,6 +6,7 @@ const jwtController = require('../controllers/jwtController');
 const airdropController = require('../controllers/airdropController');
 const gameController = require('../controllers/gameController');
 const withdrawController = require('../controllers/withdrawController');
+const networkController = require('../controllers/networkController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -82,5 +83,10 @@ router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
 router.post('/transfer', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postTransfer);
 router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
+
+router.get('/network/circulatingSupply', networkController.getCirculatingSupply);
+router.get('/network/burnedSupply', networkController.getBurnedSupply);
+router.get('/network/lockedSupply', networkController.getLockedSupply);
+router.get('/network/totalSupply', networkController.getTotalSupply);
 
 module.exports = router;
