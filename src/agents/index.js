@@ -4,6 +4,8 @@ const { createUser } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
 const { claimAirdropReward } = require('../services/airdrop');
+const { createWithdrawTx } = require('../services/withdraw');
+
 const gameRoom = require('../services/game');
 
 const redis = getRedisClient();
@@ -66,6 +68,11 @@ async function processMessage(id, message) {
       if (key === 'claimAirdropReward') {
         console.log('Claiming airdrop reward:', obj);
         hash = await claimAirdropReward(obj);
+      }
+
+      if (key === 'createWithdrawTx') {
+        console.log('Creating withdraw tx:', obj);
+        hash = await createWithdrawTx(obj);
       }
 
       if (key.includes('GameRoom')) {

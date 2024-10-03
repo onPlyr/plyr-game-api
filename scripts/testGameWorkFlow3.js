@@ -107,6 +107,33 @@ async function createGame() {
   return roomId;
 }
 
+async function createJoinPayGame(sessionJwts, tokens, amounts) {
+  const body = {
+    expiresIn: 86400,
+    sessionJwts: sessionJwts,
+    tokens: tokens,
+    amounts: amounts,
+    sync: true,
+  }
+  const timestamp = Date.now().toString();
+  let hmac = generateHmacSignature(timestamp, body, game.secKey);
+  let ret = await axios.post(
+    process.env.API_ENDPOINT + "/api/game/createJoinPay",
+    body,
+    {
+      headers: {
+        apikey: game.apiKey,
+        signature: hmac,
+        timestamp: timestamp,
+      },
+    }
+  );
+  console.log("ret", ret.data);
+  roomId = ret.data.taskData.result.roomId;
+  console.log("roomId", roomId);
+  return roomId;
+}
+
 async function userLogin(user) {
   console.log("user login", user);
   const body = {
@@ -148,10 +175,6 @@ async function approveToken(user) {
 }
 
 async function main() {
-  // register 3 users (the first one is the game creator), game, user1, user2
-  // create game
-  let roomId = await createGame();
-
   // users login and get sessionJwts
   let user1SessionJwt = await userLogin(users[0]);
   let user2SessionJwt = await userLogin(users[1]);
@@ -162,135 +185,29 @@ async function main() {
   let response;
   let status;
 
-  // join game
-  body = {
-    roomId: roomId,
-    sessionJwts: {
-      [users[0].plyrId]: user1SessionJwt,
-      [users[1].plyrId]: user2SessionJwt,
-    }
-  }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/game/join',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("join game response", response);
-  // sleep 5s
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  status = await makeAuthenticatedRequest(
-    'get',
-    '/api/task/status/' + response.task.id,
-    game.apiKey,
-    game.secKey,
-    {}
-  );
-  console.log("join gamestatus", status);
+  let roomId = await createJoinPayGame({
+    [users[0].plyrId]: user1SessionJwt,
+    [users[1].plyrId]: user2SessionJwt,
+  }, ['plyr', 'plyr'], ['0.000001', '0.000001']);
 
-  // pay
+  
+  // earn leave end
   body = {
     roomId: roomId,
-    sessionJwts: {
-      [users[0].plyrId]: user1SessionJwt,
-    },
-    token: 'plyr',
-    amount: '0.000001',
+    plyrIds: [users[0].plyrId, users[1].plyrId],
+    tokens: ['plyr', 'plyr'],
+    amounts: ['0.000001', '0.000001'],
+    sync: true,
   }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/game/pay',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("pay response", response);
-  // sleep 5s
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  status = await makeAuthenticatedRequest(
-    'get',
-    '/api/task/status/' + response.task.id,
-    game.apiKey,
-    game.secKey,
-    {}
-  );
-  console.log("pay status", status);
-  // earn
-  body = {
-    roomId: roomId,
-    plyrId: users[1].plyrId,
-    token: 'plyr',
-    amount: '0.000001',
-  }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/game/earn',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("earn response", response);
-  // sleep 5s
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  status = await makeAuthenticatedRequest(
-    'get',
-    '/api/task/status/' + response.task.id,
-    game.apiKey,
-    game.secKey,
-    {}
-  );
-  console.log("earn status", status);
 
-  // leave game 
-  body = {
-    roomId: roomId,
-    sessionJwts: {
-      [users[0].plyrId]: user1SessionJwt,
-      [users[1].plyrId]: user2SessionJwt,
-    }
-  }
   response = await makeAuthenticatedRequest(
     'post',
-    '/api/game/leave',
+    '/api/game/earnLeaveEnd',
     game.apiKey,
     game.secKey,
     body
   );
-  console.log("leave game response", response);
-  // sleep 5s
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  status = await makeAuthenticatedRequest(
-    'get',
-    '/api/task/status/' + response.task.id,
-    game.apiKey,
-    game.secKey,
-    {}
-  );
-  console.log("leave game status", status);
-
-  // end game
-  body = {
-    roomId: roomId,
-  }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/game/end',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("end game response", response);
-  // sleep 5s
-  await new Promise(resolve => setTimeout(resolve, 15000));
-  status = await makeAuthenticatedRequest(
-    'get',
-    '/api/task/status/' + response.task.id,
-    game.apiKey,
-    game.secKey,
-    {}
-  );
-  console.log("end game status", status);
+  console.log("earnLeaveEnd response", response);
 }
 
 main().then(()=>console.log('done')).catch(console.error);

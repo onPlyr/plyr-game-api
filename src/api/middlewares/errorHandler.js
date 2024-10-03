@@ -6,7 +6,6 @@ const errorHandler = async (ctx, next) => {
 
     ctx.status = err.status || 500;
     ctx.body = {
-      success: false,
       error: err.message || 'Internal server error',
     };
     ctx.body.stack = err.stack;

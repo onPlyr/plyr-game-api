@@ -59,13 +59,14 @@ describe('Game Controller', () => {
       ctx.request.body = {
         plyrId: 'testPlayer',
         gameId: 'testGame',
+        token: 'plyr',
         amount: 100,
         expiresIn: 3600
       };
       UserApprove.updateOne.mockRejectedValue(new Error('Database error'));
 
       await gameController.postGameApprove(ctx);
-
+      console.log(ctx);
       expect(ctx.status).toBe(500);
       expect(ctx.body).toEqual({ error: 'Database error' });
     });
@@ -74,7 +75,7 @@ describe('Game Controller', () => {
   describe('getGameAllowance', () => {
     test('successfully gets allowance for non-expired approval', async () => {
       const now = new Date();
-      ctx.request.body = {
+      ctx.params = {
         plyrId: 'testPlayer',
         gameId: 'testGame',
         token: 'plyr'
@@ -92,7 +93,7 @@ describe('Game Controller', () => {
 
     test('returns 0 allowance for expired approval', async () => {
       const now = new Date();
-      ctx.request.body = {
+      ctx.params = {
         plyrId: 'testPlayer',
         gameId: 'testGame',
         token: 'plyr'
@@ -109,20 +110,19 @@ describe('Game Controller', () => {
     });
 
     test('successfully gets allowance', async () => {
-      ctx.request.body = {
+      ctx.params = {
         plyrId: 'testPlayer',
         gameId: 'testGame'
       };
       UserApprove.findOne.mockResolvedValue({ amount: 100 });
 
       await gameController.getGameAllowance(ctx);
-      console.log(ctx.body);
       expect(ctx.status).toBe(200);
       expect(ctx.body).toEqual({ allowance: 100 });
     });
 
     test('handles errors', async () => {
-      ctx.request.body = {
+      ctx.params = {
         plyrId: 'testPlayer',
         gameId: 'testGame'
       };

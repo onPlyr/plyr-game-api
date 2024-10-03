@@ -1,4 +1,4 @@
-const { verifyMessage, isAddress, isHex, getAddress } = require('viem');
+const { verifyMessage, isAddress, isHex, getAddress, formatEther, erc20Abi, formatUnits, zeroAddress } = require('viem');
 const UserInfo = require('../../models/userInfo');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
@@ -7,6 +7,7 @@ const Secondary = require('../../models/secondary');
 const ApiKey = require('../../models/apiKey');
 const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
+const config = require('../../config');
 
 const redis = getRedisClient();
 
@@ -123,6 +124,8 @@ exports.postRegister = async (ctx) => {
     };
     return;
   }
+
+  await Secondary.deleteMany({ secondaryAddress: getAddress(address) });
 
   let ret = await UserInfo.findOne({ plyrId });
   if (ret && ret.plyrId === plyrId) {
@@ -242,8 +245,7 @@ exports.getUserInfo = async (ctx) => {
 }
 
 exports.postModifyAvatar = async (ctx) => {
-  const { plyrId } = ctx.params;
-  const { avatar, signature } = ctx.request.body;
+  const { plyrId, avatar, signature } = ctx.request.body;
 
   if (!verifyPlyrid(plyrId)) {
     ctx.status = 400;
@@ -316,6 +318,59 @@ exports.postModifyAvatar = async (ctx) => {
   };
 };
 
+exports.postSecondaryUnbind = async (ctx) => {
+  const { plyrId, secondaryAddress, signature } = ctx.request.body;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  if (!isAddress(secondaryAddress)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid secondary address'
+    };
+    return;
+  }
+
+  const signatureMessage = `PLYR[ID] Secondary Unbind`;
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await Secondary.deleteMany({ secondaryAddress: getAddress(secondaryAddress) });
+
+  ctx.status = 200;
+  ctx.body = {
+    plyrId: plyrId.toLowerCase(),
+    secondaryAddress: getAddress(secondaryAddress),
+  };
+}
+
 exports.postSecondaryBind = async (ctx) => {
   const { plyrId, secondaryAddress, signature } = ctx.request.body;
 
@@ -343,6 +398,15 @@ exports.postSecondaryBind = async (ctx) => {
     return;
   }
 
+  let secondaryUser = await UserInfo.findOne({ primaryAddress: getAddress(secondaryAddress) });
+  if (secondaryUser) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'You can not bind to this address, because this address is primary address of other user'
+    };
+    return;
+  }
+
   let user = await UserInfo.findOne({ plyrId: verifyPlyrid(plyrId) });
   if (!user) {
     ctx.status = 400;
@@ -357,15 +421,6 @@ exports.postSecondaryBind = async (ctx) => {
     ctx.body = {
       error: 'Secondary must different with primary address'
     }
-    return;
-  }
-
-  let ret = await Secondary.findOne({ secondaryAddress: getAddress(secondaryAddress) });
-  if (ret) {
-    ctx.status = 400;
-    ctx.body = {
-      error: 'Secondary address already exists'
-    };
     return;
   }
 
@@ -385,9 +440,12 @@ exports.postSecondaryBind = async (ctx) => {
     return;
   }
 
+  await Secondary.deleteMany({ secondaryAddress: getAddress(secondaryAddress) });
+
   await Secondary.create({
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
+    boundAt: Date.now(),
   });
 
   ctx.status = 200;
@@ -409,6 +467,8 @@ exports.getSecondary = async (ctx) => {
   }
 
   const secondary = await Secondary.find({ plyrId: plyrId.toLowerCase() });
+  delete secondary._id;
+  delete secondary.__v;
   ctx.status = 200;
   ctx.body = secondary;
   return;
@@ -434,6 +494,7 @@ exports.postLogin = async (ctx) => {
   ctx.body = {
     sessionJwt: JWT,
     ...payload,
+    avatar: getAvatarUrl(user.avatar),
   }
 }
 
@@ -594,5 +655,70 @@ exports.getUserBasicInfo = async (ctx) => {
   ctx.body = {
     plyrId: user.plyrId,
     avatar: user.avatar,
+  };
+}
+
+exports.getUserBalance = async (ctx) => {
+  const user = ctx.state.user;
+
+  const ret = await Promise.all([config.chain.getBalance({
+      address: user.mirror,
+    }),
+    config.chain.readContract({
+      abi: erc20Abi,
+      address: config.TOKEN_LIST['gamr'].address,
+      functionName: "balanceOf",
+      args: [user.mirror]
+    })
+  ]);
+
+  ctx.status = 200;
+  ctx.body = {
+    plyr: formatEther(ret[0]),
+    gamr: formatEther(ret[1]),
+  };
+}
+
+exports.getUserTokenBalance = async (ctx) => {
+  const user = ctx.state.user;
+  const tokenAddress = ctx.state.tokenAddress;
+  if (tokenAddress === zeroAddress) {
+    const ret = await config.chain.getBalance({
+      address: user.mirror,
+    });
+    ctx.status = 200;
+    ctx.body = {
+      balance: formatEther(ret)
+    }
+  } else {
+    const ret = await Promise.all([
+      config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenAddress,
+        functionName: 'balanceOf',
+        args: [user.mirror]
+      }),
+      config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenAddress,
+        functionName: 'decimals',
+        args: []
+      })
+    ]);
+
+    ctx.status = 200;
+    ctx.body = {
+      balance: formatUnits(ret[0], ret[1])
+    }
+  }
+}
+
+exports.getAvatar = async (ctx) => {
+  const user = ctx.state.user;
+  const avatar = user.avatar;
+  const avatarUrl = getAvatarUrl(avatar);
+  ctx.status = 200;
+  ctx.body = {
+    avatar: avatarUrl,
   };
 }
