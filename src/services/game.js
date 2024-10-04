@@ -19,6 +19,7 @@ async function create({gameId, expiresIn}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('create receipt:', receipt);
@@ -63,6 +64,7 @@ async function join({plyrIds, gameId, roomId}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('join receipt:', receipt);
@@ -99,6 +101,7 @@ async function leave({plyrIds, gameId, roomId}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('leave receipt:', receipt);
@@ -145,6 +148,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   if (receipt.status !== 'success') {
@@ -203,6 +207,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('earn receipt:', receipt);
@@ -223,6 +228,7 @@ async function end({gameId, roomId}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('end receipt:', receipt);
@@ -243,6 +249,7 @@ async function close({gameId, roomId}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('close receipt:', receipt);
@@ -295,6 +302,7 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('createJoinPay receipt:', receipt);
@@ -384,6 +392,7 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('earnLeaveEnd receipt:', receipt);
@@ -470,6 +479,7 @@ async function multicall({ gameId, roomId, functionDatas, sessionJwts }) {
 
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('multicall receipt:', receipt);
