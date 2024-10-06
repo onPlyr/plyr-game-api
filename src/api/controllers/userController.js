@@ -485,7 +485,7 @@ exports.postLogin = async (ctx) => {
   nonce[gameId] = gameNonce;
   await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
 
-  const payload = { plyrId, nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
 
   delete payload.nonce;
