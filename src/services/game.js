@@ -17,8 +17,10 @@ async function create({gameId, expiresIn}) {
     ]
   });
 
+  console.log('create hash:', hash);
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('create receipt:', receipt);
@@ -61,8 +63,11 @@ async function join({plyrIds, gameId, roomId}) {
     ]
   });
 
+  console.log('join hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('join receipt:', receipt);
@@ -97,8 +102,11 @@ async function leave({plyrIds, gameId, roomId}) {
     ]
   });
 
+  console.log('leave hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('leave receipt:', receipt);
@@ -143,8 +151,11 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
     ]
   });
 
+  console.log('pay hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   if (receipt.status !== 'success') {
@@ -201,8 +212,11 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
     ]
   });
 
+  console.log('earn hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('earn receipt:', receipt);
@@ -221,8 +235,11 @@ async function end({gameId, roomId}) {
     ]
   });
 
+  console.log('end hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('end receipt:', receipt);
@@ -241,8 +258,11 @@ async function close({gameId, roomId}) {
     ]
   });
 
+  console.log('close hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('close receipt:', receipt);
@@ -293,8 +313,11 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
     ]
   });
 
+  console.log('createJoinPay hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('createJoinPay receipt:', receipt);
@@ -382,8 +405,11 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
     ]
   });
 
+  console.log('earnLeaveEnd hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('earnLeaveEnd receipt:', receipt);
@@ -468,8 +494,11 @@ async function multicall({ gameId, roomId, functionDatas, sessionJwts }) {
     ],
   });
 
+  console.log('multicall hash:', hash);
+
   const receipt = await chain.waitForTransactionReceipt({
     hash: hash,
+    confirmations: 0,
   });
 
   console.log('multicall receipt:', receipt);
