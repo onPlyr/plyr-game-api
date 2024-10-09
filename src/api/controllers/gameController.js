@@ -123,7 +123,7 @@ const postGameRevoke = async (ctx) => {
 const postGameRevokeBySignature = async (ctx) => {
   const { plyrId, gameId, token, signature } = ctx.request.body;
   try {
-    const singatureMessage = `Revoke ${plyrId.toLowerCase()} allowance of ${gameId.toLowerCase()} ${token.toLowerCase()}`;
+    const singatureMessage = `Revoke ${plyrId.toUpperCase()}\'s ${token.toUpperCase()} allowance for ${gameId.toUpperCase()}`;
 
     const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
     if (!user) {
