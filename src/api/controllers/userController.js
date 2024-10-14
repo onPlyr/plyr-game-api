@@ -8,6 +8,7 @@ const ApiKey = require('../../models/apiKey');
 const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
 const config = require('../../config');
+const { approve } = require('./gameController');
 
 const redis = getRedisClient();
 
@@ -487,6 +488,41 @@ exports.postLogin = async (ctx) => {
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
+
+  delete payload.nonce;
+
+  ctx.status = 200;
+  ctx.body = {
+    sessionJwt: JWT,
+    ...payload,
+    avatar: getAvatarUrl(user.avatar),
+  }
+}
+
+exports.postLoginAndApprove = async (ctx) => {
+  const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
+  const user = ctx.state.user;
+  const nonce = user.nonce ? user.nonce : {};
+  let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
+  nonce[gameId] = gameNonce;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
+
+  const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const JWT = generateJwtToken(payload, expiresIn);
+
+  if (!plyrId || !gameId || !token || !amount) {
+    ctx.status = 401;
+    ctx.body = { error: "Input params was incorrect." };
+    return;
+  }
+
+  if (isNaN(amount) || Number(amount) <= 0) {
+    ctx.status = 401;
+    ctx.body = { error: "Approve amount was incorrect." };
+    return;
+  }
+
+  await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
 
   delete payload.nonce;
 

@@ -41,6 +41,7 @@ router.post('/user/secondary/bind', hmacAuth('user'), userController.postSeconda
 router.post('/user/secondary/unbind', hmacAuth('user'), userController.postSecondaryUnbind);
 router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecondary);
 router.post('/user/login', hmacAuth('user'), otpAuth, userController.postLogin);
+router.post('/user/loginAndApprove', hmacAuth('user'), otpAuth, checkToken, checkGameId, userController.postLoginAndApprove);
 router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
 router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);

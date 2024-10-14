@@ -446,4 +446,6 @@ module.exports = {
   postGameCreateJoinPay,
   postGameEarnLeaveEnd,
   getIsJoined,
+
+  approve,
 }
