@@ -96,22 +96,22 @@ describe('User Controller', () => {
         message: signatureMessage,
       });
 
-      const testUser = {
+      const testuser = {
         address: account.address,
         signature: signature,
         plyrId: 'testId',
         secret: 'testSecret'
       };
-      ctx.request.body = testUser;
-      UserInfo.create.mockResolvedValue(testUser);
+      ctx.request.body = testuser;
+      UserInfo.create.mockResolvedValue(testuser);
 
-      const mirror = calcMirrorAddress(testUser.address);
+      const mirror = calcMirrorAddress(testuser.address);
 
       await userController.postRegister(ctx);
       expect(ctx.body).toEqual({ 
-        plyrId: testUser.plyrId.toLowerCase(), 
+        plyrId: testuser.plyrId.toLowerCase(), 
         mirrorAddress: mirror, 
-        primaryAddress: testUser.address,
+        primaryAddress: testuser.address,
         avatar: 'https://ipfs.plyr.network/ipfs/QmNRjvbBfJ7GpRzjs7uxRUytAAuuXjhBqKhDETbET2h6wR',
       });
     });
