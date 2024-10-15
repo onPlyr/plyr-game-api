@@ -49,6 +49,9 @@ router.get('/user/basic/:address', userController.getUserBasicInfo);
 router.get('/user/balance/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getUserBalance);
 router.get('/user/balance/:plyrId/:tokenName', hmacAuth('user'), checkUserExistsInParams, checkTokenInParams, userController.getUserTokenBalance);
 router.get('/user/avatar/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getAvatar);
+router.get('/user/activeSessions/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getActiveSessions);
+router.post('/user/session/discardBySignature', hmacAuth('user'), userController.postDiscardSessionBySignature);
+router.post('/user/session/discardBy2fa', hmacAuth('user'), otpAuth, userController.postDiscardSessionBy2fa);
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 

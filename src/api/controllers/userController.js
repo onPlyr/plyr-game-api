@@ -482,9 +482,11 @@ exports.postLogin = async (ctx) => {
   const gameId = userApiKey.plyrId;
 
   const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
+  deadline[gameId] = Date.now() + expiresIn * 1000;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
@@ -560,6 +562,7 @@ exports.postLogout = async (ctx) => {
   }
 
   const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (payload.nonce < gameNonce) {
     ctx.status = 401;
@@ -570,7 +573,8 @@ exports.postLogout = async (ctx) => {
   }
 
   nonce[gameId] = gameNonce + 1;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce } });
+  deadline[gameId] = 0;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline } });
 
   ctx.status = 200;
   ctx.body = {
@@ -756,5 +760,86 @@ exports.getAvatar = async (ctx) => {
   ctx.status = 200;
   ctx.body = {
     avatar: avatarUrl,
+  };
+}
+
+exports.getActiveSessions = async (ctx) => {
+  const user = ctx.state.user;
+  const deadline = user.deadline ? user.deadline : {};
+  const activeSessions = Object.entries(deadline)
+    .filter(([_, timestamp]) => timestamp > Date.now())
+    .reduce((acc, [gameId, timestamp]) => {
+      acc[gameId] = timestamp;
+      return acc;
+    }, {});
+  ctx.status = 200;
+  ctx.body = {
+    activeSessions
+  };
+}
+
+exports.postDiscardSessionBySignature = async (ctx) => {
+  const { plyrId, gameId, signature } = ctx.request.body;
+  const signatureMessage = `PLYR[ID] Discard Session ${gameId.toUpperCase()}`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+  
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+  
+  const deadline = user.deadline ? user.deadline : {};
+  delete deadline[gameId];
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Session discarded successfully'
+  };
+}
+
+exports.postDiscardSessionBy2fa = async (ctx) => {
+  const { plyrId, gameId } = ctx.request.body;
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const deadline = user.deadline ? user.deadline : {};
+  delete deadline[gameId];
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Session discarded successfully'
   };
 }
