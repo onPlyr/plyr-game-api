@@ -42,6 +42,7 @@ router.post('/user/secondary/bind', hmacAuth('user'), userController.postSeconda
 router.post('/user/secondary/unbind', hmacAuth('user'), userController.postSecondaryUnbind);
 router.get('/user/secondary/:plyrId', hmacAuth('user'), userController.getSecondary);
 router.post('/user/login', hmacAuth('user'), otpAuth, userController.postLogin);
+router.post('/user/loginAndApprove', hmacAuth('user'), otpAuth, checkToken, checkGameId, userController.postLoginAndApprove);
 router.post('/user/logout', hmacAuth('user'), userController.postLogout);
 router.post('/user/session/verify', hmacAuth('user'), userController.postUserSessionVerify);
 router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);
@@ -49,6 +50,9 @@ router.get('/user/basic/:address', userController.getUserBasicInfo);
 router.get('/user/balance/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getUserBalance);
 router.get('/user/balance/:plyrId/:tokenName', hmacAuth('user'), checkUserExistsInParams, checkTokenInParams, userController.getUserTokenBalance);
 router.get('/user/avatar/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getAvatar);
+router.get('/user/activeSessions/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getActiveSessions);
+router.post('/user/session/discardBySignature', hmacAuth('user'), userController.postDiscardSessionBySignature);
+router.post('/user/session/discardBy2fa', hmacAuth('user'), otpAuth, userController.postDiscardSessionBy2fa);
 
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 

@@ -101,7 +101,7 @@ describe('User API', () => {
 
   describe('GET /api/user/info/:plyrId', () => {
     it('should return user info', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const userInfo = {
         plyrId: plyrId,
         primaryAddress: account.address,

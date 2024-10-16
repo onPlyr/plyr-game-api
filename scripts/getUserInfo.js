@@ -104,11 +104,33 @@ async function isGame() {
   }
 }
 
+async function userActiveSessions() {
+  const timestamp = Date.now().toString();
+  let hmac = generateHmacSignature(timestamp, {}, secretKey);
+
+  try {
+    let ret = await axios.get(
+      process.env.API_ENDPOINT + "/api/user/activeSessions/fennec2",
+      {
+        headers: {
+          apikey: apiKey,
+          signature: hmac,
+          timestamp: timestamp,
+        },
+      }
+    );
+    console.log("activeSessions", ret.data);
+  } catch (error) {
+    console.log(error.response.data);
+  }
+}
+
 async function main() {
   userInfo();
   userBalance();
   userTokenBalance();
   isGame();
+  userActiveSessions();
 }
 
 main().catch(console.error);

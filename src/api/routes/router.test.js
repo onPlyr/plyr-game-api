@@ -18,7 +18,7 @@ describe('OTP Auth Middleware', () => {
   beforeAll(async () => {
     await connectDB();
     userApiKey = await ApiKey.create({ 
-      plyrId: 'tester',
+      plyrId: 'testgame',
       apiKey: 'user-key', 
       secretKey: 'user-secret', 
       role: 'user' 
@@ -44,7 +44,7 @@ describe('OTP Auth Middleware', () => {
 
   describe('POST /api/game/approve', () => {
     it('should successfully authenticate with valid OTP', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const secret = 'TESTSECRET';
       const otp = authenticator.generate(secret);
 
@@ -62,13 +62,14 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testgame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
+      console.log('debug', response.body);
       expect(response.status).toBe(200);
     });
 
     it('should return 401 if OTP is already used', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const otp = '123456';
 
       is2faUsed.mockReturnValue(true);
@@ -78,7 +79,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testgame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(401);
@@ -97,7 +98,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testgame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(404);
@@ -122,7 +123,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testgame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(403);
@@ -130,7 +131,7 @@ describe('OTP Auth Middleware', () => {
     });
 
     it('should return 401 if OTP is invalid', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const secret = 'TESTSECRET';
       const invalidOtp = '000000';
 
@@ -150,7 +151,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp: invalidOtp, gameId: 'testGame', token: 'plyr', amount: '100', expiresIn: 3600 }
+        { plyrId, otp: invalidOtp, gameId: 'testgame', token: 'plyr', amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(401);
@@ -162,7 +163,7 @@ describe('OTP Auth Middleware', () => {
     });
 
     it('should return 401 if token is invalid', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const secret = 'TESTSECRET';
       const otp = authenticator.generate(secret);
       const invalidToken = 'invalidToken';
@@ -181,7 +182,7 @@ describe('OTP Auth Middleware', () => {
         '/api/game/approve',
         userApiKey.apiKey,
         userApiKey.secretKey,
-        { plyrId, otp, gameId: 'testGame', token: invalidToken, amount: '100', expiresIn: 3600 }
+        { plyrId, otp, gameId: 'testgame', token: invalidToken, amount: '100', expiresIn: 3600 }
       );
 
       expect(response.status).toBe(401);
@@ -191,7 +192,7 @@ describe('OTP Auth Middleware', () => {
 
   describe('POST /api/user/login', () => {
     it('should successfully login with valid credentials and OTP', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const secret = 'TESTSECRET';
       const otp = authenticator.generate(secret);
   
@@ -218,7 +219,7 @@ describe('OTP Auth Middleware', () => {
     });
   
     it('should return 401 if OTP is invalid', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const secret = 'TESTSECRET';
       const invalidOtp = '000000';
   
@@ -250,7 +251,7 @@ describe('OTP Auth Middleware', () => {
     });
   
     it('should return 401 if OTP is already used', async () => {
-      const plyrId = 'testUser';
+      const plyrId = 'testuser';
       const otp = '123456';
   
       is2faUsed.mockReturnValue(true);

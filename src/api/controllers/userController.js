@@ -8,6 +8,7 @@ const ApiKey = require('../../models/apiKey');
 const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
 const config = require('../../config');
+const { approve } = require('./gameController');
 
 const redis = getRedisClient();
 
@@ -476,17 +477,58 @@ exports.getSecondary = async (ctx) => {
 
 exports.postLogin = async (ctx) => {
   const { plyrId, expiresIn } = ctx.request.body;
+  console.log('postLogin', plyrId, expiresIn);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
   const gameId = userApiKey.plyrId;
 
   const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
+  deadline[gameId] = Date.now() + (expiresIn ? expiresIn * 1000 : 86400 * 1000);
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
+
+  delete payload.nonce;
+
+  ctx.status = 200;
+  ctx.body = {
+    sessionJwt: JWT,
+    ...payload,
+    avatar: getAvatarUrl(user.avatar),
+  }
+}
+
+exports.postLoginAndApprove = async (ctx) => {
+  const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
+  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, amount);
+  const user = ctx.state.user;
+  const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
+  let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
+  nonce[gameId] = gameNonce;
+  deadline[gameId] = Date.now() + (expiresIn ? expiresIn * 1000 : 86400 * 1000);
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
+
+  const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
+  const JWT = generateJwtToken(payload, expiresIn);
+
+  if (!plyrId || !gameId || !token || !amount) {
+    ctx.status = 401;
+    ctx.body = { error: "Input params was incorrect." };
+    return;
+  }
+
+  if (isNaN(amount) || Number(amount) <= 0) {
+    ctx.status = 401;
+    ctx.body = { error: "Approve amount was incorrect." };
+    return;
+  }
+
+  await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
 
   delete payload.nonce;
 
@@ -524,6 +566,7 @@ exports.postLogout = async (ctx) => {
   }
 
   const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
   if (payload.nonce < gameNonce) {
     ctx.status = 401;
@@ -534,7 +577,8 @@ exports.postLogout = async (ctx) => {
   }
 
   nonce[gameId] = gameNonce + 1;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce } });
+  deadline[gameId] = 0;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline } });
 
   ctx.status = 200;
   ctx.body = {
@@ -720,5 +764,95 @@ exports.getAvatar = async (ctx) => {
   ctx.status = 200;
   ctx.body = {
     avatar: avatarUrl,
+  };
+}
+
+exports.getActiveSessions = async (ctx) => {
+  const user = ctx.state.user;
+  console.log('User object:', user);  // Log the entire user object
+  const deadline = user.deadline ? user.deadline : {};
+  console.log('Deadline object:', deadline);  // Log the deadline object
+  const now = Date.now();
+  console.log('Current timestamp:', now);  // Log the current timestamp
+  const activeSessions = Object.entries(deadline)
+    .filter(([gameId, timestamp]) => {
+      const isActive = timestamp > now;
+      console.log(`Session ${gameId}: timestamp ${timestamp}, isActive: ${isActive}`);  // Log each session's status
+      return isActive;
+    })
+    .reduce((acc, [gameId, timestamp]) => {
+      acc[gameId] = timestamp;
+      return acc;
+    }, {});
+  console.log('Active sessions:', activeSessions);  // Log the final result
+  ctx.status = 200;
+  ctx.body = {
+    activeSessions
+  };
+}
+
+exports.postDiscardSessionBySignature = async (ctx) => {
+  const { plyrId, gameId, signature } = ctx.request.body;
+  const signatureMessage = `PLYR[ID] Discard Session ${gameId.toUpperCase()}`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+  
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+  
+  const deadline = user.deadline ? user.deadline : {};
+  delete deadline[gameId];
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Session discarded successfully'
+  };
+}
+
+exports.postDiscardSessionBy2fa = async (ctx) => {
+  const { plyrId, gameId } = ctx.request.body;
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'User not found'
+    };
+    return;
+  }
+
+  const deadline = user.deadline ? user.deadline : {};
+  delete deadline[gameId];
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline } });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Session discarded successfully'
   };
 }
