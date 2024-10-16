@@ -767,13 +767,22 @@ exports.getAvatar = async (ctx) => {
 
 exports.getActiveSessions = async (ctx) => {
   const user = ctx.state.user;
+  console.log('User object:', user);  // Log the entire user object
   const deadline = user.deadline ? user.deadline : {};
+  console.log('Deadline object:', deadline);  // Log the deadline object
+  const now = Date.now();
+  console.log('Current timestamp:', now);  // Log the current timestamp
   const activeSessions = Object.entries(deadline)
-    .filter(([_, timestamp]) => timestamp > Date.now())
+    .filter(([gameId, timestamp]) => {
+      const isActive = timestamp > now;
+      console.log(`Session ${gameId}: timestamp ${timestamp}, isActive: ${isActive}`);  // Log each session's status
+      return isActive;
+    })
     .reduce((acc, [gameId, timestamp]) => {
       acc[gameId] = timestamp;
       return acc;
     }, {});
+  console.log('Active sessions:', activeSessions);  // Log the final result
   ctx.status = 200;
   ctx.body = {
     activeSessions
