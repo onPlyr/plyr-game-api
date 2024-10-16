@@ -505,9 +505,11 @@ exports.postLoginAndApprove = async (ctx) => {
   const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
+  const deadline = user.deadline ? user.deadline : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, loginFailedCount: 0 } });
+  deadline[gameId] = Date.now() + expiresIn * 1000;
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
