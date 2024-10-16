@@ -477,6 +477,7 @@ exports.getSecondary = async (ctx) => {
 
 exports.postLogin = async (ctx) => {
   const { plyrId, expiresIn } = ctx.request.body;
+  console.log('postLogin', plyrId, expiresIn);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
   const gameId = userApiKey.plyrId;
@@ -485,7 +486,7 @@ exports.postLogin = async (ctx) => {
   const deadline = user.deadline ? user.deadline : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  deadline[gameId] = Date.now() + expiresIn * 1000;
+  deadline[gameId] = Date.now() + (expiresIn ? expiresIn * 1000 : 86400 * 1000);
   await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
@@ -503,12 +504,13 @@ exports.postLogin = async (ctx) => {
 
 exports.postLoginAndApprove = async (ctx) => {
   const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
+  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, amount);
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
   let gameNonce = nonce[gameId] ? nonce[gameId] + 1 : 1;
   nonce[gameId] = gameNonce;
-  deadline[gameId] = Date.now() + expiresIn * 1000;
+  deadline[gameId] = Date.now() + (expiresIn ? expiresIn * 1000 : 86400 * 1000);
   await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { nonce, deadline, loginFailedCount: 0 } });
 
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
