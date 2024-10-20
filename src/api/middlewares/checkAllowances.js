@@ -30,18 +30,23 @@ const checkAllowance = async (ctx, next) => {
       errors.push('Invalid token: ' + token);
     }
 
-    if (!amount || Number(amount) <= 0) {
+    if (amount === undefined || Number(amount) < 0) {
       errors.push('Invalid amount: ' + amount);
     }
 
-    const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
+    if (Number(amount) !== 0)
+    {
 
-    if (!userApprove) {
-      errors.push('User not approved: ' + plyrId);
-    }
+	    const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
 
-    if (Number(userApprove.amount) < Number(amount)) {
-      errors.push('Insufficient allowance: ' + plyrId);
+	    if (!userApprove) {
+	      errors.push('User not approved: ' + plyrId);
+	    }
+
+	    if (Number(userApprove.amount) < Number(amount)) {
+	      errors.push('Insufficient allowance: ' + plyrId);
+	    }
+
     }
   }
 
