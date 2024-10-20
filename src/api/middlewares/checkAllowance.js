@@ -18,26 +18,28 @@ const checkAllowance = async (ctx, next) => {
     return;
   }
 
-  if (!amount || Number(amount) <= 0) {
+  if (!amount || Number(amount) < 0) {
     ctx.status = 401;
     ctx.body = { error: 'Invalid amount' };
     return;
   }
+  
+  if (Number(amount) > 0) {
+    const plyrIds = Object.keys(sessionJwts);
+    const plyrId = plyrIds[0];
+    const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
 
-  const plyrIds = Object.keys(sessionJwts);
-  const plyrId = plyrIds[0];
-  const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
-
-  if (!userApprove) {
-    ctx.status = 401;
-    ctx.body = { error: 'User not approved' };
-    return;
-  }
-
-  if (Number(userApprove.amount) < Number(amount)) {
-    ctx.status = 401;
-    ctx.body = { error: 'Insufficient allowance' };
-    return;
+    if (!userApprove) {
+      ctx.status = 401;
+      ctx.body = { error: 'User not approved' };
+      return;
+    }
+  
+    if (Number(userApprove.amount) < Number(amount)) {
+      ctx.status = 401;
+      ctx.body = { error: 'Insufficient allowance' };
+      return;
+    }
   }
 
   await next();

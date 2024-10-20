@@ -190,6 +190,32 @@ async function main() {
     [users[1].plyrId]: user2SessionJwt,
   }, ['plyr', 'plyr'], ['0.000001', '0.000001']);
 
+  // verify sessionJwt
+
+  body = {
+    sessionJwt: user1SessionJwt,
+  }
+  response = await makeAuthenticatedRequest(
+    'post',
+    '/api/user/session/verify',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+  console.log("verify sessionJwt 1 response", response);
+
+  body = {
+    sessionJwt: user2SessionJwt,
+  }
+  response = await makeAuthenticatedRequest(
+    'post',
+    '/api/user/session/verify',
+    game.apiKey,
+    game.secKey,
+    body
+  );
+
+  console.log("verify sessionJwt 2 response", response);
   
   // earn leave end
   body = {
