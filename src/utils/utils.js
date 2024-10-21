@@ -52,7 +52,7 @@ function is2faUsed(plyrid, token) {
         } else {
             // Increment usage count
             cache2fa[key].times++;
-            return cache2fa[key].times > 2;
+            return cache2fa[key].times > 1;
         }
     } else {
         // First use
