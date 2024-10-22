@@ -18,7 +18,26 @@ exports.sendAndWaitTx = async (contractObj) => {
       args: contractObj.args,
     });
 
+    let nonce;
+
+    const getNonceFromMainRpc = async () => {
+      const _nonce = await chain.getTransactionCount({ address: chain.account.address });
+      return _nonce;
+    }
+
+    const getNonceFromBackupRpc = async () => {
+      const _nonce = await publicClient.getTransactionCount({ address: chain.account.address });
+      return _nonce;
+    }
+
+    try {
+      nonce = await Promise.any([getNonceFromMainRpc(), getNonceFromBackupRpc()]);
+    } catch (error) {
+      throw new Error('Failed to get nonce through both methods');
+    }
+
     const txObj = {
+      nonce,
       account: chain.account,
       to: contractObj.address,
       data,
