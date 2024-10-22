@@ -1,7 +1,8 @@
 const { chain, plyrRouterSC, ROUTER_ABI } = require('../config');
+const { sendAndWaitTx } = require('../utils/tx');
 
 async function createUser({ primaryAddress, plyrId, chainId = 62831}) {
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
     abi: ROUTER_ABI,
     functionName: 'createUser',
@@ -12,9 +13,7 @@ async function createUser({ primaryAddress, plyrId, chainId = 62831}) {
     ]
   });
 
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('createUser receipt:', receipt);
   return hash;

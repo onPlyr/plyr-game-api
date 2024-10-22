@@ -1,8 +1,9 @@
 const { chain, airdropSC, AIRDROP_ABI } = require('../config');
+const { sendAndWaitTx } = require('../utils/tx');
 
 async function claimAirdropReward({ campaignId, address, playedGame }) {
   console.log('claimAirdropReward:', campaignId, address, playedGame);
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: airdropSC,
     abi: AIRDROP_ABI,
     functionName: 'claimReward',
@@ -13,12 +14,8 @@ async function claimAirdropReward({ campaignId, address, playedGame }) {
     ]
   });
 
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-  });
-
   console.log('claimAirdropReward receipt:', receipt);
-  return hash;
+  return receipt.transactionHash;
 }
 
 module.exports = { claimAirdropReward };

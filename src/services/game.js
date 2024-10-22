@@ -3,11 +3,11 @@ const { encodeFunctionData, erc20Abi, isAddress, parseUnits, decodeEventLog } = 
 const { TOKEN_LIST } = require('../config');
 const UserApprove = require('../models/userApprove');
 const GameRoom = require('../models/gameRoom');
-
+const { sendAndWaitTx } = require('../utils/tx');
 
 async function create({gameId, expiresIn}) {
   let result = {};
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'create',
@@ -17,11 +17,7 @@ async function create({gameId, expiresIn}) {
     ]
   });
 
-  console.log('create hash:', hash);
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('create receipt:', receipt);
   if (receipt.status !== 'success') {
@@ -52,7 +48,7 @@ async function create({gameId, expiresIn}) {
 
 async function join({plyrIds, gameId, roomId}) {
   let result = {};
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'join',
@@ -63,13 +59,7 @@ async function join({plyrIds, gameId, roomId}) {
     ]
   });
 
-  console.log('join hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
-
+  const hash = receipt.transactionHash;
   console.log('join receipt:', receipt);
   return {hash, result};
 }
@@ -91,7 +81,7 @@ async function isJoined({plyrId, gameId, roomId}) {
 
 async function leave({plyrIds, gameId, roomId}) {
   let result = {};
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'leave',
@@ -102,13 +92,7 @@ async function leave({plyrIds, gameId, roomId}) {
     ]
   });
 
-  console.log('leave hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
-
+  const hash = receipt.transactionHash;
   console.log('leave receipt:', receipt);
   return {hash, result};
 }
@@ -138,7 +122,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
 
   console.log('request pay', {gameId, roomId, plyrId, tokenAddress, amount, decimals});
 
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'pay',
@@ -151,12 +135,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
     ]
   });
 
-  console.log('pay hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
@@ -199,7 +178,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
     throw new Error('Invalid token: ' + token);
   }
 
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'earn',
@@ -212,12 +191,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
     ]
   });
 
-  console.log('earn hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('earn receipt:', receipt);
   return {hash, result};
@@ -225,7 +199,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
 
 async function end({gameId, roomId}) {
   let result = {};
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'end',
@@ -235,12 +209,7 @@ async function end({gameId, roomId}) {
     ]
   });
 
-  console.log('end hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('end receipt:', receipt);
   return {hash, result};
@@ -248,7 +217,7 @@ async function end({gameId, roomId}) {
 
 async function close({gameId, roomId}) {
   let result = {};
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'close',
@@ -258,12 +227,7 @@ async function close({gameId, roomId}) {
     ]
   });
 
-  console.log('close hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('close receipt:', receipt);
   return {hash, result};
@@ -300,7 +264,7 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
     _amounts.push(parseUnits(amount.toString(), decimals));
   }
 
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'createJoinPay',
@@ -313,12 +277,7 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
     ]
   });
 
-  console.log('createJoinPay hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('createJoinPay receipt:', receipt);
   if (receipt.status !== 'success') {
@@ -396,7 +355,7 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
     }
   }
 
-  const hash = await chain.writeContract({
+  const receipt = await sendAndWaitTx({
     address: gameRuleV1SC,
     abi: GAME_RULE_V1_ABI,
     functionName: 'earnLeaveEnd',
@@ -409,103 +368,9 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
     ]
   });
 
-  console.log('earnLeaveEnd hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
+  const hash = receipt.transactionHash;
 
   console.log('earnLeaveEnd receipt:', receipt);
-  return {hash, result};
-}
-
-// Input:
-// const functionDatas = [
-//   { function: 'join', params: { roomId: 'room1' } },
-//   { function: 'pay', params: { roomId: 'room1', plyrId: 'plyr1', token: 'token1', amount: 50 } },
-// ];
-async function multicall({ gameId, roomId, functionDatas, sessionJwts }) {
-  let result = {};
-  let datas = [];
-  for (const functionData of functionDatas) {
-    const { function: functionName, params } = functionData;
-    if (functionName === 'join' || functionName === 'leave') {
-      const plyrIds = Object.keys(sessionJwts);
-      const _data = encodeFunctionData({
-        abi: GAME_RULE_V1_ABI,
-        functionName,
-        args: [
-          gameId,
-          roomId,
-          plyrIds,
-        ],
-      });
-      datas.push(_data);
-    }
-
-    if (functionName === 'pay' || functionName === 'earn') {
-      let tokenAddress;
-      let decimals;
-      if (isAddress(params.token)) {
-        tokenAddress = params.token;
-        decimals = await chain.readContract({
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: 'decimals',
-          args: [],
-        });
-      } else if (TOKEN_LIST[params.token.toLowerCase()]) {
-        tokenAddress = TOKEN_LIST[params.token.toLowerCase()].address;
-        decimals = TOKEN_LIST[params.token.toLowerCase()].decimals;
-      } else {
-        throw new Error('Invalid token: ' + params.token);
-      }
-      
-      const _data = encodeFunctionData({
-        abi: GAME_RULE_V1_ABI,
-        functionName,
-        args: [
-          gameId,
-          roomId,
-          params.plyrId,
-          tokenAddress,
-          parseUnits(params.amount.toString(), decimals),
-        ],
-      });
-      datas.push(_data);
-    }
-
-    if (functionName === 'end' || functionName === 'close') {
-      const _data = encodeFunctionData({
-        abi: GAME_RULE_V1_ABI,
-        functionName,
-        args: [
-          gameId,
-          roomId,
-        ],
-      });
-      datas.push(_data);
-    }
-  }
-
-  const hash = await chain.writeContract({
-    address: gameRuleV1SC,
-    abi: GAME_RULE_V1_ABI,
-    functionName: 'multicall',
-    args: [
-      datas,
-    ],
-  });
-
-  console.log('multicall hash:', hash);
-
-  const receipt = await chain.waitForTransactionReceipt({
-    hash: hash,
-    confirmations: 0,
-  });
-
-  console.log('multicall receipt:', receipt);
   return {hash, result};
 }
 
