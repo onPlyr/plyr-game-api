@@ -61,7 +61,7 @@ exports.sendAndWaitTx = async (contractObj) => {
 
     const sendTxWithMainRpc = async () => {
       try {
-        return await chain.sendRawTransaction(serializedTransaction);
+        return await chain.sendRawTransaction({serializedTransaction});
       } catch (error) {
         console.error('Error sending transaction with chain:', error);
         throw error;
