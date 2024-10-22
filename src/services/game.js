@@ -389,7 +389,11 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
       throw new Error('Invalid token: ' + token);
     }
     _tokens.push(tokenAddress);
-    _amounts.push(parseUnits(amount.toString(), decimals));
+    if (!amount) {
+      _amounts.push("0");
+    } else {
+      _amounts.push(parseUnits(amount.toString(), decimals));
+    }
   }
 
   const hash = await chain.writeContract({
