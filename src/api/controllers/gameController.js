@@ -46,7 +46,7 @@ const insertTask = async (params, taskName, sync = false) => {
       let ret = await checkTaskStatus(taskId);
       if (ret.status === 'PENDING' || ret.status === 'NOT_FOUND') {
         retry++;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         continue;
       }
       return ret;

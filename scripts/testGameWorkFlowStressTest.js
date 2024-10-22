@@ -187,55 +187,58 @@ async function main() {
   let response;
   let status;
 
-  let roomId = await createJoinPayGame({
-    [users[0].plyrId]: user1SessionJwt,
-    [users[1].plyrId]: user2SessionJwt,
-  }, ['plyr', 'plyr'], ['0.000001', '0.000001']);
+  for(let i=0; i<50; i++) {
 
-  // verify sessionJwt
-
-  body = {
-    sessionJwt: user1SessionJwt,
-  }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/user/session/verify',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("verify sessionJwt 1 response", response);
-
-  body = {
-    sessionJwt: user2SessionJwt,
-  }
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/user/session/verify',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-
-  console.log("verify sessionJwt 2 response", response);
+    let roomId = await createJoinPayGame({
+      [users[0].plyrId]: user1SessionJwt,
+      [users[1].plyrId]: user2SessionJwt,
+    }, ['plyr', 'plyr'], ['0.000001', '0.000001']);
   
-  // earn leave end
-  body = {
-    roomId: roomId,
-    plyrIds: [users[0].plyrId, users[1].plyrId],
-    tokens: ['plyr', 'plyr'],
-    amounts: ['0.000001', '0.000001'],
-    sync: true,
+    // verify sessionJwt
+  
+    body = {
+      sessionJwt: user1SessionJwt,
+    }
+    response = await makeAuthenticatedRequest(
+      'post',
+      '/api/user/session/verify',
+      game.apiKey,
+      game.secKey,
+      body
+    );
+    console.log("verify sessionJwt 1 response", response);
+  
+    body = {
+      sessionJwt: user2SessionJwt,
+    }
+    response = await makeAuthenticatedRequest(
+      'post',
+      '/api/user/session/verify',
+      game.apiKey,
+      game.secKey,
+      body
+    );
+  
+    console.log("verify sessionJwt 2 response", response);
+    
+    // earn leave end
+    body = {
+      roomId: roomId,
+      plyrIds: [users[0].plyrId, users[1].plyrId],
+      tokens: ['plyr', 'plyr'],
+      amounts: ['0.000001', '0.000001'],
+      sync: true,
+    }
+  
+    response = await makeAuthenticatedRequest(
+      'post',
+      '/api/game/earnLeaveEnd',
+      game.apiKey,
+      game.secKey,
+      body
+    );
+    console.log("earnLeaveEnd response", response);
   }
-
-  response = await makeAuthenticatedRequest(
-    'post',
-    '/api/game/earnLeaveEnd',
-    game.apiKey,
-    game.secKey,
-    body
-  );
-  console.log("earnLeaveEnd response", response);
 }
 
 main().then(()=>console.log('done')).catch(console.error);
