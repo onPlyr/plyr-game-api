@@ -333,6 +333,11 @@ const postGameCreateJoinPay = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      ctx.body.taskId = ctx.body.messageId;
+      delete ctx.body.messageId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
