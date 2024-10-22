@@ -9,7 +9,7 @@ async function checkTaskStatus(messageId) {
   if (taskResult) {
     console.log(`Task ${messageId} status: ${taskResult.status}`);
     return {
-      messageId,
+      taskId: messageId,
       taskData: taskResult.taskData,
       result: taskResult.result,
       status: taskResult.status,

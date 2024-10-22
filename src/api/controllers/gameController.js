@@ -169,6 +169,9 @@ const postGameCreate = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
         id: taskId,
@@ -190,6 +193,9 @@ const postGameJoin = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -211,6 +217,9 @@ const postGameLeave = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -238,6 +247,9 @@ const postGamePay = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -264,6 +276,9 @@ const postGameEarn = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -284,6 +299,9 @@ const postGameEnd = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -303,6 +321,9 @@ const postGameClose = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
@@ -333,8 +354,6 @@ const postGameCreateJoinPay = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
-      ctx.body.taskId = ctx.body.messageId;
-      delete ctx.body.messageId;
       if (taskId.status === 'TIMEOUT') {
         ctx.status = 504;
       }
@@ -363,6 +382,9 @@ const postGameEarnLeaveEnd = async (ctx) => {
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
     } else {
       ctx.body = { task: {
       id: taskId,
