@@ -56,7 +56,8 @@ exports.sendAndWaitTx = async (contractObj) => {
       account: chain.account,
       to: contractObj.address,
       data,
-      gasPrice: 30e9,
+      maxFeePerGas: 100e9,
+      maxPriorityFeePerGas: 1e9,
       gas: 5000000,
       value: 0n,
     };
