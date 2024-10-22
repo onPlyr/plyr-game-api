@@ -29,6 +29,8 @@ exports.sendAndWaitTx = async (contractObj) => {
 
     const serializedTransaction = await chain.signTransaction(txObj);
 
+    console.log('serializedTransaction', serializedTransaction);
+
     const sendTxWithBackupRpc = async () => {
       try {
         return await publicClient.sendRawTransaction({ serializedTransaction });
