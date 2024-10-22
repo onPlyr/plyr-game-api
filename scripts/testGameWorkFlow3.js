@@ -134,16 +134,20 @@ async function createJoinPayGame(sessionJwts, tokens, amounts) {
   return roomId;
 }
 
-async function userLogin(user) {
-  console.log("user login", user);
+async function loginAndApprove(user) {
+  console.log("user login and approve", user);
   const body = {
     plyrId: user.plyrId,
     otp: authenticator.generate(user.secret),
+    gameId: game.plyrId,
+    token: 'plyr',
+    amount: '0.001', 
+    expiresIn: 3600,
   }
 
   const response = await makeAuthenticatedRequest(
     'post',
-    '/api/user/login',
+    '/api/user/loginAndApprove',
     game.apiKey,
     game.secKey,
     body
@@ -176,11 +180,9 @@ async function approveToken(user) {
 
 async function main() {
   // users login and get sessionJwts
-  let user1SessionJwt = await userLogin(users[0]);
-  let user2SessionJwt = await userLogin(users[1]);
-  // users approve token to game
-  await approveToken(users[0]);
-  await approveToken(users[1]);
+  let user1SessionJwt = await loginAndApprove(users[0]);
+  let user2SessionJwt = await loginAndApprove(users[1]);
+  
   let body;
   let response;
   let status;
