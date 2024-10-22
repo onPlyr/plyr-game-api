@@ -54,7 +54,7 @@ exports.sendAndWaitTx = async (contractObj) => {
       try {
         return await publicClient.sendRawTransaction({ serializedTransaction });
       } catch (error) {
-        if (error.message.includes('already known')) {
+        if (error.message.includes('already known') || error.message.includes('nonce too low')) {
           throw new Error('Transaction already known');
         }
         console.error('Error sending transaction with publicClient:', error);
@@ -66,7 +66,7 @@ exports.sendAndWaitTx = async (contractObj) => {
       try {
         return await chain.sendRawTransaction({serializedTransaction});
       } catch (error) {
-        if (error.message.includes('already known')) {
+        if (error.message.includes('already known') || error.message.includes('nonce too low')) {
           throw new Error('Transaction already known');
         }
         console.error('Error sending transaction with chain:', error);
