@@ -18,23 +18,38 @@ exports.sendAndWaitTx = async (contractObj) => {
       args: contractObj.args,
     });
 
-    let nonce;
+    const getNonce = async (getTransactionCount) => {
+      try {
+        return await getTransactionCount({ address: chain.account.address });
+      } catch (error) {
+        console.error('Error getting nonce:', error);
+        return null;
+      }
+    };
 
-    const getNonceFromMainRpc = async () => {
-      const _nonce = await chain.getTransactionCount({ address: chain.account.address });
-      return _nonce;
-    }
+    const getNonceWithTimeout = async (getTransactionCount, timeout) => {
+      return Promise.race([
+        getNonce(getTransactionCount),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
+      ]).catch(() => null);  // catch error and return null if timeout
+    };
 
-    const getNonceFromBackupRpc = async () => {
-      const _nonce = await publicClient.getTransactionCount({ address: chain.account.address });
-      return _nonce;
-    }
-
+    let mainNonce, backupNonce;
     try {
-      nonce = await Promise.any([getNonceFromMainRpc(), getNonceFromBackupRpc()]);
+      [mainNonce, backupNonce] = await Promise.all([
+        getNonceWithTimeout(chain.getTransactionCount, 2000),
+        getNonceWithTimeout(publicClient.getTransactionCount, 2000)
+      ]);
     } catch (error) {
-      throw new Error('Failed to get nonce through both methods');
+      console.error('Error getting nonces:', error);
     }
+
+    if (mainNonce === null && backupNonce === null) {
+      throw new Error('Failed to get nonce from both RPCs');
+    }
+
+    nonce = Math.max(mainNonce || 0, backupNonce || 0);
+    console.log('Using nonce:', nonce);
 
     const txObj = {
       nonce,
