@@ -58,7 +58,7 @@ exports.sendAndWaitTx = async (contractObj) => {
       data,
       maxFeePerGas: 100e9,
       maxPriorityFeePerGas: 1e9,
-      gas: 5000000,
+      gas: 10_000_000,
       value: 0n,
     };
 
