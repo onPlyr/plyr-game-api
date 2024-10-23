@@ -61,6 +61,9 @@ async function join({plyrIds, gameId, roomId}) {
 
   const hash = receipt.transactionHash;
   console.log('join receipt:', receipt);
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
   return {hash, result};
 }
 
@@ -94,6 +97,10 @@ async function leave({plyrIds, gameId, roomId}) {
 
   const hash = receipt.transactionHash;
   console.log('leave receipt:', receipt);
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
   return {hash, result};
 }
 
@@ -152,6 +159,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
   }
 
   console.log('pay receipt:', receipt);
+  
   return {hash, result};
 }
 
@@ -194,6 +202,10 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
   const hash = receipt.transactionHash;
 
   console.log('earn receipt:', receipt);
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
   return {hash, result};
 }
 
@@ -212,6 +224,10 @@ async function end({gameId, roomId}) {
   const hash = receipt.transactionHash;
 
   console.log('end receipt:', receipt);
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
   return {hash, result};
 }
 
@@ -230,6 +246,10 @@ async function close({gameId, roomId}) {
   const hash = receipt.transactionHash;
 
   console.log('close receipt:', receipt);
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
   return {hash, result};
 }
 
@@ -371,6 +391,11 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
   const hash = receipt.transactionHash;
 
   console.log('earnLeaveEnd receipt:', receipt);
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction failed');
+  }
+
   return {hash, result};
 }
 
