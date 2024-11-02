@@ -9,6 +9,8 @@ const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
 const config = require('../../config');
 const { approve } = require('./gameController');
+const MirrorClaim = require('../../models/mirrorClaim');
+const InstantPlayPass = require('../../models/instantPlayPass');
 
 const redis = getRedisClient();
 
