@@ -78,7 +78,7 @@ exports.postRegister = async (ctx) => {
     mirror: mirror,
     primaryAddress: getAddress(account.address),
     secret: 'null',
-    chainId: chainId || 62831,
+    chainId: 16180,
     avatar: getAvatarUrl(),
     nonce,
     deadline,
