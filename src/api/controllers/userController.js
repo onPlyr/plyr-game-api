@@ -110,11 +110,11 @@ exports.postRegister = async (ctx) => {
   plyrId = plyrId.toLowerCase();
   console.log('plyrId', plyrId);
 
-  const singatureMessage = `PLYR[ID] Registration`;
+  const signatureMessage = `PLYR[ID] Registration`;
 
   const valid = await verifyMessage({
     address,
-    message: singatureMessage,
+    message: signatureMessage,
     signature
   });
 
@@ -228,11 +228,11 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
   plyrId = plyrId.toLowerCase();
   console.log('plyrId', plyrId);
 
-  const singatureMessage = `PLYR[ID] Registration`;
+  const signatureMessage = `PLYR[ID] Registration with claiming code: ${claimingCode}`;
 
   const valid = await verifyMessage({
     address,
-    message: singatureMessage,
+    message: signatureMessage,
     signature
   });
 
