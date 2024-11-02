@@ -1,6 +1,6 @@
 const config = require('../config');
 const { getRedisClient } = require('../db/redis');
-const { createUser } = require('../services/user');
+const { createUser, createUserWithMirror } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
 const { claimAirdropReward } = require('../services/airdrop');
@@ -60,6 +60,16 @@ async function processMessage(id, message) {
         console.log('Creating user:', obj);
         hash = await createUser({
           primaryAddress: obj.address,
+          plyrId: obj.plyrId,
+          chainId: obj.chainId,
+        });
+      }
+
+      if (key === 'createUserWithMirror') {
+        console.log('Creating user with mirror:', obj);
+        hash = await createUserWithMirror({
+          primaryAddress: obj.address,
+          mirror: obj.mirror,
           plyrId: obj.plyrId,
           chainId: obj.chainId,
         });

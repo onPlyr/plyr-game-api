@@ -19,4 +19,23 @@ async function createUser({ primaryAddress, plyrId, chainId = 62831}) {
   return hash;
 }
 
-module.exports = { createUser };
+async function createUserWithMirror({ primaryAddress, mirror, plyrId, chainId = 62831}) {
+  const receipt = await sendAndWaitTx({
+    address: plyrRouterSC,
+    abi: ROUTER_ABI,
+    functionName: 'createUserWithMirror',
+    args: [
+      primaryAddress,
+      mirror,
+      plyrId,
+      chainId
+    ]
+  });
+
+  const hash = receipt.transactionHash;
+
+  console.log('createUserWithMirror receipt:', receipt);
+  return hash;
+}
+
+module.exports = { createUser, createUserWithMirror };

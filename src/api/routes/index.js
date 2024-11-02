@@ -6,11 +6,13 @@ const jwtController = require('../controllers/jwtController');
 const airdropController = require('../controllers/airdropController');
 const gameController = require('../controllers/gameController');
 const withdrawController = require('../controllers/withdrawController');
+const instantPlayPassController = require('../controllers/instantPlayPassController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
 const checkSessionJwts = require('../middlewares/checkSessionJwts');
+const checkSessionJwt = require('../middlewares/checkSessionJwt');
 const checkAllowance = require('../middlewares/checkAllowance');
 const checkUserExistsInParams = require('../middlewares/checkUserExistsInParams');
 const checkTokenInParams = require('../middlewares/checkTokenInParams');
@@ -18,7 +20,6 @@ const checkUserExistsInBody = require('../middlewares/checkUserExistsInBody');
 const checkAllowances = require('../middlewares/checkAllowances');
 const checkTokens = require('../middlewares/checkTokens');
 const checkGameId = require('../middlewares/checkGameId');
-
 
 
 const router = new Router({
@@ -32,9 +33,10 @@ router.get('/', (ctx) => {
 router.get('/now', hmacAuth('user'), baseController.getNow);
 router.get('/status', hmacAuth('admin'), baseController.getStatus);
 
-
+// user apis
 router.get('/user/exists/:queryStr', hmacAuth('user'), userController.getUserExists);
 router.post('/user/register', hmacAuth('user'), userController.postRegister);
+router.post('/user/register/:claimingCode', hmacAuth('user'), userController.postRegisterWithClaimingCode);
 router.get('/user/info/:plyrId', hmacAuth('user'), userController.getUserInfo);
 router.post('/user/modify/avatar', hmacAuth('user'), userController.postModifyAvatar);
 router.post('/user/secondary/bind', hmacAuth('user'), userController.postSecondaryBind);
@@ -53,18 +55,25 @@ router.get('/user/activeSessions/:plyrId', hmacAuth('user'), checkUserExistsInPa
 router.post('/user/session/discardBySignature', hmacAuth('user'), userController.postDiscardSessionBySignature);
 router.post('/user/session/discardBy2fa', hmacAuth('user'), otpAuth, userController.postDiscardSessionBy2fa);
 
+// instant play pass
+router.post('/instantPlayPass/register', hmacAuth('user'), instantPlayPassController.postRegister);
+router.post('/instantPlayPass/reveal/claimingCode', hmacAuth('user'), checkSessionJwt, instantPlayPassController.postRevealClaimingCode);
+router.post('/instantPlayPass/reveal/privateKey', hmacAuth('user'), checkSessionJwt, instantPlayPassController.postRevealPrivateKey);
+router.get('/instantPlayPass/verify/claimingCode/:code', hmacAuth('user'), instantPlayPassController.getVerifyClaimingCode);
+
+// task apis
 router.get('/task/status/:id', hmacAuth('user'), statusController.getTaskStatus);
 
-
+// jwt apis
 router.get('/jwt/publicKey', hmacAuth('user'), jwtController.getPublicKey);
-// router.post('/jwt/verify', hmacAuth('user'), jwtController.postVerifyJwt);
 
-
+// airdrop apis
 router.post('/airdrop/campaign/claim', hmacAuth('user'), airdropController.postClaim);
 router.get('/airdrop/campaign/info', hmacAuth('user'), airdropController.getCampaignInfo);
 router.get('/airdrop/campaign/:campaignId/claimableReward/:address', hmacAuth('user'), airdropController.getCampaignClaimableReward);
 router.get('/airdrop/campaign/:campaignId/userReward/:address', hmacAuth('user'), airdropController.getCampaignUserReward);
 
+// game apis
 router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, checkGameId, gameController.postGameApprove);
 router.get('/game/allowance/:plyrId/:gameId/:token', hmacAuth('user'), gameController.getGameAllowance);
 router.get('/game/allowances/:plyrId', hmacAuth('user'), gameController.getGameAllowances);

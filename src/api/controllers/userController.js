@@ -189,6 +189,141 @@ exports.postRegister = async (ctx) => {
   }
 };
 
+exports.postRegisterWithClaimingCode = async (ctx) => {
+  let { address, signature, plyrId, secret, chainId, avatar } = ctx.request.body;
+  let { claimingCode } = ctx.params;
+
+  if (!address || !signature || !plyrId || !secret || !claimingCode) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Address, signature, plyrId, secret, claimingCode are required'
+    };
+    return;
+  }
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  if (!isAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid address'
+    };
+    return;
+  }
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  plyrId = plyrId.toLowerCase();
+  console.log('plyrId', plyrId);
+
+  const singatureMessage = `PLYR[ID] Registration`;
+
+  const valid = await verifyMessage({
+    address,
+    message: singatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await Secondary.deleteMany({ secondaryAddress: getAddress(address) });
+
+  let ret = await UserInfo.findOne({ plyrId });
+  if (ret && ret.plyrId === plyrId) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'PLYR[ID] already exists'
+    };
+    console.log('ret', ret);
+    return;
+  }
+
+  ret = await UserInfo.findOne({ primaryAddress: getAddress(address) });
+  if (ret && ret.primaryAddress === getAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Primary address already exists'
+    };
+    console.log('ret', ret);
+    return;
+  }
+
+  let claimingCodeUser = await MirrorClaim.findOne({ code: claimingCode.toUpperCase() });
+  if (!claimingCodeUser) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid claiming code'
+    };
+    return;
+  }
+
+  const mirror = claimingCodeUser.mirror;
+
+  // remove old user
+  await UserInfo.deleteOne({ plyrId: claimingCodeUser.plyrId, isInstantPlayPass: true });
+
+  await UserInfo.create({
+    plyrId,
+    mirror,
+    primaryAddress: getAddress(address),
+    secret,
+    chainId: chainId || 62831,
+    avatar: getAvatarUrl(avatar),
+  });
+
+  // remove claiming code
+  await MirrorClaim.deleteOne({ code: claimingCode.toUpperCase() });
+  await InstantPlayPass.updateOne({ plyrId: claimingCodeUser.plyrId }, { $set: { isDeleted: true } });
+
+  if (process.env.NODE_ENV !== 'test') {
+    const STREAM_KEY = 'mystream';
+    // insert message into redis stream
+    const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({
+      address: getAddress(address),
+      mirror,
+      plyrId,
+      chainId: chainId || 62831,
+    }));
+    console.log('Added message ID:', messageId);
+
+    ctx.body = {
+      plyrId,
+      mirrorAddress: mirror,
+      primaryAddress: getAddress(address),
+      avatar: getAvatarUrl(avatar),
+      task: {
+        id: messageId,
+        status: 'PENDING',
+      },
+    };
+  } else {
+    ctx.body = {
+      plyrId,
+      mirrorAddress: mirror,
+      primaryAddress: getAddress(address),
+      avatar: getAvatarUrl(avatar),
+    };
+  }
+}
+
 exports.getUserInfo = async (ctx) => {
   let { plyrId } = ctx.params;
 
@@ -561,6 +696,14 @@ exports.postLogout = async (ctx) => {
     ctx.status = 401;
     ctx.body = {
       error: 'User not found',
+    };
+    return;
+  }
+
+  if (user.isInstantPlayPass) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Instant Play Pass user cannot logout',
     };
     return;
   }
