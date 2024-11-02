@@ -210,6 +210,15 @@ exports.postRevealPrivateKey = async (ctx) => {
 
 exports.getVerifyClaimingCode = async (ctx) => {
   const { code } = ctx.params;
+
+  if (!code) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Claiming code is required',
+    };
+    return;
+  }
+
   const mirrorClaim = await MirrorClaim.findOne({
     code: code.toUpperCase(),
   });
@@ -219,6 +228,7 @@ exports.getVerifyClaimingCode = async (ctx) => {
     ctx.body = {
       error: 'Claiming code not found',
     };
+    return;
   }
 
   ctx.body = {
