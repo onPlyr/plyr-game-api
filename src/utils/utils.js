@@ -5,7 +5,7 @@ function verifyPlyrid(plyrid) {
     plyrid = plyrid.toLowerCase();
 
     // Check length conditions
-    if (plyrid.length < 5 || plyrid.length > 32) {
+    if (plyrid.length < 5 || plyrid.length > 64) {
         return false;
     }
 
