@@ -110,7 +110,7 @@ exports.postRegister = async (ctx) => {
     const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
       address: getAddress(account.address),
       plyrId,
-      chainId: chainId || 62831,
+      chainId: 16180,
     }));
     console.log('Added message ID:', messageId);
 
