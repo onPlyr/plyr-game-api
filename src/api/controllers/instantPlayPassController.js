@@ -29,17 +29,17 @@ async function getPrivateKey(keystoreJson) {
 
 const randomUsername = (hexDigits) => {
   const generateParts = () => {
-    const firstPart = faker.color.human().toLowerCase().replace(/[\s-]+/g, '_');
-    const secondPart = faker.food.fruit().toLowerCase().replace(/[\s-]+/g, '_');
+    const firstPart = faker.color.human().toLowerCase().replace(/[\s_]+/g, '-');
+    const secondPart = faker.food.fruit().toLowerCase().replace(/[\s_]+/g, '-');
     return { firstPart, secondPart };
   };
 
   let firstPart, secondPart;
   do {
     ({ firstPart, secondPart } = generateParts());
-  } while (!/^[a-z_]+$/.test(`${firstPart}_${secondPart}`));
+  } while (!/^[a-z-]+$/.test(`${firstPart}-${secondPart}`));
 
-  const username = `${firstPart}_${secondPart}_${hexDigits}`;
+  const username = `${firstPart}-${secondPart}-${hexDigits}`;
   return username;
 }
 
