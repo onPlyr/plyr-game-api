@@ -7,7 +7,7 @@ const airdropController = require('../controllers/airdropController');
 const gameController = require('../controllers/gameController');
 const withdrawController = require('../controllers/withdrawController');
 const instantPlayPassController = require('../controllers/instantPlayPassController');
-
+const activityLogsController = require('../controllers/activityLogsController');
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
@@ -88,10 +88,12 @@ router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
 router.post('/game/createJoinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameCreateJoinPay);
 router.post('/game/earnLeaveEnd', hmacAuth('user'), checkTokens, gameController.postGameEarnLeaveEnd);
-
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
+// activity logs
+router.get('/activityLogs/:plyrId', hmacAuth('user'), activityLogsController.getLogs);
 
+// withdraw apis
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
 router.post('/transfer', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postTransfer);
 router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
