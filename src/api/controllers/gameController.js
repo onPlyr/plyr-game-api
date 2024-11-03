@@ -4,6 +4,7 @@ const UserApprove = require('../../models/userApprove');
 const UserInfo = require("../../models/userInfo");
 const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
+const { logActivity } = require('../../utils/activity');
 
 const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
@@ -78,6 +79,7 @@ const postGameApprove = async (ctx) => {
     await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
+    await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -114,6 +116,7 @@ const postGameRevoke = async (ctx) => {
     await revoke({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
+    await logActivity(plyrId, gameId, 'game', 'revoke', { gameId, token: token.toLowerCase() });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -152,6 +155,7 @@ const postGameRevokeBySignature = async (ctx) => {
     await revoke({ plyrId, gameId, token });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
+    await logActivity(plyrId, gameId, 'game', 'revoke', { gameId, token: token.toLowerCase() });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -178,6 +182,7 @@ const postGameCreate = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    await logActivity(gameId, gameId, 'game', 'create', { gameId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -202,6 +207,9 @@ const postGameJoin = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    for (let plyrId of plyrIds) {
+      await logActivity(plyrId, gameId, 'game', 'join', { gameId, roomId });
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -225,6 +233,9 @@ const postGameLeave = async (ctx) => {
       id: taskId,
         status: 'PENDING',
       } };
+    }
+    for (let plyrId of plyrIds) {
+      await logActivity(plyrId, gameId, 'game', 'leave', { gameId, roomId });
     }
   } catch (error) {
     ctx.status = 500;
@@ -256,6 +267,7 @@ const postGamePay = async (ctx) => {
       status: 'PENDING',
       } };
     }
+    await logActivity(plyrId, gameId, 'game', 'pay', { gameId, roomId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -285,6 +297,7 @@ const postGameEarn = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    await logActivity(plyrId, gameId, 'game', 'earn', { gameId, roomId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -308,6 +321,7 @@ const postGameEnd = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    await logActivity(gameId, gameId, 'game', 'end', { gameId, roomId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -330,6 +344,7 @@ const postGameClose = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    await logActivity(gameId, gameId, 'game', 'close', { gameId, roomId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -363,6 +378,9 @@ const postGameCreateJoinPay = async (ctx) => {
         status: 'PENDING',
       } };
     }
+    for (let plyrId of plyrIds) {
+      await logActivity(plyrId, gameId, 'game', 'createJoinPay', { gameId, roomId });
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -390,6 +408,9 @@ const postGameEarnLeaveEnd = async (ctx) => {
       id: taskId,
         status: 'PENDING',
       } };
+    }
+    for (let plyrId of plyrIds) {
+      await logActivity(plyrId, gameId, 'game', 'earnLeaveEnd', { gameId, roomId });
     }
   } catch (error) {
     ctx.status = 500;

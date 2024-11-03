@@ -11,7 +11,7 @@ const config = require('../../config');
 const { approve } = require('./gameController');
 const MirrorClaim = require('../../models/mirrorClaim');
 const InstantPlayPass = require('../../models/instantPlayPass');
-
+const { logActivity } = require('../../utils/activity');
 const redis = getRedisClient();
 
 authenticator.options = {
@@ -181,6 +181,7 @@ exports.postRegister = async (ctx) => {
         status: 'PENDING',
       },
     };
+    await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(address) });
   } else {
     ctx.body = {
       plyrId,
@@ -316,6 +317,7 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
         status: 'PENDING',
       },
     };
+    await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(address) });
   } else {
     ctx.body = {
       plyrId,
@@ -454,7 +456,8 @@ exports.postModifyAvatar = async (ctx) => {
     plyrId: updatedUser.plyrId,
     avatar: updatedUser.avatar,
   };
-};
+  await logActivity(plyrId, null, 'user', 'updateAvatar', { avatar });
+}
 
 exports.postSecondaryUnbind = async (ctx) => {
   const { plyrId, secondaryAddress, signature } = ctx.request.body;
@@ -507,6 +510,7 @@ exports.postSecondaryUnbind = async (ctx) => {
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
   };
+  await logActivity(plyrId, null, 'user', 'secondaryUnbind', { secondaryAddress: getAddress(secondaryAddress) });
 }
 
 exports.postSecondaryBind = async (ctx) => {
@@ -591,6 +595,7 @@ exports.postSecondaryBind = async (ctx) => {
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
   };
+  await logActivity(plyrId, null, 'user', 'secondaryBind', { secondaryAddress: getAddress(secondaryAddress) });
 }
 
 exports.getSecondary = async (ctx) => {
@@ -639,6 +644,7 @@ exports.postLogin = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
   }
+  await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
 
 exports.postLoginAndApprove = async (ctx) => {
@@ -677,6 +683,7 @@ exports.postLoginAndApprove = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
   }
+  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId });
 }
 
 exports.postLogout = async (ctx) => {
@@ -731,6 +738,7 @@ exports.postLogout = async (ctx) => {
   ctx.body = {
     message: 'Logout success',
   };
+  await logActivity(plyrId, gameId, 'user', 'logout', {gameId});
 }
 
 exports.postUserSessionVerify = async (ctx) => {
@@ -820,6 +828,7 @@ exports.postReset2fa = async (ctx) => {
   ctx.body = {
     message: 'Two-Factor Authentication reset successfully'
   };
+  await logActivity(plyrId, null, 'user', 'reset2fa', {});
 }
 
 exports.getUserBasicInfo = async (ctx) => {
@@ -981,6 +990,7 @@ exports.postDiscardSessionBySignature = async (ctx) => {
   ctx.body = {
     message: 'Session discarded successfully'
   };
+  await logActivity(plyrId, gameId, 'user', 'discardSession', { gameId });
 }
 
 exports.postDiscardSessionBy2fa = async (ctx) => {
@@ -1002,4 +1012,5 @@ exports.postDiscardSessionBy2fa = async (ctx) => {
   ctx.body = {
     message: 'Session discarded successfully'
   };
+  await logActivity(plyrId, gameId, 'user', 'discardSession', { gameId });
 }
