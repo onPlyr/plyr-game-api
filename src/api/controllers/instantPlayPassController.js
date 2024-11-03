@@ -10,6 +10,7 @@ const { getRedisClient } = require('../../db/redis');
 const { generateJwtToken } = require('../../utils/jwt');
 const redis = getRedisClient();
 const { approve } = require('./gameController');
+const { logActivity } = require('../../utils/activity');
 
 
 
@@ -123,6 +124,7 @@ exports.postRegister = async (ctx) => {
         status: 'PENDING',
       },
     };
+    await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(account.address) });
   } else {
     ctx.body = {
       sessionJwt: JWT,
@@ -170,6 +172,7 @@ exports.postRevealClaimingCode = async (ctx) => {
     claimingCode: random,
     claimingUrl: `${process.env.FRONTEND_URL}/signup?claimingCode=${random}`,
   };
+  await logActivity(user.plyrId, null, 'user', 'revealClaimingCode', { mirrorAddress: user.mirror, primaryAddress: user.primaryAddress });
 }
 
 exports.postRevealPrivateKey = async (ctx) => {
@@ -206,6 +209,7 @@ exports.postRevealPrivateKey = async (ctx) => {
     primaryAddress: user.primaryAddress,
     privateKey: pk,
   };
+  await logActivity(user.plyrId, null, 'user', 'revealPrivateKey', { mirrorAddress: user.mirror, primaryAddress: user.primaryAddress });
 }
 
 exports.getVerifyClaimingCode = async (ctx) => {

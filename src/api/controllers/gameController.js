@@ -379,7 +379,7 @@ const postGameCreateJoinPay = async (ctx) => {
       } };
     }
     for (let plyrId of plyrIds) {
-      await logActivity(plyrId, gameId, 'game', 'createJoinPay', { gameId, roomId });
+      await logActivity(plyrId, gameId, 'game', 'createJoinPay', { gameId });
     }
   } catch (error) {
     ctx.status = 500;

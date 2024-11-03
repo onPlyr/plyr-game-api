@@ -2,6 +2,7 @@ const { verifyMessage, isHex, isAddress } = require('viem');
 const { getRedisClient } = require("../../db/redis");
 const GameRoom = require('../../models/gameRoom');
 const UserInfo = require('../../models/userInfo');
+const { logActivity } = require('../../utils/activity');
 
 const insertTask = async (params, taskName) => {
   const redis = getRedisClient();
@@ -75,6 +76,7 @@ exports.postWithdraw = async (ctx) => {
       status: 'PENDING',
     }
   }
+  await logActivity(plyrId, null, 'withdraw', 'create', { token: tokenAddress, amount });
 }
 
 
@@ -154,6 +156,7 @@ exports.postTransfer = async (ctx) => {
       status: 'PENDING',
     }
   }
+  await logActivity(plyrId, null, 'withdraw', 'create', { token: tokenAddress, amount });
 }
 
 async function isGame(plyrId) {
