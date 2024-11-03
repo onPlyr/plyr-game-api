@@ -613,11 +613,13 @@ exports.getSecondary = async (ctx) => {
 }
 
 exports.postLogin = async (ctx) => {
-  const { plyrId, expiresIn } = ctx.request.body;
-  console.log('postLogin', plyrId, expiresIn);
+  let { plyrId, expiresIn, gameId } = ctx.request.body;
+  console.log('postLogin', plyrId, expiresIn, gameId);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
-  const gameId = userApiKey.plyrId;
+  if (!gameId) {
+    gameId = userApiKey.plyrId;
+  }
 
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
