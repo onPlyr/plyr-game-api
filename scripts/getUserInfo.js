@@ -131,7 +131,7 @@ async function activityLogs() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/activityLogs/testgame-1724945535246",
+      process.env.API_ENDPOINT + "/api/activityLogs/testuser1-1724945535246",
       {
         headers: {
           apikey: apiKey,
