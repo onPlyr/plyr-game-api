@@ -58,7 +58,7 @@ router.post('/user/session/discardBy2fa', hmacAuth('user'), otpAuth, userControl
 // instant play pass
 router.post('/instantPlayPass/register', hmacAuth('user'), instantPlayPassController.postRegister);
 router.post('/instantPlayPass/reveal/claimingCode', hmacAuth('user'), checkSessionJwt, instantPlayPassController.postRevealClaimingCode);
-router.post('/instantPlayPass/reveal/privateKey', hmacAuth('user'), checkSessionJwt, instantPlayPassController.postRevealPrivateKey);
+router.post('/instantPlayPass/reveal/privateKey', hmacAuth('user'), instantPlayPassController.postRevealPrivateKey);
 router.get('/instantPlayPass/verify/claimingCode/:code', hmacAuth('user'), instantPlayPassController.getVerifyClaimingCode);
 
 // task apis
