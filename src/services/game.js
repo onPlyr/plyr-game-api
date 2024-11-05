@@ -310,11 +310,12 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
   const hash = receipt.transactionHash;
 
   console.log('createJoinPay receipt:', receipt);
-  for (let i=0; i<plyrIds.length; i++) {
-    await logActivity(plyrIds[i], gameId, 'game', 'createJoinPay', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
-  }
+  
 
   if (receipt.status !== 'success') {
+    for (let i=0; i<plyrIds.length; i++) {
+      await logActivity(plyrIds[i], gameId, 'game', 'createJoinPay', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+    }
     throw new Error('Transaction failed');
   }
 
@@ -331,6 +332,9 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
         const { gameId, roomId, roomAddress } = decodedLog.args;
         await GameRoom.updateOne({ gameId, roomId }, { $set: { gameId, roomId: roomId.toString(), roomAddress } }, { upsert: true });
         result = { gameId, roomId: roomId.toString(), roomAddress };
+        for (let i=0; i<plyrIds.length; i++) {
+          await logActivity(plyrIds[i], gameId, 'game', 'createJoinPay', { gameId, roomId: roomId.toString(), token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+        }
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
