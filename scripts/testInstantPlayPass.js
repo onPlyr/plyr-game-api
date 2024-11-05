@@ -82,6 +82,7 @@ async function createUserWithClaimingCode(plyrId, code) {
   } catch (error) {
     console.log(error.response.data);
   }
+  return account;
 }
 
 async function main() {
@@ -121,6 +122,16 @@ async function main() {
   );
   console.log("instantPlayPass/verify/claimingCode response", response);
 
+  const account = await createUserWithClaimingCode(response.plyrId + "-claimed", claimingCode);
+
+  const signatureMessage = `PLYR[ID] Reveal Instant Play Pass Private Key`;
+  const signature = await account.signMessage({ message: signatureMessage });
+
+  body = {
+    plyrId: response.plyrId + "-claimed",
+    signature,
+  }
+
   response = await makeAuthenticatedRequest(
     'post',
     '/api/instantPlayPass/reveal/privateKey',
@@ -130,7 +141,6 @@ async function main() {
   );
   console.log("instantPlayPass/reveal/privateKey response", response);
 
-  await createUserWithClaimingCode(response.plyrId + "-claimed", claimingCode);
 }
 
 main().then(()=>console.log('done')).catch(console.error);

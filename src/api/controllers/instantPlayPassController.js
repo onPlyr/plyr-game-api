@@ -234,13 +234,12 @@ exports.postRevealPrivateKey = async (ctx) => {
     };
     return;
   }
-  console.log('revealing private key', user.plyrId, gameId);
+  console.log('revealing private key', user.plyrId);
   const pk = await getPrivateKey(instantPlayPass.keystoreJson);
   console.log('decrypted private key', pk.slice(0, 6) + '...' + pk.slice(-4));
 
   ctx.body = {
     plyrId: user.plyrId,
-    gameId,
     mirrorAddress: user.mirror,
     primaryAddress: user.primaryAddress,
     privateKey: pk,
