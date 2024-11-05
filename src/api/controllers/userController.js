@@ -181,7 +181,6 @@ exports.postRegister = async (ctx) => {
         status: 'PENDING',
       },
     };
-    await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(address) });
   } else {
     ctx.body = {
       plyrId,
@@ -290,6 +289,7 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
     secret,
     chainId: chainId || 62831,
     avatar: getAvatarUrl(avatar),
+    ippClaimed: true,
   });
 
   // remove claiming code
@@ -316,8 +316,8 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
         id: messageId,
         status: 'PENDING',
       },
+      ippClaimed: true,
     };
-    await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(address) });
   } else {
     ctx.body = {
       plyrId,
@@ -350,6 +350,7 @@ exports.getUserInfo = async (ctx) => {
         chainId: user.chainId,
         avatar,
         createdAt: user.createdAt,
+        ippClaimed: user.ippClaimed,
       };
     }
   } else {
@@ -379,6 +380,7 @@ exports.getUserInfo = async (ctx) => {
         chainId: user.chainId,
         avatar,
         createdAt: user.createdAt,
+        ippClaimed: user.ippClaimed,
       };
     }
   }

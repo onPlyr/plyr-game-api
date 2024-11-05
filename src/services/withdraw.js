@@ -1,6 +1,8 @@
 const { zeroAddress, erc20Abi, parseUnits } = require('viem');
 const { chain, plyrRouterSC, ROUTER_ABI } = require('../config');
 const { sendAndWaitTx } = require('../utils/tx');
+const { logActivity } = require('../utils/activity');
+
 
 async function createWithdrawTx({ from, to, amount, token, toChain }) {
   let hash;
@@ -39,6 +41,8 @@ async function createWithdrawTx({ from, to, amount, token, toChain }) {
     });
     hash = receipt.transactionHash;
   }
+
+  await logActivity(from, null, 'withdraw', 'withdraw', {token, from, to, amount, hash, success: receipt.status });
 
   console.log('createWithdrawTx receipt:', receipt);
   return hash;

@@ -4,6 +4,7 @@ const { TOKEN_LIST } = require('../config');
 const UserApprove = require('../models/userApprove');
 const GameRoom = require('../models/gameRoom');
 const { sendAndWaitTx } = require('../utils/tx');
+const { logActivity } = require('../utils/activity');
 
 async function create({gameId, expiresIn}) {
   let result = {};
@@ -21,6 +22,7 @@ async function create({gameId, expiresIn}) {
 
   console.log('create receipt:', receipt);
   if (receipt.status !== 'success') {
+    await logActivity(gameId, gameId, 'game', 'create', { gameId, hash, success: receipt.status });
     throw new Error('Transaction failed');
   }
 
@@ -37,6 +39,7 @@ async function create({gameId, expiresIn}) {
         const { gameId, roomId, roomAddress } = decodedLog.args;
         await GameRoom.updateOne({ gameId, roomId }, { $set: { gameId, roomId: roomId.toString(), roomAddress } }, { upsert: true });
         result = { gameId, roomId: roomId.toString(), roomAddress };
+        await logActivity(gameId, gameId, 'game', 'create', { gameId, roomId: roomId.toString(), roomAddress, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
@@ -61,6 +64,9 @@ async function join({plyrIds, gameId, roomId}) {
 
   const hash = receipt.transactionHash;
   console.log('join receipt:', receipt);
+  for (let plyrId of plyrIds) {
+    await logActivity(plyrId, gameId, 'game', 'join', { gameId, roomId, hash, success: receipt.status });
+  }
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
   }
@@ -97,6 +103,9 @@ async function leave({plyrIds, gameId, roomId}) {
 
   const hash = receipt.transactionHash;
   console.log('leave receipt:', receipt);
+  for (let plyrId of plyrIds) {
+    await logActivity(plyrId, gameId, 'game', 'leave', { gameId, roomId, hash, success: receipt.status });
+  }
 
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
@@ -143,7 +152,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
   });
 
   const hash = receipt.transactionHash;
-
+  await logActivity(plyrId, gameId, 'game', 'pay', { gameId, roomId, token: token.toLowerCase(), amount, hash, success: receipt.status });
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
   } else {
@@ -202,7 +211,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
   const hash = receipt.transactionHash;
 
   console.log('earn receipt:', receipt);
-
+  await logActivity(plyrId, gameId, 'game', 'earn', { gameId, roomId, token: token.toLowerCase(), amount, hash, success: receipt.status });
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
   }
@@ -224,6 +233,7 @@ async function end({gameId, roomId}) {
   const hash = receipt.transactionHash;
 
   console.log('end receipt:', receipt);
+  await logActivity(gameId, gameId, 'game', 'end', { gameId, roomId, hash, success: receipt.status });
 
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
@@ -246,7 +256,7 @@ async function close({gameId, roomId}) {
   const hash = receipt.transactionHash;
 
   console.log('close receipt:', receipt);
-
+  await logActivity(gameId, gameId, 'game', 'close', { gameId, roomId, hash, success: receipt.status });
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
   }
@@ -300,6 +310,10 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
   const hash = receipt.transactionHash;
 
   console.log('createJoinPay receipt:', receipt);
+  for (let i=0; i<plyrIds.length; i++) {
+    await logActivity(plyrIds[i], gameId, 'game', 'createJoinPay', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+  }
+
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');
   }
@@ -391,6 +405,10 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
   const hash = receipt.transactionHash;
 
   console.log('earnLeaveEnd receipt:', receipt);
+
+  for (let i=0; i<plyrIds.length; i++) {
+    await logActivity(plyrIds[i], gameId, 'game', 'earnLeaveEnd', { gameId, roomId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+  }
 
   if (receipt.status !== 'success') {
     throw new Error('Transaction failed');

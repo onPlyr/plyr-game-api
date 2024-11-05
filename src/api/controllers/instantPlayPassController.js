@@ -167,7 +167,7 @@ exports.postRevealClaimingCode = async (ctx) => {
   ctx.body = {
     plyrId: user.plyrId,
     gameId,
-    mirror: user.mirror,
+    mirrorAddress: user.mirror,
     primaryAddress: user.primaryAddress,
     claimingCode: random,
     claimingUrl: `${process.env.FRONTEND_URL}/signup?claimingCode=${random}`,
@@ -205,7 +205,7 @@ exports.postRevealPrivateKey = async (ctx) => {
   ctx.body = {
     plyrId: user.plyrId,
     gameId,
-    mirror: user.mirror,
+    mirrorAddress: user.mirror,
     primaryAddress: user.primaryAddress,
     privateKey: pk,
   };

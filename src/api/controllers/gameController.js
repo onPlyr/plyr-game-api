@@ -182,7 +182,6 @@ const postGameCreate = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    await logActivity(gameId, gameId, 'game', 'create', { gameId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -207,9 +206,6 @@ const postGameJoin = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    for (let plyrId of plyrIds) {
-      await logActivity(plyrId, gameId, 'game', 'join', { gameId, roomId });
-    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -233,9 +229,6 @@ const postGameLeave = async (ctx) => {
       id: taskId,
         status: 'PENDING',
       } };
-    }
-    for (let plyrId of plyrIds) {
-      await logActivity(plyrId, gameId, 'game', 'leave', { gameId, roomId });
     }
   } catch (error) {
     ctx.status = 500;
@@ -267,7 +260,6 @@ const postGamePay = async (ctx) => {
       status: 'PENDING',
       } };
     }
-    await logActivity(plyrId, gameId, 'game', 'pay', { gameId, roomId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -297,7 +289,6 @@ const postGameEarn = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    await logActivity(plyrId, gameId, 'game', 'earn', { gameId, roomId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -321,7 +312,6 @@ const postGameEnd = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    await logActivity(gameId, gameId, 'game', 'end', { gameId, roomId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -344,7 +334,6 @@ const postGameClose = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    await logActivity(gameId, gameId, 'game', 'close', { gameId, roomId });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -378,9 +367,6 @@ const postGameCreateJoinPay = async (ctx) => {
         status: 'PENDING',
       } };
     }
-    for (let plyrId of plyrIds) {
-      await logActivity(plyrId, gameId, 'game', 'createJoinPay', { gameId });
-    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -408,9 +394,6 @@ const postGameEarnLeaveEnd = async (ctx) => {
       id: taskId,
         status: 'PENDING',
       } };
-    }
-    for (let plyrId of plyrIds) {
-      await logActivity(plyrId, gameId, 'game', 'earnLeaveEnd', { gameId, roomId });
     }
   } catch (error) {
     ctx.status = 500;
