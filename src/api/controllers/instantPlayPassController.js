@@ -5,7 +5,7 @@ const InstantPlayPass = require('../../models/instantPlayPass');
 const MirrorClaim = require('../../models/mirrorClaim');
 const { verifyPlyrid, getAvatarUrl, generateRandomNumber } = require('../../utils/utils');
 const { calcMirrorAddress } = require('../../utils/calcMirror');
-const { getAddress } = require('viem');
+const { getAddress, isHex, verifyMessage } = require('viem');
 const { getRedisClient } = require('../../db/redis');
 const { generateJwtToken } = require('../../utils/jwt');
 const redis = getRedisClient();
@@ -178,7 +178,7 @@ exports.postRevealClaimingCode = async (ctx) => {
 exports.postRevealPrivateKey = async (ctx) => {
   const { plyrId, signature } = ctx.request.body;
 
-  if (!verifyPlyrid(plyrId)) {
+  if (!plyrId || !verifyPlyrid(plyrId)) {
     ctx.status = 400;
     ctx.body = {
       error: 'Invalid PLYR[ID]'
