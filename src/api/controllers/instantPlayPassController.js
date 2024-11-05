@@ -176,19 +176,55 @@ exports.postRevealClaimingCode = async (ctx) => {
 }
 
 exports.postRevealPrivateKey = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const user = ctx.state.user;
-  if (!user.isInstantPlayPass) {
-    ctx.status = 401;
+  const { plyrId, signature } = ctx.request.body;
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
     ctx.body = {
-      error: 'Only Instant Play Pass user can reveal claiming code',
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  const signatureMessage = `PLYR[ID] Reveal Instant Play Pass Private Key`;
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  const normalizedPlyrId = plyrId.toLowerCase();
+
+  const user = await UserInfo.findOne({ plyrId: normalizedPlyrId });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = {
+      error: 'PLYR[ID] not found'
+    };
+    return;
+  }
+
+  const mirror = user.mirror;
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature',
     };
     return;
   }
 
   const instantPlayPass = await InstantPlayPass.findOne({
-    plyrId: user.plyrId,
-    gameId,
+    mirror,
   });
 
   if (!instantPlayPass) {
