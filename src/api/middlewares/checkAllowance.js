@@ -3,8 +3,9 @@ const { TOKEN_LIST } = require('../../config');
 const UserApprove = require("../../models/userApprove");
 
 const checkAllowance = async (ctx, next) => {
-  const { token, amount, sessionJwts } = ctx.request.body;
+  const { token, amount } = ctx.request.body;
   const gameId = ctx.state.apiKey.plyrId;
+  const plyrId = ctx.state.payload.plyrId;
 
   if (!token) {
     ctx.status = 401;
@@ -25,8 +26,6 @@ const checkAllowance = async (ctx, next) => {
   }
   
   if (Number(amount) > 0) {
-    const plyrIds = Object.keys(sessionJwts);
-    const plyrId = plyrIds[0];
     const userApprove = await UserApprove.findOne({ gameId, plyrId, token: token.toLowerCase() });
 
     if (!userApprove) {

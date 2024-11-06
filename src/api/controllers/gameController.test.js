@@ -251,9 +251,10 @@ describe('Game Controller', () => {
 
   describe('postGameJoin', () => {
     test('successfully joins a game', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1', 'jwt2'] };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
+        plyrIds: ['player1', 'player2'],
       };
   
       await gameController.postGameJoin(ctx);
@@ -280,9 +281,10 @@ describe('Game Controller', () => {
   
   describe('postGameLeave', () => {
     test('successfully leaves a game', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1', 'jwt2'] };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
+        plyrIds: ['player1', 'player2'],
       };
   
       await gameController.postGameLeave(ctx);
@@ -309,9 +311,17 @@ describe('Game Controller', () => {
   
   describe('postGamePay', () => {
     test('successfully processes a payment', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: { testplayer: 'jwt1' }, token: 'testToken', amount: 100 };
+      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1'], token: 'testToken', amount: 100 };
       ctx.state = {
         apiKey: { plyrId: 'testGameId' },
+        plyrIds: ['testplayer'],
+        payload: {
+          plyrId: 'testplayer',
+          gameId: 'testGameId',
+          roomId: 'testRoom',
+          token: 'testToken',
+          amount: 100,
+        },
       };
 
       isJoined.mockResolvedValue(true);
@@ -422,40 +432,6 @@ describe('Game Controller', () => {
         JSON.stringify({
           gameId: 'testGameId',
           roomId: 'testRoom',
-        })
-      );
-    });
-  });
-
-  describe('postGameMulticall', () => {
-    test('successfully processes multiple calls', async () => {
-      const functionDatas = [
-        { function: 'join', params: { roomId: 'room1' } },
-        { function: 'pay', params: { roomId: 'room1', token: 'token1', amount: 50 } },
-      ];
-      ctx.request.body = { roomId: 'testRoom', functionDatas, sessionJwts: { player1: 'jwt1', player2: 'jwt2' } };
-      ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
-      };
-  
-      await gameController.postGameMulticall(ctx);
-  
-      expect(ctx.status).toBe(200);
-      expect(ctx.body).toEqual({
-        task: {
-          id: 'mockedTaskId',
-          status: 'PENDING',
-        },
-      });
-      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
-        'mystream',
-        '*',
-        'multicallGameRoom',
-        JSON.stringify({
-          gameId: 'testGameId',
-          roomId: 'testRoom',
-          functionDatas,
-          sessionJwts: { player1: 'jwt1', player2: 'jwt2' },
         })
       );
     });

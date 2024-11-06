@@ -3,18 +3,9 @@ const UserInfo = require("../../models/userInfo");
 
 
 // input ctx.request.body
-// sessionJwts: {
-//   plyrId0: 'sessionJwt0',
-//   plyrId1: 'sessionJwt1',
-//   plyrId2: 'sessionJwt2',
-// }
-// output ctx.body
-// {
-//   error: 'Invalid sessionJwts',
-//   invalidPlyrIds: {
-//     plyrId0: 'Invalid sessionJwt',
-//   }
-// }
+// sessionJwts: [jwt1, jwt2, jwt3] << just get a plyrid from jwt payload
+// tokens: [plyr,plyr,plyr]
+// amounts: [1,2,3]
 
 const checkSessionJwts = async (ctx, next) => {
   const gameId = ctx.state.apiKey.plyrId;
@@ -23,14 +14,14 @@ const checkSessionJwts = async (ctx, next) => {
   let invalidPlyrIds = {};
   let users = {};
   try {
-    if (!sessionJwts || Object.keys(sessionJwts).length === 0) {
+    if (!sessionJwts || sessionJwts.length === 0) {
       ctx.status = 400;
       ctx.body = { error: 'sessionJwts is empty' };
       return;
     }
-    await Promise.all(Object.keys(sessionJwts).map(async (plyrId) => {
-      const sessionJwt = sessionJwts[plyrId];
+    let plyrIds = await Promise.all(sessionJwts.map(async (sessionJwt) => {
       const payload = verifyToken(sessionJwt);
+      const plyrId = payload.plyrId;
       if (!payload) {
         isAllValid = false;
         invalidPlyrIds[plyrId] = 'Invalid sessionJwt';
@@ -40,12 +31,6 @@ const checkSessionJwts = async (ctx, next) => {
       if (payload.gameId !== gameId) {
         isAllValid = false;
         invalidPlyrIds[plyrId] = 'Invalid gameId';
-        return;
-      }
-  
-      if (plyrId !== payload.plyrId) {
-        isAllValid = false;
-        invalidPlyrIds[plyrId] = 'Invalid plyrId';
         return;
       }
   
@@ -64,7 +49,9 @@ const checkSessionJwts = async (ctx, next) => {
         return;
       }
       users[plyrId] = user;
+      return plyrId;
     }));
+    ctx.state.plyrIds = plyrIds;
   } catch (error) {
     console.error(error);
     ctx.status = 500;

@@ -190,9 +190,9 @@ const postGameCreate = async (ctx) => {
 
 const postGameJoin = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { roomId, sessionJwts, sync } = ctx.request.body;
+  const { roomId, sync } = ctx.request.body;
   try {
-    const plyrIds = Object.keys(sessionJwts);
+    const plyrIds = ctx.state.plyrIds;
     const taskId = await insertTask({ plyrIds, gameId, roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -214,9 +214,9 @@ const postGameJoin = async (ctx) => {
 
 const postGameLeave = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts, roomId, sync } = ctx.request.body;
+  const { roomId, sync } = ctx.request.body;
   try {
-    const plyrIds = Object.keys(sessionJwts);
+    const plyrIds = ctx.state.plyrIds;
     const taskId = await insertTask({ plyrIds, gameId, roomId }, 'leaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -266,6 +266,30 @@ const postGamePay = async (ctx) => {
   }
 }
 
+const postGameBatchPay = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const plyrIds = ctx.state.plyrIds;
+  const { roomId, tokens, amounts, sync } = ctx.request.body;
+  try {
+    const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchPayGameRoom', sync);
+    ctx.status = 200;
+    if (sync) {
+      ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
+    } else {
+      ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
+      } };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
 const postGameEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { plyrId, roomId, token, amount, sync } = ctx.request.body;
@@ -287,6 +311,29 @@ const postGameEarn = async (ctx) => {
       ctx.body = { task: {
       id: taskId,
         status: 'PENDING',
+      } };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const postGameBatchEarn = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+  try {
+    const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchEarnGameRoom', sync);
+    ctx.status = 200;
+    if (sync) {
+      ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
+    } else {
+      ctx.body = { task: {
+      id: taskId,
+      status: 'PENDING',
       } };
     }
   } catch (error) {
@@ -343,11 +390,12 @@ const postGameClose = async (ctx) => {
 const postGameCreateJoinPay = async (ctx) => {
   try {
     const gameId = ctx.state.apiKey.plyrId;
-    let { expiresIn, sessionJwts, tokens, amounts, sync } = ctx.request.body;
+    const plyrIds = ctx.state.plyrIds;
+    let { expiresIn, tokens, amounts, sync } = ctx.request.body;
     if (!expiresIn) {
       expiresIn = 30 * 24 * 60 * 60;
     }
-    const plyrIds = Object.keys(sessionJwts);
+
     if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
       ctx.status = 400;
       ctx.body = { error: 'Input params was incorrect.' };
@@ -422,44 +470,6 @@ const getIsJoined = async (ctx) => {
   ctx.body = { isJoined: ret };
 }
 
-
-// Input:
-// const functionDatas = [
-//   { function: 'join', params: { roomId: 'room1' } },
-//   { function: 'pay', params: { roomId: 'room1', plyrId: 'player1', token: 'token1', amount: 50 } },
-// ];
-const postGameMulticall = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const { roomId, functionDatas, sessionJwts } = ctx.request.body;
-  try {
-    if (!functionDatas || functionDatas.length === 0) {
-      ctx.status = 400;
-      ctx.body = { error: 'functionDatas is required' };
-      return;
-    }
-
-    // check function in functionDatas, only support join, pay, earn, end
-    const allowedFunctions = ['join', 'pay', 'earn', 'end'];
-    for (let i=0; i<functionDatas.length; i++) {
-      if (!allowedFunctions.includes(functionDatas[i].function)) {
-        ctx.status = 400;
-        ctx.body = { error: `function ${functionDatas[i].function} is not allowed` };
-        return;
-      }
-    }
-
-    const taskId = await insertTask({ gameId, roomId, functionDatas, sessionJwts }, 'multicallGameRoom');
-    ctx.status = 200;
-    ctx.body = { task: {
-      id: taskId,
-      status: 'PENDING',
-    } };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = { error: error.message };
-  }
-}
-
 module.exports = {
   postGameApprove,
   getGameAllowance,
@@ -470,10 +480,11 @@ module.exports = {
   postGameJoin,
   postGameLeave,
   postGamePay,
+  postGameBatchPay,
   postGameEarn,
+  postGameBatchEarn,
   postGameEnd,
   postGameClose,
-  postGameMulticall,
   postGameCreateJoinPay,
   postGameEarnLeaveEnd,
   getIsJoined,
