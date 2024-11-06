@@ -238,9 +238,9 @@ const postGameLeave = async (ctx) => {
 
 const postGamePay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts, roomId, token, amount, sync } = ctx.request.body;
+  const { plyrId } = ctx.state.payload;
+  const { roomId, token, amount, sync } = ctx.request.body;
   try {
-    const plyrId = Object.keys(sessionJwts)[0];
     const _joined = await isJoined({plyrId, gameId, roomId});
     if (!_joined) {
       ctx.status = 400;
