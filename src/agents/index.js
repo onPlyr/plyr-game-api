@@ -96,6 +96,10 @@ async function processMessage(id, message) {
       await storeTaskResult(id, {...message, result}, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
+      if (error.message.includes('Transaction Receipt Failed')) {
+        errorMessage = 'Transaction Receipt Failed';
+        break;
+      }
       retries++;
       console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
       errorMessage = error.shortMessage;

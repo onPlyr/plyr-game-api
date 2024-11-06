@@ -23,7 +23,7 @@ async function create({gameId, expiresIn}) {
   console.log('create receipt:', receipt);
   if (receipt.status !== 'success') {
     await logActivity(gameId, gameId, 'game', 'create', { gameId, hash, success: receipt.status });
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
 
   for (let i = 0; i < receipt.logs.length; i++) {
@@ -68,7 +68,7 @@ async function join({plyrIds, gameId, roomId}) {
     await logActivity(plyrId, gameId, 'game', 'join', { gameId, roomId, hash, success: receipt.status });
   }
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
   return {hash, result};
 }
@@ -108,7 +108,7 @@ async function leave({plyrIds, gameId, roomId}) {
   }
 
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
   return {hash, result};
 }
@@ -154,7 +154,7 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
   const hash = receipt.transactionHash;
   await logActivity(plyrId, gameId, 'game', 'pay', { gameId, roomId, token: token.toLowerCase(), amount, hash, success: receipt.status });
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   } else {
     // update userApprove sub amount
     const userApprove = await UserApprove.findOne({ gameId, plyrId, token });
@@ -213,7 +213,7 @@ async function earn({plyrId,gameId, roomId, token, amount}) {
   console.log('earn receipt:', receipt);
   await logActivity(plyrId, gameId, 'game', 'earn', { gameId, roomId, token: token.toLowerCase(), amount, hash, success: receipt.status });
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
   return {hash, result};
 }
@@ -236,7 +236,7 @@ async function end({gameId, roomId}) {
   await logActivity(gameId, gameId, 'game', 'end', { gameId, roomId, hash, success: receipt.status });
 
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
   return {hash, result};
 }
@@ -258,7 +258,7 @@ async function close({gameId, roomId}) {
   console.log('close receipt:', receipt);
   await logActivity(gameId, gameId, 'game', 'close', { gameId, roomId, hash, success: receipt.status });
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
   return {hash, result};
 }
@@ -316,7 +316,7 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
     for (let i=0; i<plyrIds.length; i++) {
       await logActivity(plyrIds[i], gameId, 'game', 'createJoinPay', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
     }
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
 
   for (let i = 0; i < receipt.logs.length; i++) {
@@ -415,7 +415,7 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
   }
 
   if (receipt.status !== 'success') {
-    throw new Error('Transaction failed');
+    throw new Error('Transaction Receipt Failed');
   }
 
   return {hash, result};
