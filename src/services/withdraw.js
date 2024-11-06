@@ -4,7 +4,7 @@ const { sendAndWaitTx } = require('../utils/tx');
 const { logActivity } = require('../utils/activity');
 
 
-async function createWithdrawTx({ from, to, amount, token, toChain }) {
+async function createWithdrawTx({ plyrId, from, to, amount, token, toChain }) {
   let hash;
   let receipt
   if (token === zeroAddress) {
@@ -42,7 +42,7 @@ async function createWithdrawTx({ from, to, amount, token, toChain }) {
     hash = receipt.transactionHash;
   }
 
-  await logActivity(from, null, 'withdraw', 'withdraw', {token, from, to, amount, hash, success: receipt.status });
+  await logActivity(plyrId, null, 'withdraw', 'withdraw', {token, from, to, amount, hash, success: receipt.status });
 
   console.log('createWithdrawTx receipt:', receipt);
   return hash;

@@ -66,7 +66,7 @@ exports.postWithdraw = async (ctx) => {
   }
 
   // insert task to create withdraw tx
-  const taskId = await insertTask({ from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
+  const taskId = await insertTask({ plyrId, from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
 
   ctx.status = 200;
   ctx.body = {
@@ -145,7 +145,7 @@ exports.postTransfer = async (ctx) => {
   }
 
   // insert task to create withdraw tx
-  const taskId = await insertTask({ from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
+  const taskId = await insertTask({ plyrId, from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
 
   ctx.status = 200;
   ctx.body = {
