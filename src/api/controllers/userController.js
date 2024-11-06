@@ -1016,3 +1016,12 @@ exports.postDiscardSessionBy2fa = async (ctx) => {
   };
   await logActivity(plyrId, gameId, 'user', 'discardSession', { gameId });
 }
+
+exports.postAddDepositLog = async (ctx) => {
+  const { plyrId, gameId, token, amount } = ctx.request.body;
+  await logActivity(plyrId, gameId, 'user', 'deposit', { token, amount });
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Deposit log added successfully'
+  };
+}

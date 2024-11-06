@@ -54,6 +54,7 @@ router.get('/user/avatar/:plyrId', hmacAuth('user'), checkUserExistsInParams, us
 router.get('/user/activeSessions/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getActiveSessions);
 router.post('/user/session/discardBySignature', hmacAuth('user'), userController.postDiscardSessionBySignature);
 router.post('/user/session/discardBy2fa', hmacAuth('user'), otpAuth, userController.postDiscardSessionBy2fa);
+router.post('/user/addDepositLog', hmacAuth('user'), userController.postAddDepositLog);
 
 // instant play pass
 router.post('/instantPlayPass/register', hmacAuth('user'), instantPlayPassController.postRegister);
