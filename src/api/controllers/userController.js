@@ -685,7 +685,7 @@ exports.postLoginAndApprove = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
   }
-  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId });
+  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
 
 exports.postLogout = async (ctx) => {
