@@ -91,7 +91,9 @@ router.post('/game/batchEarn', hmacAuth('user'), checkTokens, gameController.pos
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
 router.post('/game/createJoinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameCreateJoinPay);
+router.post('/game/joinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameJoinPay);
 router.post('/game/earnLeaveEnd', hmacAuth('user'), checkTokens, gameController.postGameEarnLeaveEnd);
+router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.postGameEarnLeave);
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
 // activity logs

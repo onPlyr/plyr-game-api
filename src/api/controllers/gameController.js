@@ -421,6 +421,37 @@ const postGameCreateJoinPay = async (ctx) => {
   }
 }
 
+const postGameJoinPay = async (ctx) => {
+  try {
+    const gameId = ctx.state.apiKey.plyrId;
+    const plyrIds = ctx.state.plyrIds;
+    let { roomId, tokens, amounts, sync } = ctx.request.body;
+
+    if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
+      ctx.status = 400;
+      ctx.body = { error: 'Input params was incorrect.' };
+      return;
+    }
+
+    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'joinPayGameRoom', sync);
+    ctx.status = 200;
+    if (sync) {
+      ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
+    } else {
+      ctx.body = { task: {
+      id: taskId,
+        status: 'PENDING',
+      } };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
 const postGameEarnLeaveEnd = async (ctx) => {
   try {
     const gameId = ctx.state.apiKey.plyrId;
@@ -431,6 +462,34 @@ const postGameEarnLeaveEnd = async (ctx) => {
       return;
     }
     const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom', sync);
+    ctx.status = 200;
+    if (sync) {
+      ctx.body = taskId;
+      if (taskId.status === 'TIMEOUT') {
+        ctx.status = 504;
+      }
+    } else {
+      ctx.body = { task: {
+      id: taskId,
+        status: 'PENDING',
+      } };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const postGameEarnLeave = async (ctx) => {
+  try {
+    const gameId = ctx.state.apiKey.plyrId;
+    const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+    if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
+      ctx.status = 400;
+      ctx.body = { error: 'Input params was incorrect.' };
+      return;
+    }
+    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -486,7 +545,9 @@ module.exports = {
   postGameEnd,
   postGameClose,
   postGameCreateJoinPay,
+  postGameJoinPay,
   postGameEarnLeaveEnd,
+  postGameEarnLeave,
   getIsJoined,
 
   approve,

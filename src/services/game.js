@@ -431,6 +431,79 @@ async function batchPay({gameId, roomId, plyrIds, tokens, amounts}) {
   return {hash, result};
 }
 
+async function joinPay({gameId, roomId, plyrIds, tokens, amounts}) {
+  let result = {};
+  let _tokens = [];
+  let _amounts = [];
+  for (let i=0; i<tokens.length; i++) {
+    const token = tokens[i];
+    const amount = amounts[i];
+    let tokenAddress;
+    let decimals;
+    if (isAddress(token)) {
+      tokenAddress = token;
+      if (token === zeroAddress) {
+        decimals = 18;
+      } else {
+        decimals = await chain.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'decimals',
+          args: [],
+        });
+      }
+    } else if (TOKEN_LIST[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else {
+      throw new Error('Invalid token: ' + token);
+    }
+    _tokens.push(tokenAddress);
+    _amounts.push(parseUnits(amount.toString(), decimals));
+  }
+
+  const receipt = await sendAndWaitTx({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'joinPay',
+    args: [
+      gameId,
+      roomId,
+      plyrIds,
+      _tokens,
+      _amounts,
+    ]
+  });
+
+  const hash = receipt.transactionHash;
+
+  console.log('joinPay receipt:', receipt);
+
+  for (let i=0; i<plyrIds.length; i++) {
+    await logActivity(plyrIds[i], gameId, 'game', 'joinPay', { gameId, roomId: roomId.toString(), token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+  }
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction Receipt Failed');
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const plyrId = plyrIds[i];
+    const token = tokens[i];
+    const amount = amounts[i];
+    const userApprove = await UserApprove.findOne({ gameId, plyrId, token });
+    if (userApprove) {
+      if (userApprove.amount >= amount) {
+        await UserApprove.updateOne({ gameId, plyrId, token }, { $inc: { amount: -amount } });
+      } else {
+        await UserApprove.deleteOne({ gameId, plyrId, token });
+      }
+    }
+  }
+
+  return {hash, result};
+}
+
 async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
   let result = {};
   let _tokens = [];
@@ -548,6 +621,69 @@ async function batchEarn({gameId, roomId, plyrIds, tokens, amounts}) {
 
   for (let i=0; i<plyrIds.length; i++) {
     await logActivity(plyrIds[i], gameId, 'game', 'earn', { gameId, roomId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
+  }
+
+  if (receipt.status !== 'success') {
+    throw new Error('Transaction Receipt Failed');
+  }
+
+  return {hash, result};
+}
+
+async function earnLeave({gameId, roomId, plyrIds, tokens, amounts}) {
+  let result = {};
+  let _tokens = [];
+  let _amounts = [];
+  for (let i=0; i<tokens.length; i++) {
+    const token = tokens[i];
+    const amount = amounts[i];
+    let tokenAddress;
+    let decimals;
+    if (isAddress(token)) {
+      tokenAddress = token;
+      if (token === zeroAddress) {
+        decimals = 18;
+      } else {
+        decimals = await chain.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'decimals',
+          args: [],
+        });
+      }
+    } else if (TOKEN_LIST[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else {
+      throw new Error('Invalid token: ' + token);
+    }
+    _tokens.push(tokenAddress);
+    if (!amount) {
+      _amounts.push("0");
+    } else {
+      _amounts.push(parseUnits(amount.toString(), decimals));
+    }
+  }
+
+  const receipt = await sendAndWaitTx({
+    address: gameRuleV1SC,
+    abi: GAME_RULE_V1_ABI,
+    functionName: 'earnLeave',
+    args: [
+      gameId,
+      roomId,
+      plyrIds,
+      _tokens,
+      _amounts,
+    ]
+  });
+
+  const hash = receipt.transactionHash;
+
+  console.log('earnLeave receipt:', receipt);
+
+  for (let i=0; i<plyrIds.length; i++) {
+    await logActivity(plyrIds[i], gameId, 'game', 'earnLeave', { gameId, roomId, token: tokens[i].toLowerCase(), amount: amounts[i], hash, success: receipt.status });
   }
 
   if (receipt.status !== 'success') {
