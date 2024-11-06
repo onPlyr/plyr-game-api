@@ -351,6 +351,7 @@ exports.getUserInfo = async (ctx) => {
         avatar,
         createdAt: user.createdAt,
         ippClaimed: user.ippClaimed,
+        isInstantPlayPass: user.isInstantPlayPass,
       };
     }
   } else {
@@ -381,6 +382,7 @@ exports.getUserInfo = async (ctx) => {
         avatar,
         createdAt: user.createdAt,
         ippClaimed: user.ippClaimed,
+        isInstantPlayPass: user.isInstantPlayPass,
       };
     }
   }
