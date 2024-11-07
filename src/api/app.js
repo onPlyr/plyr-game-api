@@ -10,6 +10,11 @@ const errorHandler  = require('./middlewares/errorHandler');
 const app = new Koa();
 
 app.use(cors());
+app.use(async (ctx, next) => {
+  const requestIP = ctx.ip || ctx.request.headers['x-forwarded-for'] || 'unknown';
+  console.log('requestIP', requestIP);
+  await next();
+});
 app.use(logger());
 app.use(bodyParser());
 app.use(errorHandler);
