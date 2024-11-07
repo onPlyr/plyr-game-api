@@ -705,5 +705,7 @@ module.exports = {
   close,
   isJoined,
   createJoinPay,
+  joinPay,
   earnLeaveEnd,
+  earnLeave,
 }
