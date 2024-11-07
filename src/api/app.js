@@ -11,7 +11,10 @@ const app = new Koa();
 
 app.use(cors());
 app.use(async (ctx, next) => {
-  const requestIP = ctx.ip || ctx.request.headers['x-forwarded-for'] || 'unknown';
+  const requestIP = ctx.get('X-Real-IP') || 
+              ctx.get('X-Forwarded-For')?.split(',')[0] || 
+              ctx.ip || 
+              'unknown';
   console.log('requestIP', requestIP);
   await next();
 });
