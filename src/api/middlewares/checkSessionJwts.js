@@ -21,12 +21,12 @@ const checkSessionJwts = async (ctx, next) => {
     }
     let plyrIds = await Promise.all(sessionJwts.map(async (sessionJwt) => {
       const payload = verifyToken(sessionJwt);
-      const plyrId = payload.plyrId;
       if (!payload) {
         isAllValid = false;
         invalidPlyrIds[plyrId] = 'Invalid sessionJwt';
         return;
       }
+      const plyrId = payload.plyrId;
   
       if (payload.gameId !== gameId) {
         isAllValid = false;
