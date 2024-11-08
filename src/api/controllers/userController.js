@@ -1033,6 +1033,9 @@ exports.getAvatars = async (ctx) => {
   const avatars = await UserInfo.find({ plyrId: { $in: plyrIds } }, 'plyrId avatar');
   ctx.status = 200;
   ctx.body = {
-    avatars
+    avatars: avatars.map(avatar => ({
+      plyrId: avatar.plyrId,
+      avatar: getAvatarUrl(avatar.avatar),
+    })),
   };
 }
