@@ -1027,3 +1027,12 @@ exports.postAddDepositLog = async (ctx) => {
     message: 'Deposit log added successfully'
   };
 }
+
+exports.getAvatars = async (ctx) => {
+  const { plyrIds } = ctx.request.body;
+  const avatars = await UserInfo.find({ plyrId: { $in: plyrIds } }, 'plyrId avatar');
+  ctx.status = 200;
+  ctx.body = {
+    avatars
+  };
+}
