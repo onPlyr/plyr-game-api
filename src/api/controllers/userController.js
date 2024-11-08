@@ -1030,7 +1030,20 @@ exports.postAddDepositLog = async (ctx) => {
 
 exports.getAvatars = async (ctx) => {
   const { plyrIds } = ctx.request.body;
-  const avatars = await UserInfo.find({ plyrId: { $in: plyrIds } }, 'plyrId avatar');
+
+  // Add validation
+  if (!Array.isArray(plyrIds)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'plyrIds must be an array'
+    };
+    return;
+  }
+
+  // Convert all plyrIds to lowercase for case-insensitive search
+  const normalizedPlyrIds = plyrIds.map(id => id.toLowerCase());
+
+  const avatars = await UserInfo.find({ plyrId: { $in: normalizedPlyrIds } }, 'plyrId avatar');
   ctx.status = 200;
   ctx.body = {
     avatars: avatars.map(avatar => ({
