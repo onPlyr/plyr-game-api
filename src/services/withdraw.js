@@ -45,8 +45,8 @@ async function createWithdrawTx({ plyrId, toPlyrId, from, to, amount, token, toC
   if (!toPlyrId) {
     await logActivity(plyrId, null, 'withdraw', 'withdraw', {token, from, to, amount, hash, success: receipt.status });
   } else {
-    await logActivity(plyrId, null, 'transfer', 'transferOut', {token, from, to, amount, hash, success: receipt.status });
-    await logActivity(toPlyrId, null, 'transfer', 'transferIn', {token, from, to, amount, hash, success: receipt.status });
+    await logActivity(plyrId, null, 'transfer', 'transferOut', {fromPlyrId: plyrId, toPlyrId: toPlyrId, token, from, to, amount, hash, success: receipt.status });
+    await logActivity(toPlyrId, null, 'transfer', 'transferIn', {fromPlyrId: plyrId, toPlyrId: toPlyrId, token, from, to, amount, hash, success: receipt.status });
   }
 
   console.log('createWithdrawTx receipt:', receipt);
