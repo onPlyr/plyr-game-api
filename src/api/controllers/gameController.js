@@ -193,7 +193,22 @@ const postGameJoin = async (ctx) => {
   const { roomId, sync } = ctx.request.body;
   try {
     const plyrIds = ctx.state.plyrIds;
-    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'joinGameRoom', sync);
+    // check all plyrId isJoined, and return unjoined plyrIds
+    const unjoinedPlyrIds = [];
+    for (const plyrId of plyrIds) {
+      const isJoined = await isJoined({plyrId, gameId, roomId});
+      if (!isJoined) {
+        unjoinedPlyrIds.push(plyrId);
+      }
+    }
+
+    if (unjoinedPlyrIds.length === 0) {
+      ctx.status = 200;
+      ctx.body = { message: 'All players are already joined' };
+      return;
+    }
+
+    const taskId = await insertTask({ plyrIds: unjoinedPlyrIds, gameId, roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
