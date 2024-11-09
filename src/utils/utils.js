@@ -1,9 +1,11 @@
+const Crypto = require('crypto');
+
 function verifyPlyrid(plyrid) {
     // Convert plyrid to lowercase
     plyrid = plyrid.toLowerCase();
 
     // Check length conditions
-    if (plyrid.length < 5 || plyrid.length > 32) {
+    if (plyrid.length < 5 || plyrid.length > 64) {
         return false;
     }
 
@@ -64,4 +66,17 @@ function is2faUsed(plyrid, token) {
     }
 }
 
-module.exports = { verifyPlyrid, getAvatarUrl, is2faUsed };
+function generateRandomNumber(length, count) {
+    if (count > 1024) {
+      throw new Error('Too many random');
+    }
+  
+    let randomArray = [];
+    for (let i=0; i<count; i++) {
+      randomArray.push(Crypto.randomBytes(length).toString('hex'));
+    }
+  
+    return randomArray;
+}
+
+module.exports = { verifyPlyrid, getAvatarUrl, is2faUsed, generateRandomNumber };

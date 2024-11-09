@@ -22,6 +22,12 @@ const otpAuth = async (ctx, next) => {
     return;
   }
 
+  if (user.isInstantPlayPass) {
+    ctx.status = 403;
+    ctx.body = { error: 'User is instant play pass, can not use 2fa to login' };
+    return;
+  }
+
   if (user.bannedAt > 0 && user.bannedAt > Date.now() - 1000*60) {
     ctx.status = 403;
     ctx.body = { error: 'User is temporary locked' };

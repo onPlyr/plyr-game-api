@@ -12,6 +12,8 @@ const userInfoSchema = new mongoose.Schema({
   deadline: { type: Object, default: {} },
   loginFailedCount: { type: Number, default: 0 },
   bannedAt: { type: Number, default: 0},
+  isInstantPlayPass: { type: Boolean, default: false },
+  ippClaimed: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

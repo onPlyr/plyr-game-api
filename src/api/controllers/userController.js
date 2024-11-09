@@ -9,7 +9,9 @@ const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
 const config = require('../../config');
 const { approve } = require('./gameController');
-
+const MirrorClaim = require('../../models/mirrorClaim');
+const InstantPlayPass = require('../../models/instantPlayPass');
+const { logActivity } = require('../../utils/activity');
 const redis = getRedisClient();
 
 authenticator.options = {
@@ -110,11 +112,11 @@ exports.postRegister = async (ctx) => {
   plyrId = plyrId.toLowerCase();
   console.log('plyrId', plyrId);
 
-  const singatureMessage = `PLYR[ID] Registration`;
+  const signatureMessage = `PLYR[ID] Registration`;
 
   const valid = await verifyMessage({
     address,
-    message: singatureMessage,
+    message: signatureMessage,
     signature
   });
 
@@ -189,6 +191,143 @@ exports.postRegister = async (ctx) => {
   }
 };
 
+exports.postRegisterWithClaimingCode = async (ctx) => {
+  let { address, signature, plyrId, secret, chainId, avatar } = ctx.request.body;
+  let { claimingCode } = ctx.params;
+
+  if (!address || !signature || !plyrId || !secret || !claimingCode) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Address, signature, plyrId, secret, claimingCode are required'
+    };
+    return;
+  }
+
+  if (!isHex(signature)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Signature must be a hex string'
+    };
+    return;
+  }
+
+  if (!isAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid address'
+    };
+    return;
+  }
+
+  if (!verifyPlyrid(plyrId)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid PLYR[ID]'
+    };
+    return;
+  }
+
+  plyrId = plyrId.toLowerCase();
+  console.log('plyrId', plyrId);
+
+  const signatureMessage = `PLYR[ID] Registration with claiming code: ${claimingCode}`;
+
+  const valid = await verifyMessage({
+    address,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  await Secondary.deleteMany({ secondaryAddress: getAddress(address) });
+
+  let ret = await UserInfo.findOne({ plyrId });
+  if (ret && ret.plyrId === plyrId) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'PLYR[ID] already exists'
+    };
+    console.log('ret', ret);
+    return;
+  }
+
+  ret = await UserInfo.findOne({ primaryAddress: getAddress(address) });
+  if (ret && ret.primaryAddress === getAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Primary address already exists'
+    };
+    console.log('ret', ret);
+    return;
+  }
+
+  let claimingCodeUser = await MirrorClaim.findOne({ code: claimingCode.toUpperCase() });
+  if (!claimingCodeUser) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid claiming code'
+    };
+    return;
+  }
+
+  const mirror = claimingCodeUser.mirror;
+
+  // remove old user
+  await UserInfo.deleteOne({ plyrId: claimingCodeUser.plyrId, isInstantPlayPass: true });
+
+  await UserInfo.create({
+    plyrId,
+    mirror,
+    primaryAddress: getAddress(address),
+    secret,
+    chainId: chainId || 62831,
+    avatar: getAvatarUrl(avatar),
+    ippClaimed: true,
+  });
+
+  // remove claiming code
+  await MirrorClaim.deleteOne({ code: claimingCode.toUpperCase() });
+  await InstantPlayPass.updateOne({ plyrId: claimingCodeUser.plyrId }, { $set: { isDeleted: true } });
+
+  if (process.env.NODE_ENV !== 'test') {
+    const STREAM_KEY = 'mystream';
+    // insert message into redis stream
+    const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({
+      address: getAddress(address),
+      mirror,
+      plyrId,
+      chainId: chainId || 62831,
+    }));
+    console.log('Added message ID:', messageId);
+
+    ctx.body = {
+      plyrId,
+      mirrorAddress: mirror,
+      primaryAddress: getAddress(address),
+      avatar: getAvatarUrl(avatar),
+      task: {
+        id: messageId,
+        status: 'PENDING',
+      },
+      ippClaimed: true,
+    };
+  } else {
+    ctx.body = {
+      plyrId,
+      mirrorAddress: mirror,
+      primaryAddress: getAddress(address),
+      avatar: getAvatarUrl(avatar),
+    };
+  }
+}
+
 exports.getUserInfo = async (ctx) => {
   let { plyrId } = ctx.params;
 
@@ -211,6 +350,8 @@ exports.getUserInfo = async (ctx) => {
         chainId: user.chainId,
         avatar,
         createdAt: user.createdAt,
+        ippClaimed: user.ippClaimed,
+        isInstantPlayPass: user.isInstantPlayPass,
       };
     }
   } else {
@@ -240,6 +381,8 @@ exports.getUserInfo = async (ctx) => {
         chainId: user.chainId,
         avatar,
         createdAt: user.createdAt,
+        ippClaimed: user.ippClaimed,
+        isInstantPlayPass: user.isInstantPlayPass,
       };
     }
   }
@@ -317,7 +460,8 @@ exports.postModifyAvatar = async (ctx) => {
     plyrId: updatedUser.plyrId,
     avatar: updatedUser.avatar,
   };
-};
+  await logActivity(plyrId, null, 'user', 'updateAvatar', { avatar });
+}
 
 exports.postSecondaryUnbind = async (ctx) => {
   const { plyrId, secondaryAddress, signature } = ctx.request.body;
@@ -370,6 +514,7 @@ exports.postSecondaryUnbind = async (ctx) => {
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
   };
+  await logActivity(plyrId, null, 'user', 'secondaryUnbind', { secondaryAddress: getAddress(secondaryAddress) });
 }
 
 exports.postSecondaryBind = async (ctx) => {
@@ -454,6 +599,7 @@ exports.postSecondaryBind = async (ctx) => {
     plyrId: plyrId.toLowerCase(),
     secondaryAddress: getAddress(secondaryAddress),
   };
+  await logActivity(plyrId, null, 'user', 'secondaryBind', { secondaryAddress: getAddress(secondaryAddress) });
 }
 
 exports.getSecondary = async (ctx) => {
@@ -476,11 +622,13 @@ exports.getSecondary = async (ctx) => {
 }
 
 exports.postLogin = async (ctx) => {
-  const { plyrId, expiresIn } = ctx.request.body;
-  console.log('postLogin', plyrId, expiresIn);
+  let { plyrId, expiresIn, gameId } = ctx.request.body;
+  console.log('postLogin', plyrId, expiresIn, gameId);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
-  const gameId = userApiKey.plyrId;
+  if (!gameId) {
+    gameId = userApiKey.plyrId;
+  }
 
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
@@ -500,6 +648,7 @@ exports.postLogin = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
   }
+  await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
 
 exports.postLoginAndApprove = async (ctx) => {
@@ -538,6 +687,7 @@ exports.postLoginAndApprove = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
   }
+  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
 
 exports.postLogout = async (ctx) => {
@@ -565,6 +715,14 @@ exports.postLogout = async (ctx) => {
     return;
   }
 
+  if (user.isInstantPlayPass) {
+    ctx.status = 401;
+    ctx.body = {
+      error: 'Instant Play Pass user cannot logout',
+    };
+    return;
+  }
+
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
   const gameNonce = nonce[gameId] ? nonce[gameId] : 0;
@@ -584,6 +742,7 @@ exports.postLogout = async (ctx) => {
   ctx.body = {
     message: 'Logout success',
   };
+  await logActivity(plyrId, gameId, 'user', 'logout', {gameId});
 }
 
 exports.postUserSessionVerify = async (ctx) => {
@@ -673,6 +832,7 @@ exports.postReset2fa = async (ctx) => {
   ctx.body = {
     message: 'Two-Factor Authentication reset successfully'
   };
+  await logActivity(plyrId, null, 'user', 'reset2fa', {});
 }
 
 exports.getUserBasicInfo = async (ctx) => {
@@ -834,6 +994,7 @@ exports.postDiscardSessionBySignature = async (ctx) => {
   ctx.body = {
     message: 'Session discarded successfully'
   };
+  await logActivity(plyrId, gameId, 'user', 'discardSession', { gameId });
 }
 
 exports.postDiscardSessionBy2fa = async (ctx) => {
@@ -854,5 +1015,40 @@ exports.postDiscardSessionBy2fa = async (ctx) => {
   ctx.status = 200;
   ctx.body = {
     message: 'Session discarded successfully'
+  };
+  await logActivity(plyrId, gameId, 'user', 'discardSession', { gameId });
+}
+
+exports.postAddDepositLog = async (ctx) => {
+  const { plyrId, gameId, token, amount, hash } = ctx.request.body;
+  await logActivity(plyrId, gameId, 'user', 'deposit', { token, amount, hash });
+  ctx.status = 200;
+  ctx.body = {
+    message: 'Deposit log added successfully'
+  };
+}
+
+exports.getAvatars = async (ctx) => {
+  const { plyrIds } = ctx.request.body;
+
+  // Add validation
+  if (!Array.isArray(plyrIds)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'plyrIds must be an array'
+    };
+    return;
+  }
+
+  // Convert all plyrIds to lowercase for case-insensitive search
+  const normalizedPlyrIds = plyrIds.map(id => id.toLowerCase());
+
+  const avatars = await UserInfo.find({ plyrId: { $in: normalizedPlyrIds } }, 'plyrId avatar');
+  ctx.status = 200;
+  ctx.body = {
+    avatars: avatars.map(avatar => ({
+      plyrId: avatar.plyrId,
+      avatar: getAvatarUrl(avatar.avatar),
+    })),
   };
 }

@@ -2,11 +2,12 @@ const { isAddress } = require("viem");
 const { TOKEN_LIST } = require('../../config');
 const UserApprove = require("../../models/userApprove");
 
-const checkAllowance = async (ctx, next) => {
-  const { tokens, amounts, sessionJwts } = ctx.request.body;
+const checkAllowances = async (ctx, next) => {
+  const { tokens, amounts } = ctx.request.body;
   const gameId = ctx.state.apiKey.plyrId;
+  const plyrIds = ctx.state.plyrIds;
 
-  if (!tokens || !amounts || !sessionJwts) {
+  if (!tokens || !amounts || !plyrIds) {
     ctx.status = 401;
     ctx.body = { error: 'Tokens and amounts and sessionJwts are required' };
     return;
@@ -17,7 +18,6 @@ const checkAllowance = async (ctx, next) => {
     ctx.body = { error: 'Tokens and amounts must be the same length' };
     return;
   }
-  const plyrIds = Object.keys(sessionJwts);
 
   let errors = [];
 
@@ -59,4 +59,4 @@ const checkAllowance = async (ctx, next) => {
   await next();
 };
 
-module.exports = checkAllowance;
+module.exports = checkAllowances;

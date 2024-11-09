@@ -2,6 +2,7 @@ const { verifyMessage, isHex, isAddress } = require('viem');
 const { getRedisClient } = require("../../db/redis");
 const GameRoom = require('../../models/gameRoom');
 const UserInfo = require('../../models/userInfo');
+const { logActivity } = require('../../utils/activity');
 
 const insertTask = async (params, taskName) => {
   const redis = getRedisClient();
@@ -66,7 +67,7 @@ exports.postWithdraw = async (ctx) => {
   }
 
   // insert task to create withdraw tx
-  const taskId = await insertTask({ from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
+  const taskId = await insertTask({ plyrId, from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
 
   ctx.status = 200;
   ctx.body = {
@@ -79,7 +80,7 @@ exports.postWithdraw = async (ctx) => {
 
 
 exports.postTransfer = async (ctx) => {
-  let { plyrId, signature, token, amount, toChain, toAddress } = ctx.request.body;
+  let { plyrId, toPlyrId, signature, token, amount, toChain, toAddress } = ctx.request.body;
   if (!plyrId || !signature || !token || !amount || !toChain || !toAddress) {
     ctx.status = 400;
     ctx.body = {
@@ -145,7 +146,7 @@ exports.postTransfer = async (ctx) => {
   }
 
   // insert task to create withdraw tx
-  const taskId = await insertTask({ from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
+  const taskId = await insertTask({ plyrId, toPlyrId, from: user.primaryAddress, to: toAddress, amount, token: tokenAddress, toChain }, 'createWithdrawTx');
 
   ctx.status = 200;
   ctx.body = {

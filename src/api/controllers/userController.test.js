@@ -272,9 +272,9 @@ describe('User Controller', () => {
       Secondary.findOne.mockResolvedValue(null);
       Secondary.create.mockResolvedValue({});
 
-      const singatureMessage = `PLYR[ID] Secondary Bind`;
+      const signatureMessage = `PLYR[ID] Secondary Bind`;
       let signature = await account2.signMessage({
-        message: singatureMessage,
+        message: signatureMessage,
       });
 
       ctx.request.body = {

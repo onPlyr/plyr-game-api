@@ -2,15 +2,17 @@ const { generateHmacSignature } = require("../src/utils/hmacUtils");
 const axios = require("axios");
 require('dotenv').config();
 
-const apiKey = process.env.TEST_APIKEY;
-const secretKey = process.env.TEST_SECRET;
+const apiKey = process.env.MAINNET_APIKEY;
+const secretKey = process.env.MAINNET_SECRET;
+const API_ENDPOINT = "https://api.plyr.network";
+
 async function userInfo() {
   const timestamp = Date.now().toString();
   let hmac = generateHmacSignature(timestamp, {}, secretKey);
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/user/info/test-account",
+      API_ENDPOINT + "/api/user/info/notmike",
       {
         headers: {
           apikey: apiKey,
@@ -31,7 +33,7 @@ async function userBalance() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/user/balance/test-account",
+      API_ENDPOINT + "/api/user/balance/notmike",
       {
         headers: {
           apikey: apiKey,
@@ -52,7 +54,7 @@ async function userTokenBalance() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/user/balance/test-account/0xa875625fe8A955406523E52E485f351b92908ce1",
+      API_ENDPOINT + "/api/user/balance/notmike/0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731",
       {
         headers: {
           apikey: apiKey,
@@ -68,7 +70,7 @@ async function userTokenBalance() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/user/balance/test-account/gamr",
+      API_ENDPOINT + "/api/user/balance/notmike/gamr",
       {
         headers: {
           apikey: apiKey,
@@ -89,7 +91,7 @@ async function isGame() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/isGame/testgame-1724945535246",
+      API_ENDPOINT + "/api/isGame/testgame-1724945535246",
       {
         headers: {
           apikey: apiKey,
@@ -110,7 +112,7 @@ async function userActiveSessions() {
 
   try {
     let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/user/activeSessions/fennec2",
+      API_ENDPOINT + "/api/user/activeSessions/fennec2",
       {
         headers: {
           apikey: apiKey,
@@ -125,34 +127,16 @@ async function userActiveSessions() {
   }
 }
 
-async function activityLogs() {
-  const timestamp = Date.now().toString();
-  let hmac = generateHmacSignature(timestamp, {}, secretKey);
-
-  try {
-    let ret = await axios.get(
-      process.env.API_ENDPOINT + "/api/activityLogs/testuser1-1724945535246",
-      {
-        headers: {
-          apikey: apiKey,
-          signature: hmac,
-          timestamp: timestamp,
-        },
-      }
-    );
-    console.log("activityLogs", ret.data);
-  } catch (error) {
-    console.log(error.response.data);
-  }
-}
-
 async function main() {
-  userInfo();
-  userBalance();
-  userTokenBalance();
-  isGame();
-  userActiveSessions();
-  activityLogs();
+  for (let i = 0; i < 100; i++) {
+    console.log(`Iteration ${i + 1}`);
+    userInfo();
+  }
+  // userInfo();
+  // userBalance();
+  // userTokenBalance();
+  // isGame();
+  // userActiveSessions();
 }
 
 main().catch(console.error);

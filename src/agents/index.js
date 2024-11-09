@@ -1,6 +1,6 @@
 const config = require('../config');
 const { getRedisClient } = require('../db/redis');
-const { createUser } = require('../services/user');
+const { createUser, createUserWithMirror } = require('../services/user');
 const Task = require('../models/task');
 const { connectDB } = require('../db/mongoose');
 const { claimAirdropReward } = require('../services/airdrop');
@@ -65,6 +65,16 @@ async function processMessage(id, message) {
         });
       }
 
+      if (key === 'createUserWithMirror') {
+        console.log('Creating user with mirror:', obj);
+        hash = await createUserWithMirror({
+          primaryAddress: obj.address,
+          mirror: obj.mirror,
+          plyrId: obj.plyrId,
+          chainId: obj.chainId,
+        });
+      }
+
       if (key === 'claimAirdropReward') {
         console.log('Claiming airdrop reward:', obj);
         hash = await claimAirdropReward(obj);
@@ -86,6 +96,10 @@ async function processMessage(id, message) {
       await storeTaskResult(id, {...message, result}, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
+      if (error.message.includes('Transaction Receipt Failed')) {
+        errorMessage = 'Transaction Receipt Failed';
+        break;
+      }
       retries++;
       console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
       errorMessage = error.shortMessage;
