@@ -100,7 +100,7 @@ router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.pos
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
 // activity logs
-router.get('/activityLogs/:plyrId', hmacAuth('user'), activityLogsController.getLogs);
+router.get('/actionLog/:plyrId', hmacAuth('user'), activityLogsController.getLogs);
 
 // withdraw apis
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
