@@ -196,8 +196,8 @@ const postGameJoin = async (ctx) => {
     // check all plyrId isJoined, and return unjoined plyrIds
     const unjoinedPlyrIds = [];
     for (const plyrId of plyrIds) {
-      const isJoined = await isJoined({plyrId, gameId, roomId});
-      if (!isJoined) {
+      const _joined = await isJoined({plyrId, gameId, roomId});
+      if (!_joined) {
         unjoinedPlyrIds.push(plyrId);
       }
     }
