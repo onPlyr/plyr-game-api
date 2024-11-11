@@ -45,8 +45,11 @@ const randomUsername = (hexDigits) => {
 }
 
 exports.postRegister = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const { tokens } = ctx.request.body;
+  const _gameId = ctx.state.apiKey.plyrId;
+  let { tokens, gameId } = ctx.request.body;
+  if (!gameId) {
+    gameId = _gameId;
+  }
 
   const account = await createRandomAddress();
   const plyrId = randomUsername(account.address.slice(-6)).toLowerCase();
