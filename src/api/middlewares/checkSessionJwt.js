@@ -39,7 +39,7 @@ const checkSessionJwt = async (ctx, next) => {
   } catch (error) {
     console.error(error);
     ctx.status = 500;
-    ctx.body = { error: 'Internal server error' };
+    ctx.body = { error: error.message };
     return;
   }
 
