@@ -7,9 +7,13 @@ const UserInfo = require("../../models/userInfo");
 // tokens: [plyr,plyr,plyr]
 // amounts: [1,2,3]
 
-const checkSessionJwts = async (ctx, next) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwts } = ctx.request.body;
+const checkSessionJwts = async (ctx, next) => { 
+  const _gameId = ctx.state.apiKey.plyrId;
+  let { sessionJwts, gameId } = ctx.request.body;
+  if (!gameId) {
+    gameId = _gameId;
+  }
+
   let isAllValid = true;
   let invalidPlyrIds = {};
   let users = {};
