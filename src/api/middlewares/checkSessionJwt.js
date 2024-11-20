@@ -2,8 +2,12 @@ const { verifyToken } = require("../../utils/jwt");
 const UserInfo = require("../../models/userInfo");
 
 const checkSessionJwt = async (ctx, next) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const { sessionJwt } = ctx.request.body;
+  const _gameId = ctx.state.apiKey.plyrId;
+  let { sessionJwt, gameId } = ctx.request.body;
+  if (!gameId) {
+    gameId = _gameId;
+  }
+
   try {
     if (!sessionJwt) {
       ctx.status = 400;
@@ -35,7 +39,7 @@ const checkSessionJwt = async (ctx, next) => {
   } catch (error) {
     console.error(error);
     ctx.status = 500;
-    ctx.body = { error: 'Internal server error' };
+    ctx.body = { error: error.message };
     return;
   }
 
