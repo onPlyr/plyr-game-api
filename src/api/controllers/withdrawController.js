@@ -2,6 +2,7 @@ const { verifyMessage, isHex, isAddress } = require('viem');
 const { getRedisClient } = require("../../db/redis");
 const GameRoom = require('../../models/gameRoom');
 const UserInfo = require('../../models/userInfo');
+const ApiKey = require('../../models/apiKey');
 const { logActivity } = require('../../utils/activity');
 
 const insertTask = async (params, taskName) => {
@@ -158,7 +159,7 @@ exports.postTransfer = async (ctx) => {
 }
 
 async function isGame(plyrId) {
-  const room = await GameRoom.findOne({ gameId: plyrId });
+  const room = await ApiKey.findOne({ plyrId: plyrId });
   return room;
 }
 
@@ -172,10 +173,10 @@ exports.getIsGame = async (ctx) => {
     return;
   }
 
-  const ret = await isGame(plyrId);
+  const ret = await isGame(plyrId.toLowerCase());
 
   ctx.status = 200;
   ctx.body = {
-    isGame: ret
+    isGame: ret !== null
   }
 }

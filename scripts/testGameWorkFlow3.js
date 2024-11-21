@@ -187,10 +187,7 @@ async function main() {
   let response;
   let status;
 
-  let roomId = await createJoinPayGame({
-    [users[0].plyrId]: user1SessionJwt,
-    [users[1].plyrId]: user2SessionJwt,
-  }, ['plyr', 'plyr'], ['0.000001', '0.000001']);
+  let roomId = await createJoinPayGame([user1SessionJwt, user2SessionJwt], ['plyr', 'plyr'], ['0.000001', '0.000001']);
 
   // verify sessionJwt
 
