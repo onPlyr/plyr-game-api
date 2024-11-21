@@ -177,6 +177,6 @@ exports.getIsGame = async (ctx) => {
 
   ctx.status = 200;
   ctx.body = {
-    isGame: ret
+    isGame: ret !== null
   }
 }
