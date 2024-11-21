@@ -351,7 +351,7 @@ exports.getUserInfo = async (ctx) => {
         avatar,
         createdAt: user.createdAt,
         ippClaimed: user.ippClaimed,
-        isInstantPlayPass: user.isInstantPlayPass,
+        isIPP: user.isInstantPlayPass,
       };
     }
   } else {
@@ -382,7 +382,7 @@ exports.getUserInfo = async (ctx) => {
         avatar,
         createdAt: user.createdAt,
         ippClaimed: user.ippClaimed,
-        isInstantPlayPass: user.isInstantPlayPass,
+        isIPP: user.isInstantPlayPass,
       };
     }
   }
@@ -648,7 +648,7 @@ exports.postLogin = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
     ippClaimed: user.ippClaimed,
-    isInstantPlayPass: user.isInstantPlayPass,
+    isIPP: user.isInstantPlayPass,
   }
   await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
@@ -689,7 +689,7 @@ exports.postLoginAndApprove = async (ctx) => {
     ...payload,
     avatar: getAvatarUrl(user.avatar),
     ippClaimed: user.ippClaimed,
-    isInstantPlayPass: user.isInstantPlayPass,
+    isIPP: user.isInstantPlayPass,
   }
   await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
@@ -795,7 +795,7 @@ exports.postUserSessionVerify = async (ctx) => {
       ...payload,
       avatar: getAvatarUrl(user.avatar),
       ippClaimed: user.ippClaimed,
-      isInstantPlayPass: user.isInstantPlayPass,
+      isIPP: user.isInstantPlayPass,
     },
   };
 }

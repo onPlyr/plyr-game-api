@@ -126,6 +126,8 @@ exports.postRegister = async (ctx) => {
         id: messageId,
         status: 'PENDING',
       },
+      isIPP: true,
+      ippClaimed: false,
     };
     await logActivity(plyrId, null, 'user', 'register', { mirrorAddress: mirror, primaryAddress: getAddress(account.address) });
   } else {
