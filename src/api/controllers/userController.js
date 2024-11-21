@@ -647,6 +647,8 @@ exports.postLogin = async (ctx) => {
     sessionJwt: JWT,
     ...payload,
     avatar: getAvatarUrl(user.avatar),
+    ippClaimed: user.ippClaimed,
+    isInstantPlayPass: user.isInstantPlayPass,
   }
   await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
@@ -686,6 +688,8 @@ exports.postLoginAndApprove = async (ctx) => {
     sessionJwt: JWT,
     ...payload,
     avatar: getAvatarUrl(user.avatar),
+    ippClaimed: user.ippClaimed,
+    isInstantPlayPass: user.isInstantPlayPass,
   }
   await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
@@ -787,7 +791,12 @@ exports.postUserSessionVerify = async (ctx) => {
   ctx.status = 200;
   ctx.body = {
     success: true,
-    payload,
+    payload: {
+      ...payload,
+      avatar: getAvatarUrl(user.avatar),
+      ippClaimed: user.ippClaimed,
+      isInstantPlayPass: user.isInstantPlayPass,
+    },
   };
 }
 
