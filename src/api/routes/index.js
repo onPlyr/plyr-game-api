@@ -21,7 +21,7 @@ const checkAllowances = require('../middlewares/checkAllowances');
 const checkTokens = require('../middlewares/checkTokens');
 const checkGameId = require('../middlewares/checkGameId');
 const checkAllJoined = require('../middlewares/checkAllJoined');
-
+const tokenListController = require('../controllers/tokenListController');
 
 const router = new Router({
   prefix: '/api'
@@ -96,6 +96,9 @@ router.post('/game/joinPay', hmacAuth('user'), checkSessionJwts, checkTokens, ch
 router.post('/game/earnLeaveEnd', hmacAuth('user'), checkTokens, gameController.postGameEarnLeaveEnd);
 router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.postGameEarnLeave);
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
+
+// public apis
+router.get('/tokenlist', tokenListController.getTokenList);
 
 // activity logs
 router.get('/actionLog/:plyrId', hmacAuth('user'), activityLogsController.getLogs);
