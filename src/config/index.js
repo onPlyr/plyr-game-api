@@ -3,6 +3,11 @@ const { defineChain, http, createWalletClient, publicActions } = require('viem')
 const { privateKeyToAccount } = require('viem/accounts');
 const tokenListService = require('../services/tokenListService');
 
+// Initialize token list service after 5 seconds
+setTimeout(() => {
+  tokenListService.initialize();
+}, 5000);
+
 const plyrTestnet = defineChain({
   id: 62831,
   name: 'PLYR TAU Testnet',
@@ -53,7 +58,7 @@ let TOKEN_LIST = {
 };
 
 function updateTokenList(tokenListData) {
-  const CHAIN_ID = client.id; // PLYR TAU Testnet chain ID
+  const CHAIN_ID = Number(client.id); // PLYR TAU Testnet chain ID
   const filteredTokens = {};
   
   tokenListData.tokens

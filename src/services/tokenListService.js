@@ -50,6 +50,7 @@ class TokenListService {
             // Update cache only if content changed
             if (response.status === 200) {
                 this.tokenList = response.data;
+                console.log('Token list data received:', JSON.stringify(this.tokenList, null, 2));
                 this.lastEtag = response.headers.etag;
                 console.log('Token list cache updated');
                 if (this.onTokenListUpdate) {
