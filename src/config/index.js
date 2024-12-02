@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { defineChain, http, createWalletClient, publicActions } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');
+const tokenListService = require('../services/tokenListService');
 
 const plyrTestnet = defineChain({
   id: 62831,
@@ -40,7 +41,7 @@ const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
 const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
 
-const TOKEN_LIST = {
+let TOKEN_LIST = {
   'plyr': {
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
@@ -50,6 +51,26 @@ const TOKEN_LIST = {
     decimals: 18,
   }, // testnet
 };
+
+function updateTokenList(tokenListData) {
+  const CHAIN_ID = client.id; // PLYR TAU Testnet chain ID
+  const filteredTokens = {};
+  
+  tokenListData.tokens
+    .filter(token => token.chainId === CHAIN_ID)
+    .forEach(token => {
+      filteredTokens[token.apiId] = {
+        address: token.address,
+        decimals: token.decimals,
+      };
+    });
+  
+  TOKEN_LIST = filteredTokens;
+  console.log('Token list has been updated successfully:', TOKEN_LIST);
+}
+
+// set update callback
+tokenListService.setTokenListUpdateCallback(updateTokenList);
 
 module.exports = {
   port: process.env.PORT || 3000,

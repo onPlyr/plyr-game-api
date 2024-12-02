@@ -8,6 +8,7 @@ class TokenListService {
         this.REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
         this.refreshTimer = null;
         this.initialized = false;
+        this.onTokenListUpdate = null; // 添加回调函数
     }
 
     async initialize() {
@@ -51,6 +52,9 @@ class TokenListService {
                 this.tokenList = response.data;
                 this.lastEtag = response.headers.etag;
                 console.log('Token list cache updated');
+                if (this.onTokenListUpdate) {
+                    this.onTokenListUpdate(this.tokenList);
+                }
             }
         } catch (error) {
             if (error.response && error.response.status === 304) {
@@ -66,6 +70,11 @@ class TokenListService {
             await this.initialize();
         }
         return this.tokenList;
+    }
+
+    // 设置回调函数的方法
+    setTokenListUpdateCallback(callback) {
+        this.onTokenListUpdate = callback;
     }
 }
 
