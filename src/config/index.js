@@ -4,9 +4,12 @@ const { privateKeyToAccount } = require('viem/accounts');
 const tokenListService = require('../services/tokenListService');
 
 // Initialize token list service after 5 seconds
-setTimeout(() => {
-  tokenListService.initialize();
-}, 5000);
+
+if (process.env.NODE_ENV !== 'test') {
+  setTimeout(() => {
+    tokenListService.initialize();
+  }, 5000);
+}
 
 const plyrTestnet = defineChain({
   id: 62831,
