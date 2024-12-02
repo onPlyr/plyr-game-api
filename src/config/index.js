@@ -4,10 +4,11 @@ const { privateKeyToAccount } = require('viem/accounts');
 const tokenListService = require('../services/tokenListService');
 
 // Initialize token list service after 5 seconds
-
-if (process.env.NODE_ENV !== 'test') {
+let initialized = false;
+if (process.env.NODE_ENV !== 'test' && !initialized) {
   setTimeout(() => {
     tokenListService.initialize();
+    initialized = true;
   }, 5000);
 }
 
