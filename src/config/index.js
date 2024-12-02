@@ -61,8 +61,15 @@ let TOKEN_LIST = {
 };
 
 function updateTokenList(tokenListData) {
-  const CHAIN_ID = Number(client.id); // PLYR TAU Testnet chain ID
+  const CHAIN_ID = Number(client.chain.id); // PLYR TAU Testnet chain ID
   const filteredTokens = {};
+  
+  if (!tokenListData || !Array.isArray(tokenListData.tokens)) {
+    console.log('Invalid token list data:', tokenListData);
+    return;
+  }
+
+  console.log('Filtering tokens for chain ID:', CHAIN_ID);
   
   tokenListData.tokens
     .filter(token => token.chainId === CHAIN_ID)
