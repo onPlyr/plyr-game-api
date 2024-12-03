@@ -12,7 +12,7 @@ const checkToken = async (ctx, next) => {
 
   if (!isAddress(token) && !TOKEN_LIST[token.toLowerCase()]) {
     ctx.status = 401;
-    ctx.body = { error: 'Invalid token' };
+    ctx.body = { error: 'Invalid token: ' + token };
     return;
   }
 
