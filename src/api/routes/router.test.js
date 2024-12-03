@@ -186,7 +186,7 @@ describe('OTP Auth Middleware', () => {
       );
 
       expect(response.status).toBe(401);
-      expect(response.body).toEqual({ error: 'Invalid token' });
+      expect(response.body).toEqual({ error: "Invalid token: invalidToken" });
     });
   });
 

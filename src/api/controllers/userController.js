@@ -879,7 +879,7 @@ exports.getUserBalance = async (ctx) => {
     }),
     config.chain.readContract({
       abi: erc20Abi,
-      address: config.TOKEN_LIST['gamr'].address,
+      address: config.TOKEN_LIST()['gamr'].address,
       functionName: "balanceOf",
       args: [user.mirror]
     })

@@ -38,7 +38,7 @@ LylLu2R9Vn5Pdu0y671fVvqN/r3OT7YuZT3Wyp8TKwnPa7HMeTBQ2tLC
     
     jwtController.postVerifyJwt(ctx);
     expect(ctx.status).toBe(401);
-    expect(ctx.body.error).toBe('Invalid token');
+    expect(ctx.body.error).toBe('Invalid token: ' + ctx.request.body.token);
   });
 
   test('should return base64 public key', () => {

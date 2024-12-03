@@ -50,7 +50,7 @@ const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
 const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
 
-let TOKEN_LIST = {
+let _TOKEN_LIST = {
   'plyr': {
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
@@ -60,6 +60,10 @@ let TOKEN_LIST = {
     decimals: 18,
   }, // testnet
 };
+
+function TOKEN_LIST() {
+  return _TOKEN_LIST;
+}
 
 function updateTokenList(tokenListData) {
   const CHAIN_ID = Number(client.chain.id); // PLYR TAU Testnet chain ID
@@ -81,8 +85,8 @@ function updateTokenList(tokenListData) {
       };
     });
   
-  TOKEN_LIST = filteredTokens;
-  console.log('Token list has been updated successfully:', TOKEN_LIST);
+    _TOKEN_LIST = filteredTokens;
+  console.log('Token list has been updated successfully:', _TOKEN_LIST);
 }
 
 // set update callback
