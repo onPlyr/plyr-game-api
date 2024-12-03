@@ -11,6 +11,8 @@ const checkToken = async (ctx, next) => {
   }
 
   if (!isAddress(token) && !TOKEN_LIST[token.toLowerCase()]) {
+    console.log('TOKEN_LIST', TOKEN_LIST);
+    console.log('token', token);
     ctx.status = 401;
     ctx.body = { error: 'Invalid token: ' + token };
     return;
