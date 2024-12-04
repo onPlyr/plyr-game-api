@@ -873,23 +873,39 @@ exports.getUserBasicInfo = async (ctx) => {
 
 exports.getUserBalance = async (ctx) => {
   const user = ctx.state.user;
+  const tokenList = config.TOKEN_LIST();
 
-  const ret = await Promise.all([config.chain.getBalance({
+  // Create array of promises for all token balances
+  const promises = [config.chain.getBalance({
       address: user.mirror,
-    }),
-    config.chain.readContract({
-      abi: erc20Abi,
-      address: config.TOKEN_LIST()['gamr'].address,
-      functionName: "balanceOf",
-      args: [user.mirror]
-    })
-  ]);
+    })];
+
+  // Track token symbols for mapping results
+  const tokenSymbols = ['plyr'];
+
+  // Add balance check for each non-zero address token
+  for (const [symbol, tokenInfo] of Object.entries(tokenList)) {
+    if (tokenInfo.address !== '0x0000000000000000000000000000000000000000') {
+      promises.push(config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenInfo.address,
+        functionName: "balanceOf",
+        args: [user.mirror]
+      }));
+      tokenSymbols.push(symbol);
+    }
+  }
+
+  const balances = await Promise.all(promises);
+
+  // Format response with all token balances
+  const response = {};
+  balances.forEach((balance, index) => {
+    response[tokenSymbols[index]] = formatEther(balance);
+  });
 
   ctx.status = 200;
-  ctx.body = {
-    plyr: formatEther(ret[0]),
-    gamr: formatEther(ret[1]),
-  };
+  ctx.body = response;
 }
 
 exports.getUserTokenBalance = async (ctx) => {
