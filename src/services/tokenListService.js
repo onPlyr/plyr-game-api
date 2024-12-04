@@ -1,5 +1,7 @@
 const axios = require('axios');
 
+const localChainId = 62831;
+
 class TokenListService {
     constructor() {
         this.tokenList = null;
@@ -50,6 +52,7 @@ class TokenListService {
             // Update cache only if content changed
             if (response.status === 200) {
                 this.tokenList = response.data;
+                this.tokenList.tokens = this.tokenList.tokens.filter(token => token.chainId === localChainId);
                 console.log('Token list data received:', JSON.stringify(this.tokenList, null, 2));
                 this.lastEtag = response.headers.etag;
                 console.log('Token list cache updated');
