@@ -98,7 +98,7 @@ router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.pos
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
 // public apis
-router.get('/tokenlist', tokenListController.getTokenList);
+router.get('/tokenlist/:tokenId', tokenListController.getTokenList);
 
 // activity logs
 router.get('/actionLog/:plyrId', hmacAuth('user'), activityLogsController.getLogs);

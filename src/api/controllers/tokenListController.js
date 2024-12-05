@@ -8,7 +8,19 @@ const getTokenList = async (ctx) => {
             ctx.body = { error: 'Token list not available yet' };
             return;
         }
-        ctx.body = tokenList;
+        if (ctx.params.tokenId) {
+            const tokens = tokenList.tokens.filter(token => token.apiId === ctx.params.tokenId);
+            if (tokens.length > 0) {
+                ctx.body = tokens[0];
+            } else {
+                ctx.status = 404;
+                ctx.body = { error: 'Token not found' };
+            }
+            tokenList.tokens = tokens;
+            ctx.body = tokenList;
+        } else {
+            ctx.body = tokenList;
+        }
     } catch (error) {
         console.error('Error in getTokenList:', error);
         ctx.status = 500;

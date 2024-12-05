@@ -58,7 +58,9 @@ class TokenListService {
                 const prices = await this.fetchCMCPrices(this.tokenList.tokens);
                 this.tokenList.tokens = this.tokenList.tokens.map(token => ({
                     ...token,
-                    price: token.cmcId ? prices[token.cmcId] : null
+                    price: token.cmcId ? prices[token.cmcId] : null,
+                    updatedAt: new Date().toISOString(),
+                    nextUpdatedAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
                 }));
 
                 console.log('Token list data received:', JSON.stringify(this.tokenList, null, 2));
