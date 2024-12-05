@@ -53,6 +53,14 @@ class TokenListService {
             if (response.status === 200) {
                 this.tokenList = response.data;
                 this.tokenList.tokens = this.tokenList.tokens.filter(token => token.chainId === localChainId);
+                
+                // Fetch and add CMC prices
+                const prices = await this.fetchCMCPrices(this.tokenList.tokens);
+                this.tokenList.tokens = this.tokenList.tokens.map(token => ({
+                    ...token,
+                    price: token.cmcId ? prices[token.cmcId] : null
+                }));
+
                 console.log('Token list data received:', JSON.stringify(this.tokenList, null, 2));
                 this.lastEtag = response.headers.etag;
                 console.log('Token list cache updated');
@@ -66,6 +74,35 @@ class TokenListService {
             } else {
                 console.error('Error fetching token list:', error.message);
             }
+        }
+    }
+
+    async fetchCMCPrices(tokens) {
+        try {
+            console.log('Fetching CMC prices for tokens:', tokens.map(token => [token.symbol, token.cmcId]).join(', '));
+            const cmcIds = tokens.map(token => token.cmcId).filter(id => id);
+            if (cmcIds.length === 0) return {};
+
+            const response = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest', {
+                headers: {
+                    'X-CMC_PRO_API_KEY': '27bbe891-0ed7-4354-808c-8c128786965b'
+                },
+                params: {
+                    id: cmcIds.join(',')
+                }
+            });
+
+            const prices = {};
+            if (response.data && response.data.data) {
+                console.log('CMC price returned:', JSON.stringify(response.data, null, 2));
+                Object.values(response.data.data).forEach(token => {
+                    prices[token.id] = token.quote.USD.price;
+                });
+            }
+            return prices;
+        } catch (error) {
+            console.error('Error fetching CMC prices:', error.message);
+            return {};
         }
     }
 
