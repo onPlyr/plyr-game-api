@@ -8,7 +8,8 @@ const getTokenList = async (ctx) => {
             ctx.body = { error: 'Token list not available yet' };
             return;
         }
-        if (ctx.params.tokenId) {
+        console.log('params', ctx.params, tokenList.tokens.length);
+        if (ctx.params && ctx.params.tokenId) {
             const tokens = tokenList.tokens.filter(token => token.apiId === ctx.params.tokenId);
             if (tokens.length > 0) {
                 ctx.body = tokens[0];
