@@ -96,7 +96,7 @@ class TokenListService {
             if (response.data && response.data.data) {
                 console.log('CMC price returned:', JSON.stringify(response.data, null, 2));
                 Object.values(response.data.data).forEach(token => {
-                    prices[token.id] = token.quote.USD.price;
+                    prices[token.id] = token.quote.USD.price.toString();
                 });
             }
             return prices;
