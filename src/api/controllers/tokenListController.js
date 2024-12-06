@@ -2,12 +2,13 @@ const tokenListService = require('../../services/tokenListService');
 
 const getTokenList = async (ctx) => {
     try {
-        const tokenList = await tokenListService.getTokenList();
-        if (!tokenList) {
+        const _tokenList = await tokenListService.getTokenList();
+        if (!_tokenList) {
             ctx.status = 503;
             ctx.body = { error: 'Token list not available yet' };
             return;
         }
+        const tokenList = { ..._tokenList, tokens: [..._tokenList.tokens] };
         console.log('params', ctx.params, tokenList.tokens.length);
         if (ctx.params && ctx.params.tokenId) {
             const tokens = tokenList.tokens.filter(token => token.apiId === ctx.params.tokenId);
