@@ -26,7 +26,7 @@ const checkAllowances = async (ctx, next) => {
     const amount = amounts[i];
     const plyrId = plyrIds[i];
 
-    if (!isAddress(token) && !TOKEN_LIST[token.toLowerCase()]) {
+    if (!isAddress(token) && !TOKEN_LIST()[token.toLowerCase()]) {
       errors.push('Invalid token: ' + token);
       continue;
     }

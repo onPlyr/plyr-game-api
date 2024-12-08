@@ -10,7 +10,7 @@ const checkTokenInParams = async (ctx, next) => {
     return;
   }
 
-  if (!isAddress(tokenName) && !TOKEN_LIST[tokenName.toLowerCase()]) {
+  if (!isAddress(tokenName) && !TOKEN_LIST()[tokenName.toLowerCase()]) {
     ctx.status = 401;
     ctx.body = { error: 'Invalid tokenName' };
     return;
@@ -19,7 +19,7 @@ const checkTokenInParams = async (ctx, next) => {
   if (isAddress(tokenName)) {
     ctx.state.tokenAddress = tokenName;
   } else {
-    ctx.state.tokenAddress = TOKEN_LIST[tokenName.toLowerCase()].address;
+    ctx.state.tokenAddress = TOKEN_LIST()[tokenName.toLowerCase()].address;
   }
 
   await next();

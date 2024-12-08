@@ -10,16 +10,18 @@ const checkToken = async (ctx, next) => {
     return;
   }
 
-  if (!isAddress(token) && !TOKEN_LIST[token.toLowerCase()]) {
+  if (!isAddress(token) && !TOKEN_LIST()[token.toLowerCase()]) {
+    console.log('TOKEN_LIST', TOKEN_LIST());
+    console.log('token', token);
     ctx.status = 401;
-    ctx.body = { error: 'Invalid token' };
+    ctx.body = { error: 'Invalid token: ' + token };
     return;
   }
 
   if (isAddress(token)) {
     ctx.state.tokenAddress = token;
   } else {
-    ctx.state.tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
+    ctx.state.tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
   }
 
   await next();

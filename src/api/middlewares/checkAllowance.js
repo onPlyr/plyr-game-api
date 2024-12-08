@@ -13,9 +13,9 @@ const checkAllowance = async (ctx, next) => {
     return;
   }
 
-  if (!isAddress(token) && !TOKEN_LIST[token.toLowerCase()]) {
+  if (!isAddress(token) && !TOKEN_LIST()[token.toLowerCase()]) {
     ctx.status = 401;
-    ctx.body = { error: 'Invalid token' };
+    ctx.body = { error: 'Invalid token: ' + token };
     return;
   }
 

@@ -129,9 +129,9 @@ async function pay({plyrId, gameId, roomId, token, amount}) {
         args: [],
       });
     }
-  } else if (TOKEN_LIST[token.toLowerCase()]) {
-    tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-    decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+  } else if (TOKEN_LIST()[token.toLowerCase()]) {
+    tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+    decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
   } else {
     throw new Error('Invalid token: ' + token);
   }
@@ -188,9 +188,9 @@ async function earn({plyrId, gameId, roomId, token, amount}) {
         args: [],
       });
     }
-  } else if (TOKEN_LIST[token.toLowerCase()]) {
-    tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-    decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+  } else if (TOKEN_LIST()[token.toLowerCase()]) {
+    tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+    decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
   } else {
     throw new Error('Invalid token: ' + token);
   }
@@ -284,9 +284,9 @@ async function createJoinPay({gameId, expiresIn, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if (TOKEN_LIST()[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }
@@ -379,9 +379,9 @@ async function batchPay({gameId, roomId, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if ((TOKEN_LIST())[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }
@@ -452,9 +452,9 @@ async function joinPay({gameId, roomId, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if (TOKEN_LIST()[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }
@@ -525,9 +525,9 @@ async function earnLeaveEnd({gameId, roomId, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if (TOKEN_LIST()[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }
@@ -588,9 +588,9 @@ async function batchEarn({gameId, roomId, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if (TOKEN_LIST()[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }
@@ -651,9 +651,9 @@ async function earnLeave({gameId, roomId, plyrIds, tokens, amounts}) {
           args: [],
         });
       }
-    } else if (TOKEN_LIST[token.toLowerCase()]) {
-      tokenAddress = TOKEN_LIST[token.toLowerCase()].address;
-      decimals = TOKEN_LIST[token.toLowerCase()].decimals;
+    } else if (TOKEN_LIST()[token.toLowerCase()]) {
+      tokenAddress = TOKEN_LIST()[token.toLowerCase()].address;
+      decimals = TOKEN_LIST()[token.toLowerCase()].decimals;
     } else {
       throw new Error('Invalid token: ' + token);
     }

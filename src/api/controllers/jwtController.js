@@ -15,7 +15,7 @@ exports.postVerifyJwt = (ctx) => {
   if (!payload) {
     ctx.status = 401;
     ctx.body = {
-      error: 'Invalid token',
+      error: 'Invalid token: ' + token,
     };
     return;
   }

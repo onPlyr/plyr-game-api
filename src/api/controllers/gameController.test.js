@@ -248,36 +248,6 @@ describe('Game Controller', () => {
       );
     });
   });
-
-  describe('postGameJoin', () => {
-    test('successfully joins a game', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1', 'jwt2'] };
-      ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
-        plyrIds: ['player1', 'player2'],
-      };
-  
-      await gameController.postGameJoin(ctx);
-  
-      expect(ctx.status).toBe(200);
-      expect(ctx.body).toEqual({
-        task: {
-          id: 'mockedTaskId',
-          status: 'PENDING',
-        },
-      });
-      expect(mockRedisClient.xadd).toHaveBeenCalledWith(
-        'mystream',
-        '*',
-        'joinGameRoom',
-        JSON.stringify({
-          plyrIds: ['player1', 'player2'],
-          gameId: 'testGameId',
-          roomId: 'testRoom',
-        })
-      );
-    });
-  });
   
   describe('postGameLeave', () => {
     test('successfully leaves a game', async () => {

@@ -1,6 +1,16 @@
 require('dotenv').config();
 const { defineChain, http, createWalletClient, publicActions } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');
+const tokenListService = require('../services/tokenListService');
+
+// Initialize token list service after 5 seconds
+let initialized = false;
+if (process.env.NODE_ENV !== 'test' && !initialized) {
+  setTimeout(() => {
+    tokenListService.initialize();
+    initialized = true;
+  }, 5000);
+}
 
 const plyrTestnet = defineChain({
   id: 62831,
@@ -64,7 +74,7 @@ const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
 const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
 
-const TOKEN_LIST = {
+let _TOKEN_LIST = {
   'plyr': {
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
@@ -74,6 +84,37 @@ const TOKEN_LIST = {
     decimals: 18,
   },
 };
+
+function TOKEN_LIST() {
+  return _TOKEN_LIST;
+}
+
+function updateTokenList(tokenListData) {
+  const CHAIN_ID = Number(client.chain.id); // PLYR TAU Testnet chain ID
+  const filteredTokens = {};
+  
+  if (!tokenListData || !Array.isArray(tokenListData.tokens)) {
+    console.log('Invalid token list data:', tokenListData);
+    return;
+  }
+
+  console.log('Filtering tokens for chain ID:', CHAIN_ID);
+  
+  tokenListData.tokens
+    .filter(token => token.chainId === CHAIN_ID)
+    .forEach(token => {
+      filteredTokens[token.apiId] = {
+        address: token.address,
+        decimals: token.decimals,
+      };
+    });
+  
+    _TOKEN_LIST = filteredTokens;
+  console.log('Token list has been updated successfully:', _TOKEN_LIST);
+}
+
+// set update callback
+tokenListService.setTokenListUpdateCallback(updateTokenList);
 
 module.exports = {
   port: process.env.PORT || 3000,
