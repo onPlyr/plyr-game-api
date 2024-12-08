@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const localChainId = 62831;
+const localChainId = 16180;
 
 class TokenListService {
     constructor() {
