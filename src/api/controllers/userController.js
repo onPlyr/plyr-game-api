@@ -918,7 +918,7 @@ exports.getUserTokenBalance = async (ctx) => {
     });
     ctx.status = 200;
     ctx.body = {
-      balance: formatEther(ret)
+      [tokenName]: formatEther(ret)
     }
   } else {
     const ret = await Promise.all([
