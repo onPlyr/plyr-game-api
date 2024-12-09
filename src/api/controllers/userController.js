@@ -911,13 +911,14 @@ exports.getUserBalance = async (ctx) => {
 exports.getUserTokenBalance = async (ctx) => {
   const user = ctx.state.user;
   const tokenAddress = ctx.state.tokenAddress;
+  const { tokenName } = ctx.params;
   if (tokenAddress === zeroAddress) {
     const ret = await config.chain.getBalance({
       address: user.mirror,
     });
     ctx.status = 200;
     ctx.body = {
-      balance: formatEther(ret)
+      [tokenName]: formatEther(ret)
     }
   } else {
     const ret = await Promise.all([
@@ -937,7 +938,7 @@ exports.getUserTokenBalance = async (ctx) => {
 
     ctx.status = 200;
     ctx.body = {
-      balance: formatUnits(ret[0], ret[1])
+      [tokenName]: formatUnits(ret[0], ret[1])
     }
   }
 }
