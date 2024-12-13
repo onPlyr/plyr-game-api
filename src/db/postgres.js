@@ -35,7 +35,7 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
         const address = _address.toLowerCase();
         const name = `${_plyrId.toLowerCase()}.plyr`;
     
-        console.log(`Processing user: ${name} with address: ${address}`);
+        console.log(`Blockscout DB Processing user: ${name} with address: ${address}`);
     
         // Insert new record
         const insertQuery = `
