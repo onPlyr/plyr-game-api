@@ -4,12 +4,23 @@ const { Pool } = require('pg');
 const UserInfo = require('../src/models/userInfo');
 
 // PostgreSQL connection configuration
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+const pgConfig = {
+  host: process.env.POSTGRES_URL,
+  port: 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.PG_USERNAME,
   password: process.env.PG_PWD,
+  ssl: {
+    rejectUnauthorized: false // 对于Azure PostgreSQL，我们需要SSL连接
+  }
+};
+
+console.log('PostgreSQL Config (without password):', {
+  ...pgConfig,
+  password: '****'
 });
+
+const pool = new Pool(pgConfig);
 
 async function main() {
   let processedCount = 0;
@@ -40,6 +51,8 @@ async function main() {
         const address = user.mirror.toLowerCase();
         const name = `${user.plyrId.toLowerCase()}.plyr`;
 
+        console.log(`Processing user: ${name} with address: ${address}`);
+
         // Insert into PostgreSQL
         const query = `
           INSERT INTO ${process.env.PG_TABLE} 
@@ -48,7 +61,7 @@ async function main() {
           SET name = $2, updated_at = current_timestamp;
         `;
 
-        await client.query(query, [address.replace('0x', ''), name]);
+        // await client.query(query, [address.replace('0x', ''), name]);
         processedCount++;
         
         // Log progress every 10 users
@@ -80,6 +93,9 @@ async function main() {
     
   } catch (error) {
     console.error('❌ Fatal error:', error);
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
     process.exit(1);
   }
 }
