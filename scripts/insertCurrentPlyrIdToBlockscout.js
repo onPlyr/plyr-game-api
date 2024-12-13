@@ -53,11 +53,12 @@ async function main() {
 
         console.log(`Processing user: ${name} with address: ${address}`);
 
-        // Insert into PostgreSQL
+        // Insert into PostgreSQL with correct column names
         const query = `
           INSERT INTO ${process.env.PG_TABLE} 
+          (address_hash, name, "primary", inserted_at, updated_at)
           VALUES (decode($1, 'hex'), $2, false, current_timestamp, current_timestamp)
-          ON CONFLICT (address) DO UPDATE 
+          ON CONFLICT (address_hash) DO UPDATE 
           SET name = $2, updated_at = current_timestamp;
         `;
 
