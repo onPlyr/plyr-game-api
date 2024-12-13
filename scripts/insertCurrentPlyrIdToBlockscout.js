@@ -11,7 +11,7 @@ const pgConfig = {
   user: process.env.PG_USERNAME,
   password: process.env.PG_PWD,
   ssl: {
-    rejectUnauthorized: false // 对于Azure PostgreSQL，我们需要SSL连接
+    rejectUnauthorized: false
   }
 };
 
@@ -24,6 +24,7 @@ const pool = new Pool(pgConfig);
 
 async function main() {
   let processedCount = 0;
+  let skipCount = 0;
   let errorCount = 0;
   const startTime = new Date();
 
@@ -51,24 +52,35 @@ async function main() {
         const address = user.mirror.toLowerCase();
         const name = `${user.plyrId.toLowerCase()}.plyr`;
 
+        // Check if record already exists
+        const checkQuery = `
+          SELECT 1 FROM ${process.env.PG_TABLE}
+          WHERE encode(address_hash, 'hex') = $1;
+        `;
+        const result = await client.query(checkQuery, [address.replace('0x', '')]);
+        
+        if (result.rows.length > 0) {
+          console.log(`Skipping user: ${name} (already exists)`);
+          skipCount++;
+          continue;
+        }
+
         console.log(`Processing user: ${name} with address: ${address}`);
 
-        // Insert into PostgreSQL with correct column names
-        const query = `
+        // Insert new record
+        const insertQuery = `
           INSERT INTO ${process.env.PG_TABLE} 
           (address_hash, name, "primary", inserted_at, updated_at)
-          VALUES (decode($1, 'hex'), $2, false, current_timestamp, current_timestamp)
-          ON CONFLICT (address_hash) DO UPDATE 
-          SET name = $2, updated_at = current_timestamp;
+          VALUES (decode($1, 'hex'), $2, false, current_timestamp, current_timestamp);
         `;
 
-        await client.query(query, [address.replace('0x', ''), name]);
+        await client.query(insertQuery, [address.replace('0x', ''), name]);
         processedCount++;
         
         // Log progress every 10 users
-        if (processedCount % 10 === 0) {
-          const progress = ((processedCount / users.length) * 100).toFixed(2);
-          console.log(`Progress: ${progress}% (${processedCount}/${users.length}) - Last processed: ${name}`);
+        if ((processedCount + skipCount) % 10 === 0) {
+          const progress = (((processedCount + skipCount) / users.length) * 100).toFixed(2);
+          console.log(`Progress: ${progress}% (${processedCount + skipCount}/${users.length})`);
         }
       } catch (error) {
         errorCount++;
@@ -80,10 +92,11 @@ async function main() {
     const duration = (endTime - startTime) / 1000; // in seconds
 
     console.log('\n=== Migration Summary ===');
-    console.log(`✓ Total users processed: ${processedCount}`);
-    console.log(`❌ Total errors: ${errorCount}`);
+    console.log(`✓ Successfully inserted: ${processedCount}`);
+    console.log(`⏭ Skipped (already exist): ${skipCount}`);
+    console.log(`❌ Errors: ${errorCount}`);
     console.log(`⏱ Total time: ${duration.toFixed(2)} seconds`);
-    console.log(`📊 Success rate: ${((processedCount - errorCount) / processedCount * 100).toFixed(2)}%`);
+    console.log(`📊 Success rate: ${((processedCount + skipCount) / users.length * 100).toFixed(2)}%`);
     
     // Cleanup
     console.log('\nClosing database connections...');
