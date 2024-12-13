@@ -179,10 +179,10 @@ exports.postRegister = async (ctx) => {
       mirrorAddress: mirror,
       primaryAddress: getAddress(address),
       avatar: getAvatarUrl(avatar),
-      task: {
-        id: messageId,
-        status: 'PENDING',
-      },
+      // task: {
+      //   id: messageId,
+      //   status: 'PENDING',
+      // },
     };
   } else {
     ctx.body = {
@@ -318,10 +318,10 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
       mirrorAddress: mirror,
       primaryAddress: getAddress(address),
       avatar: getAvatarUrl(avatar),
-      task: {
-        id: messageId,
-        status: 'PENDING',
-      },
+      // task: {
+      //   id: messageId,
+      //   status: 'PENDING',
+      // },
       ippClaimed: true,
     };
   } else {

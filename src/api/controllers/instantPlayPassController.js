@@ -125,10 +125,10 @@ exports.postRegister = async (ctx) => {
       sessionJwt: JWT,
       ...payload,
       avatar: getAvatarUrl(),
-      task: {
-        id: messageId,
-        status: 'PENDING',
-      },
+      // task: {
+      //   id: messageId,
+      //   status: 'PENDING',
+      // },
       isIPP: true,
       ippClaimed: false,
     };
