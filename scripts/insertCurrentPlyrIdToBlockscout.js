@@ -61,7 +61,7 @@ async function main() {
           SET name = $2, updated_at = current_timestamp;
         `;
 
-        // await client.query(query, [address.replace('0x', ''), name]);
+        await client.query(query, [address.replace('0x', ''), name]);
         processedCount++;
         
         // Log progress every 10 users
