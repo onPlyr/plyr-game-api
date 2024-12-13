@@ -14,7 +14,8 @@ const userInfoSchema = new mongoose.Schema({
   bannedAt: { type: Number, default: 0},
   isInstantPlayPass: { type: Boolean, default: false },
   ippClaimed: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  verified: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('UserInfo', userInfoSchema);
