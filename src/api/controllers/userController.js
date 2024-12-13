@@ -13,6 +13,7 @@ const MirrorClaim = require('../../models/mirrorClaim');
 const InstantPlayPass = require('../../models/instantPlayPass');
 const { logActivity } = require('../../utils/activity');
 const redis = getRedisClient();
+const { insertPlyrIdToBlockscout } = require('../../db/postgres');
 
 authenticator.options = {
   step: 30,
@@ -162,6 +163,8 @@ exports.postRegister = async (ctx) => {
   });
 
   if (process.env.NODE_ENV !== 'test') {
+    await insertPlyrIdToBlockscout(plyrId, mirror);
+
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
     const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
@@ -292,11 +295,14 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
     ippClaimed: true,
   });
 
+
   // remove claiming code
   await MirrorClaim.deleteOne({ code: claimingCode.toUpperCase() });
   await InstantPlayPass.updateOne({ plyrId: claimingCodeUser.plyrId }, { $set: { isDeleted: true } });
 
   if (process.env.NODE_ENV !== 'test') {
+    await insertPlyrIdToBlockscout(plyrId, mirror);
+
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
     const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({

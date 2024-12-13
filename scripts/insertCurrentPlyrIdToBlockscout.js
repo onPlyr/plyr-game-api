@@ -15,11 +15,6 @@ const pgConfig = {
   }
 };
 
-console.log('PostgreSQL Config (without password):', {
-  ...pgConfig,
-  password: '****'
-});
-
 const pool = new Pool(pgConfig);
 
 async function main() {
