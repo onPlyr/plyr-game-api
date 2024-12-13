@@ -37,6 +37,13 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
     
         console.log(`Blockscout DB Processing user: ${name} with address: ${address}`);
     
+        // Delete existing record if exists
+        const deleteQuery = `
+          DELETE FROM ${process.env.PG_TABLE} 
+          WHERE address_hash = decode($1, 'hex');
+        `;
+        await client.query(deleteQuery, [address.replace('0x', '')]);
+
         // Insert new record
         const insertQuery = `
           INSERT INTO ${process.env.PG_TABLE} 
