@@ -121,7 +121,10 @@ class TokenListService {
     }
 }
 
-// Create singleton instance
-const tokenListService = new TokenListService();
+let tokenListService;
+
+if (!tokenListService) {
+    tokenListService = new TokenListService();
+}
 
 module.exports = tokenListService;

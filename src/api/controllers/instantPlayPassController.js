@@ -11,6 +11,7 @@ const { generateJwtToken } = require('../../utils/jwt');
 const redis = getRedisClient();
 const { approve } = require('./gameController');
 const { logActivity } = require('../../utils/activity');
+const { insertPlyrIdToBlockscout } = require('../../db/postgres');
 
 
 
@@ -109,6 +110,8 @@ exports.postRegister = async (ctx) => {
   delete payload.nonce;
 
   if (process.env.NODE_ENV !== 'test') {
+    await insertPlyrIdToBlockscout(plyrId, mirror);
+
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
     const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
@@ -122,10 +125,10 @@ exports.postRegister = async (ctx) => {
       sessionJwt: JWT,
       ...payload,
       avatar: getAvatarUrl(),
-      task: {
-        id: messageId,
-        status: 'PENDING',
-      },
+      // task: {
+      //   id: messageId,
+      //   status: 'PENDING',
+      // },
       isIPP: true,
       ippClaimed: false,
     };
