@@ -37,7 +37,7 @@ async function main() {
           await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
           processedCount++;
         } else {
-          console.log('❌ Not contract, create again!');
+          console.log('❌ Not contract, create again!', user);
           const STREAM_KEY = 'mystream';
           if (user.ippClaimed) {
             // insert message into redis stream
