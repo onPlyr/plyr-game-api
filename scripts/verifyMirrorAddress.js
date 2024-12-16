@@ -31,9 +31,9 @@ async function main() {
       try {
         console.log('mirror', user.plyrId, user.mirror);
         let bytecode = await chain.getCode({ address: user.mirror });
-        console.log('bytecode', bytecode.length);
+        console.log('bytecode', bytecode ? bytecode.length : bytecode);
 
-        if (bytecode.length > 2) {
+        if (bytecode) {
           await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
           processedCount++;
         } else {
