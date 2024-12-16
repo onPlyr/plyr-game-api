@@ -11,6 +11,8 @@ async function main() {
   let skipCount = 0;
   let errorCount = 0;
 
+  let create = process.argv.includes('--create');
+
   try {
     // Connect to MongoDB
     console.log('Connecting to MongoDB...');
@@ -37,7 +39,11 @@ async function main() {
           await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
           processedCount++;
         } else {
-          console.log('❌ Not contract, create again!', user);
+          console.log('❌ Not contract, Please create again!', user);
+          if (!create) {
+            skipCount++;
+            continue;
+          }
           const STREAM_KEY = 'mystream';
           if (user.ippClaimed) {
             // insert message into redis stream
