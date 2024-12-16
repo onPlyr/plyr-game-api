@@ -2,6 +2,9 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const UserInfo = require('../src/models/userInfo');
 const { chain } = require('../src/config');
+const { getRedisClient } = require('../src/db/redis');
+const { getAddress } = require('viem');
+const redis = getRedisClient();
 
 async function main() {
   let processedCount = 0;
@@ -26,15 +29,35 @@ async function main() {
     // Process each user
     for (const user of users) {
       try {
-        console.log('mirror', user.mirror);
+        console.log('mirror', user.plyrId, user.mirror);
         let bytecode = await chain.getCode({ address: user.mirror });
         console.log('bytecode', bytecode.length);
 
         if (bytecode.length > 2) {
-            await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
-            processedCount++;
+          await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
+          processedCount++;
         } else {
-            skipCount++;
+          console.log('❌ Not contract, create again!');
+          const STREAM_KEY = 'mystream';
+          if (user.ippClaimed) {
+            // insert message into redis stream
+            const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({
+              address: getAddress(user.primaryAddress),
+              mirror: getAddress(user.mirror),
+              plyrId: user.plyrId,
+              chainId: user.chainId || 62831,
+            }));
+            console.log('Added message ID:', messageId);
+          } else {
+            // insert message into redis stream
+            const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
+              address: getAddress(user.primaryAddress),
+              plyrId: user.plyrId,
+              chainId: user.chainId || 62831,
+            }));
+            console.log('Added message ID:', messageId);
+          }
+          skipCount++;
         }
         // Log progress every 10 users
         if ((processedCount + skipCount) % 10 === 0) {
