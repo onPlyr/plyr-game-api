@@ -146,7 +146,7 @@ exports.getAllClaimableReward = async (ctx) => {
 }
 
 exports.postClaimAllClaimableReward = async (ctx) => {
-  const { address } = ctx.request.body;
+  const { address, playedGame } = ctx.request.body;
 
   if (typeof address !== 'string' || !isAddress(address)) {
     ctx.status = 401;
@@ -154,6 +154,11 @@ exports.postClaimAllClaimableReward = async (ctx) => {
       error: 'Invalid Input params',
     };
     return;
+  }
+
+  let _playedGame = true;
+  if (typeof playedGame === 'boolean') {
+    _playedGame = playedGame;
   }
 
   // get all compaign
@@ -210,7 +215,7 @@ exports.postClaimAllClaimableReward = async (ctx) => {
         taskId = await redis.xadd(STREAM_KEY, '*', 'claimAirdropReward', JSON.stringify({
           campaignId: returnBody[i].campaignId,
           address: getAddress(address),
-          playedGame: true,
+          playedGame: _playedGame,
         }));
         console.log('Added message ID:', taskId);
       }
