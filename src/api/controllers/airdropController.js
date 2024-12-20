@@ -194,7 +194,7 @@ exports.postClaimAllClaimableReward = async (ctx) => {
     returnBody.push(obj);
   });
 
-  let taskId;
+  let taskIds = [];
   if (process.env.NODE_ENV !== 'test') {
     for (let i=0; i<returnBody.length; i++) {
       if (returnBody[i].status === 'ongoing') {
@@ -212,22 +212,20 @@ exports.postClaimAllClaimableReward = async (ctx) => {
 
         const STREAM_KEY = 'mystream';
         // insert message into redis stream
-        taskId = await redis.xadd(STREAM_KEY, '*', 'claimAirdropReward', JSON.stringify({
+        let taskId = await redis.xadd(STREAM_KEY, '*', 'claimAirdropReward', JSON.stringify({
           campaignId: returnBody[i].campaignId,
           address: getAddress(address),
           playedGame: _playedGame,
         }));
         console.log('Added message ID:', taskId);
+        taskIds.push(taskId);
       }
     }
 
     ctx.status = 200;
 
     ctx.body = {
-      task: {
-        id: taskId,
-        status: 'PENDING',
-      },
+      task: taskIds.map(v=>{return {id: v, status: 'PENDING'}}),
     };
   } else {
     ctx.body = {};
