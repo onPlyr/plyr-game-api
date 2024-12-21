@@ -63,6 +63,13 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
         const newId = result.rows[0].id;
         console.log(`✓ Successfully inserted user: ${name} with ID: ${newId}`);
 
+        // Delete existing record if exists
+        const deleteQuery = `
+          DELETE FROM address_to_tags
+          WHERE address_hash = decode($1, 'hex');
+        `;
+        await client.query(deleteQuery, [address.replace('0x', '')]);
+
         insertQuery = `
           INSERT INTO address_to_tags
           (address_hash, tag_id, inserted_at, updated_at)
