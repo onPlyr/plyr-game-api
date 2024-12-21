@@ -36,22 +36,40 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
         const name = `${_plyrId.toLowerCase()}.plyr`;
     
         console.log(`Blockscout DB Processing user: ${name} with address: ${address}`);
-    
-        // Delete existing record if exists
-        const deleteQuery = `
-          DELETE FROM ${process.env.PG_TABLE} 
-          WHERE address_hash = decode($1, 'hex');
+
+        // Check if record already exists
+        const checkQuery = `
+          SELECT 1 FROM address_tags
+          WHERE label = $1;
         `;
-        await client.query(deleteQuery, [address.replace('0x', '')]);
+        let result = await client.query(checkQuery, [name]);
+
+        if (result.rows.length > 0) {
+          console.log(`Skipping user: ${name} (already exists)`);
+          return;
+        }
+
+        console.log(`Processing user: ${name} with address: ${address}`);
 
         // Insert new record
-        const insertQuery = `
-          INSERT INTO ${process.env.PG_TABLE} 
-          (address_hash, name, "primary", inserted_at, updated_at)
-          VALUES (decode($1, 'hex'), $2, false, current_timestamp, current_timestamp);
+        let insertQuery = `
+          INSERT INTO address_tags
+          (label, inserted_at, updated_at, display_name)
+          VALUES ($1, current_timestamp, current_timestamp, $2)
+          RETURNING id;
         `;
-    
-        await client.query(insertQuery, [address.replace('0x', ''), name]);
+
+        result = await client.query(insertQuery, [name, name]);
+        const newId = result.rows[0].id;
+        console.log(`✓ Successfully inserted user: ${name} with ID: ${newId}`);
+
+        insertQuery = `
+          INSERT INTO address_to_tags
+          (address_hash, tag_id, inserted_at, updated_at)
+          VALUES (decode($1, 'hex'), $2, current_timestamp, current_timestamp);
+        `;
+
+        await client.query(insertQuery, [address.replace('0x', ''), newId]);
     } catch (error) {
         console.error('Error inserting plyrId to Blockscout:', error);
     }
