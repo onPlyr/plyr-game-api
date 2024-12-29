@@ -86,8 +86,8 @@ exports.getNft = async (ctx) => {
     const metaJsons = await getMetaJson(nfts.map(nft => nft.nft.tokenURI));
 
     ctx.status = 200;
-    ctx.body = nfts.reduce((acc, v, i) => {
-        acc[v.nft.tokenURI] = {
+    ctx.body = nfts.map((v) => {
+        return {
             owner: v.owner,
             uri: v.nft.tokenURI,
             collection: _contract,
@@ -95,8 +95,7 @@ exports.getNft = async (ctx) => {
             tokenId: v.nft.tokenID,
             ...metaJsons[v.nft.tokenURI],
         }
-        return acc;
-    }, {});
+    });
 }
 
 async function getAddessesFromPlyrId(plyrId) {
@@ -122,6 +121,7 @@ async function getAddessesFromPlyrId(plyrId) {
 }
 
 async function getMetaJson(uris) {
+    console.log('[getMetaJson] Start with uris:', uris);
     if (!Array.isArray(uris)) {
         uris = [uris];
     }
@@ -133,18 +133,22 @@ async function getMetaJson(uris) {
     for (const uri of uris) {
         const cached = metaCache.get(uri);
         if (cached) {
+            console.log(`[getMetaJson] Cache hit for uri: ${uri}`);
             results[uri] = cached;
         } else {
+            console.log(`[getMetaJson] Cache miss for uri: ${uri}`);
             missedUris.push(uri);
         }
     }
 
     if (missedUris.length > 0) {
+        console.log(`[getMetaJson] Checking database for ${missedUris.length} uris:`, missedUris);
         // Try to get from database
         const dbResults = await MetaJson.find({ uri: { $in: missedUris } });
-        const dbMap = {};
+        console.log(`[getMetaJson] Found ${dbResults.length} results in database`);
+        
         dbResults.forEach(item => {
-            dbMap[item.uri] = item.data;
+            console.log(`[getMetaJson] DB hit for uri: ${item.uri}`);
             results[item.uri] = item.data;
             metaCache.set(item.uri, item.data);
             const index = missedUris.indexOf(item.uri);
@@ -155,18 +159,22 @@ async function getMetaJson(uris) {
 
         // Fetch remaining from network
         if (missedUris.length > 0) {
+            console.log(`[getMetaJson] Fetching ${missedUris.length} uris from network:`, missedUris);
             const fetchPromises = missedUris.map(async uri => {
                 try {
+                    console.log(`[getMetaJson] Fetching from network: ${uri}`);
                     const response = await axios.get(uri);
                     const data = response.data;
                     results[uri] = data;
+                    console.log(`[getMetaJson] Network fetch success for uri: ${uri}`);
                     // Save to cache
                     metaCache.set(uri, data);
                     // Save to database
                     await new MetaJson({ uri, data }).save();
+                    console.log(`[getMetaJson] Saved to cache and DB: ${uri}`);
                     return { uri, data };
                 } catch (error) {
-                    console.error(`Failed to fetch metadata from ${uri}:`, error.message);
+                    console.error(`[getMetaJson] Failed to fetch metadata from ${uri}:`, error.message);
                     return { uri, data: null };
                 }
             });
@@ -175,5 +183,6 @@ async function getMetaJson(uris) {
         }
     }
 
+    console.log('[getMetaJson] Final results:', results);
     return results;
 }
