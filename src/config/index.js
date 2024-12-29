@@ -93,8 +93,8 @@ function updateTokenList(tokenListData) {
 tokenListService.setTokenListUpdateCallback(updateTokenList);
 
 const nftSubgraphs = {
-  43113: 'https://api.studio.thegraph.com/query/76718/fuji-common-nft-subgraph/version/latest',
-  43114: 'https://api.studio.thegraph.com/query/76718/avalanche-common-nft-subgraph/version/latest',
+  43113: 'https://gateway.thegraph.com/api/c211a616cd01759736cc37444494d002/subgraphs/id/FjqPUbTyFmLxhq4eDEDCpqveRJDZaxxKYxHs6uFehUd9',
+  43114: 'https://gateway.thegraph.com/api/c211a616cd01759736cc37444494d002/subgraphs/id/J72c2C6Y6JH7enFECfGfhBBtiULYsuEurGYAWK37Fu3k',
   62831: 'https://graph-testnet.onplyr.com/subgraphs/name/onplyr/common-nft-subgraph',
   16180: 'https://graph-testnet.onplyr.com/subgraphs/name/onplyr/common-nft-subgraph',
 }
