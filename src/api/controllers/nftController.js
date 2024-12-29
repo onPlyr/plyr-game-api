@@ -98,6 +98,7 @@ async function getAddessesFromPlyrId(plyrId) {
 
     return {
         primaryAddress: user.primaryAddress,
-        mirrorAddress: user.mirror
+        mirrorAddress: user.mirror,
+        secondaryAddresses: [],
     };
 }
