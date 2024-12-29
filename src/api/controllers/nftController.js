@@ -28,7 +28,7 @@ exports.getNft = async (ctx) => {
     }
 
     if (isNaN(chain)) {
-        _chain = chainNameToChainId(chain);
+        _chain = chainNameToChainId[chain];
         if (isNaN(_chain)) {
             ctx.status = 400;
             ctx.body = {
