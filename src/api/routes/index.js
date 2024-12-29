@@ -8,6 +8,8 @@ const gameController = require('../controllers/gameController');
 const withdrawController = require('../controllers/withdrawController');
 const instantPlayPassController = require('../controllers/instantPlayPassController');
 const activityLogsController = require('../controllers/activityLogsController');
+const nftController = require('../controllers/nftController');
+
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
@@ -110,5 +112,8 @@ router.get('/actionLog/:plyrId', hmacAuth('user'), activityLogsController.getLog
 router.post('/withdraw', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postWithdraw);
 router.post('/transfer', hmacAuth('user'), checkToken, checkUserExistsInBody, withdrawController.postTransfer);
 router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
+
+// nft apis
+router.get('/nft/:chain/:contract/:plyrId', /*hmacAuth('user'),*/ nftController.getNft);
 
 module.exports = router;
