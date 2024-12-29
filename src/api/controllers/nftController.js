@@ -59,6 +59,13 @@ exports.getNft = async (ctx) => {
     }
 
     let _addrs = await getAddessesFromPlyrId(plyrId);
+    if (!_addrs) {
+        ctx.status = 400;
+        ctx.body = {
+            error: 'Invalid PLYR[ID]'
+        };
+        return;
+    }
     if (!_primary) {
         delete _addrs.primaryAddress;
     }
