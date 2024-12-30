@@ -120,6 +120,6 @@ router.get('/network/burnedSupply', networkController.getBurnedSupply);
 router.get('/network/lockedSupply', networkController.getLockedSupply);
 router.get('/network/totalSupply', networkController.getTotalSupply);
 // nft apis
-router.get('/nft/:chain/:contract/:plyrId', /*hmacAuth('user'),*/ nftController.getNft);
+router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
 
 module.exports = router;
