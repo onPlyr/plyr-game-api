@@ -914,6 +914,53 @@ exports.getUserBalance = async (ctx) => {
   ctx.body = response;
 }
 
+
+exports.getAddressBalance = async (ctx) => {
+  const address = ctx.params.address;
+  if (!address || !isAddress(address)) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid address'
+    };
+    return;
+  }
+
+  const tokenList = config.TOKEN_LIST();
+
+  // Create array of promises for all token balances
+  const promises = [config.chain.getBalance({
+      address,
+  })];
+
+  // Track token symbols for mapping results
+  const tokenSymbols = ['plyr'];
+
+  // Add balance check for each non-zero address token
+  for (const [symbol, tokenInfo] of Object.entries(tokenList)) {
+    if (tokenInfo.address !== '0x0000000000000000000000000000000000000000') {
+      promises.push(config.chain.readContract({
+        abi: erc20Abi,
+        address: tokenInfo.address,
+        functionName: "balanceOf",
+        args: [address]
+      }));
+      tokenSymbols.push(symbol);
+    }
+  }
+
+  const balances = await Promise.all(promises);
+
+  // Format response with all token balances
+  const response = {};
+  balances.forEach((balance, index) => {
+    response[tokenSymbols[index]] = formatEther(balance);
+  });
+
+  ctx.status = 200;
+  ctx.body = response;
+}
+
+
 exports.getUserTokenBalance = async (ctx) => {
   const user = ctx.state.user;
   const tokenAddress = ctx.state.tokenAddress;

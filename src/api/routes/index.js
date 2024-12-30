@@ -53,6 +53,7 @@ router.post('/user/reset2fa', hmacAuth('user'), userController.postReset2fa);
 router.get('/user/basic/:address', userController.getUserBasicInfo);
 router.post('/user/avatars', userController.getAvatars);
 router.get('/user/balance/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getUserBalance);
+router.get('/balance/:address', hmacAuth('user'), userController.getAddressBalance);
 router.get('/user/balance/:plyrId/:tokenName', hmacAuth('user'), checkUserExistsInParams, checkTokenInParams, userController.getUserTokenBalance);
 router.get('/user/avatar/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getAvatar);
 router.get('/user/activeSessions/:plyrId', hmacAuth('user'), checkUserExistsInParams, userController.getActiveSessions);
