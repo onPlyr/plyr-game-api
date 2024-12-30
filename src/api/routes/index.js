@@ -10,6 +10,8 @@ const networkController = require('../controllers/networkController');
 
 const instantPlayPassController = require('../controllers/instantPlayPassController');
 const activityLogsController = require('../controllers/activityLogsController');
+const nftController = require('../controllers/nftController');
+
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
 const checkToken = require('../middlewares/checkToken');
@@ -117,5 +119,7 @@ router.get('/network/circulatingSupply', networkController.getCirculatingSupply)
 router.get('/network/burnedSupply', networkController.getBurnedSupply);
 router.get('/network/lockedSupply', networkController.getLockedSupply);
 router.get('/network/totalSupply', networkController.getTotalSupply);
+// nft apis
+router.get('/nft/:chain/:contract/:plyrId', /*hmacAuth('user'),*/ nftController.getNft);
 
 module.exports = router;

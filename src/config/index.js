@@ -116,6 +116,29 @@ function updateTokenList(tokenListData) {
 // set update callback
 tokenListService.setTokenListUpdateCallback(updateTokenList);
 
+const nftSubgraphs = {
+  43113: 'https://gateway.thegraph.com/api/c211a616cd01759736cc37444494d002/subgraphs/id/FjqPUbTyFmLxhq4eDEDCpqveRJDZaxxKYxHs6uFehUd9',
+  43114: 'https://gateway.thegraph.com/api/c211a616cd01759736cc37444494d002/subgraphs/id/J72c2C6Y6JH7enFECfGfhBBtiULYsuEurGYAWK37Fu3k',
+  62831: 'https://graph-testnet.onplyr.com/subgraphs/name/onplyr/common-nft-subgraph',
+  16180: 'https://graph-testnet.onplyr.com/subgraphs/name/onplyr/common-nft-subgraph',
+}
+
+const chainNameToChainId = {
+  'fuji': 43113,
+  'avalanche': 43114,
+  'plyrTestnet': 62831,
+  'plyr': 16180,
+}
+
+const nftAlias = {
+  43113: {
+    'zoogenes': '0x857890E33fdF115F4F318BDEee4115e0e7162537'.toLowerCase(),
+  },
+  43114: {
+    'zoogenes': '0x9Fc13E6408CA6A997d6EB8A25440Cbcb20745E8B'.toLowerCase(),
+  }
+}
+
 module.exports = {
   port: process.env.PORT || 3000,
   mongodbUri: process.env.MONGODB_URI,
@@ -134,4 +157,7 @@ module.exports = {
   gameRuleV1SC: '0xb3Dd279167E0881d41c7D8012cdF618b8b428BF6',
   GAME_RULE_V1_ABI,
   TOKEN_LIST,
+  chainNameToChainId,
+  nftSubgraphs,
+  nftAlias,
 };
