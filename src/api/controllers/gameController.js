@@ -65,22 +65,27 @@ const postGameApprove = async (ctx) => {
   const { plyrId, gameId, token, tokens, amount, amounts, expiresIn } = ctx.request.body;
   console.log('postGameApprove', plyrId, gameId, token, tokens, amount, expiresIn);
   try {
-    if (!plyrId || !gameId || !amount) {
+    if (!plyrId || !gameId) {
       ctx.status = 401;
       ctx.body = { error: "Input params was incorrect." };
       return;
     }
-
-    if (isNaN(amount) || Number(amount) <= 0) {
-      ctx.status = 401;
-      ctx.body = { error: "Approve amount was incorrect." };
-      return;
-    }
+    
     if (token) {
+      if (isNaN(amount) || Number(amount) <= 0) {
+        ctx.status = 401;
+        ctx.body = { error: "Approve amount was incorrect." };
+        return;
+      }
       await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
     }
     if (tokens && tokens.length > 0) {  
       for (let i = 0; i < tokens.length; i++) {
+        if (isNaN(amounts[i]) || Number(amounts[i]) <= 0) {
+          ctx.status = 401;
+          ctx.body = { error: "Approve amount was incorrect." };
+          return;
+        }
         await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
       }
     }
