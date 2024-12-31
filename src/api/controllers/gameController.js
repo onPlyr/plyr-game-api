@@ -6,7 +6,7 @@ const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
 const { logActivity } = require('../../utils/activity');
 
-const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
+const approve = async ({plyrId, gameId, token, tokens, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
 }
 
@@ -62,10 +62,10 @@ const insertTask = async (params, taskName, sync = false) => {
 }
 
 const postGameApprove = async (ctx) => {
-  const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
-  console.log('postGameApprove', plyrId, gameId, token, amount, expiresIn);
+  const { plyrId, gameId, token, tokens, amount, expiresIn } = ctx.request.body;
+  console.log('postGameApprove', plyrId, gameId, token, tokens, amount, expiresIn);
   try {
-    if (!plyrId || !gameId || !token || !amount) {
+    if (!plyrId || !gameId || !amount) {
       ctx.status = 401;
       ctx.body = { error: "Input params was incorrect." };
       return;
@@ -76,7 +76,14 @@ const postGameApprove = async (ctx) => {
       ctx.body = { error: "Approve amount was incorrect." };
       return;
     }
-    await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    if (token) {
+      await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    }
+    if (tokens && tokens.length > 0) {
+      for (const token of tokens) {
+        await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+      }
+    }
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
     await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });

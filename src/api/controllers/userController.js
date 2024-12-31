@@ -660,8 +660,8 @@ exports.postLogin = async (ctx) => {
 }
 
 exports.postLoginAndApprove = async (ctx) => {
-  const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
-  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, amount);
+  const { plyrId, expiresIn, gameId, token, tokens, amount } = ctx.request.body;
+  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, tokens, amount);
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
@@ -673,7 +673,7 @@ exports.postLoginAndApprove = async (ctx) => {
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
 
-  if (!plyrId || !gameId || !token || !amount) {
+  if (!plyrId || !gameId || !amount) {
     ctx.status = 401;
     ctx.body = { error: "Input params was incorrect." };
     return;
@@ -685,7 +685,15 @@ exports.postLoginAndApprove = async (ctx) => {
     return;
   }
 
-  await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+  if (token) {
+    await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+  }
+
+  if (tokens && tokens.length > 0) {
+    for (let i = 0; i < tokens.length; i++) {
+      await approve({ plyrId, gameId, token: tokens[i].token.toLowerCase(), amount: tokens[i].amount, expiresIn });
+    }
+  }
 
   delete payload.nonce;
 
