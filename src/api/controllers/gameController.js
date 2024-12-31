@@ -62,7 +62,7 @@ const insertTask = async (params, taskName, sync = false) => {
 }
 
 const postGameApprove = async (ctx) => {
-  const { plyrId, gameId, token, tokens, amount, expiresIn } = ctx.request.body;
+  const { plyrId, gameId, token, tokens, amount, amounts, expiresIn } = ctx.request.body;
   console.log('postGameApprove', plyrId, gameId, token, tokens, amount, expiresIn);
   try {
     if (!plyrId || !gameId || !amount) {
@@ -79,9 +79,9 @@ const postGameApprove = async (ctx) => {
     if (token) {
       await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
     }
-    if (tokens && tokens.length > 0) {
-      for (const token of tokens) {
-        await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    if (tokens && tokens.length > 0) {  
+      for (let i = 0; i < tokens.length; i++) {
+        await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
       }
     }
     ctx.status = 200;

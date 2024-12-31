@@ -660,7 +660,7 @@ exports.postLogin = async (ctx) => {
 }
 
 exports.postLoginAndApprove = async (ctx) => {
-  const { plyrId, expiresIn, gameId, token, tokens, amount } = ctx.request.body;
+  const { plyrId, expiresIn, gameId, token, tokens, amount, amounts } = ctx.request.body;
   console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, tokens, amount);
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
@@ -691,7 +691,7 @@ exports.postLoginAndApprove = async (ctx) => {
 
   if (tokens && tokens.length > 0) {
     for (let i = 0; i < tokens.length; i++) {
-      await approve({ plyrId, gameId, token: tokens[i].token.toLowerCase(), amount: tokens[i].amount, expiresIn });
+      await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
     }
   }
 
