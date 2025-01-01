@@ -298,6 +298,12 @@ const postGameBatchPay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const plyrIds = ctx.state.plyrIds;
   const { roomId, tokens, amounts, sync } = ctx.request.body;
+  if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
+    ctx.status = 400;
+    ctx.body = { error: 'Tokens and amounts must be the same length' };
+    return;
+  }
+
   try {
     const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchPayGameRoom', sync);
     ctx.status = 200;
@@ -350,6 +356,11 @@ const postGameEarn = async (ctx) => {
 const postGameBatchEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+  if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
+    ctx.status = 400;
+    ctx.body = { error: 'Tokens and amounts must be the same length' };
+    return;
+  }
   try {
     const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchEarnGameRoom', sync);
     ctx.status = 200;
