@@ -688,6 +688,7 @@ exports.postLoginAndApprove = async (ctx) => {
       return;
     }
     await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
   }
 
   if (tokens && tokens.length > 0) {
@@ -698,6 +699,7 @@ exports.postLoginAndApprove = async (ctx) => {
         return;
       }
       await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
+      await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token: tokens[i], amount: amounts[i], expiresIn });
     }
   }
 
@@ -711,7 +713,6 @@ exports.postLoginAndApprove = async (ctx) => {
     ippClaimed: user.ippClaimed,
     isIPP: user.isInstantPlayPass,
   }
-  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
 
 exports.postLogout = async (ctx) => {

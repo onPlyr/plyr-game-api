@@ -78,6 +78,7 @@ const postGameApprove = async (ctx) => {
         return;
       }
       await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+      await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });
     }
     if (tokens && tokens.length > 0) {  
       for (let i = 0; i < tokens.length; i++) {
@@ -87,11 +88,11 @@ const postGameApprove = async (ctx) => {
           return;
         }
         await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
+        await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i] });
       }
     }
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
-    await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
