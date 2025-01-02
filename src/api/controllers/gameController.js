@@ -227,6 +227,23 @@ const postGameJoin = async (ctx) => {
     const taskId = await insertTask({ plyrIds: unjoinedPlyrIds, gameId, roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
     if (sync) {
+      let times = 50;
+      while (times > 0) {
+        let allJoined = true;
+        for (const plyrId of plyrIds) {
+          const _joined = await isJoined({plyrId, gameId, roomId});
+          if (!_joined) {
+            allJoined = false;
+            break;
+          }
+        }
+        if (allJoined) {
+          _joined = true;
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        times--;
+      }
       ctx.body = taskId;
       if (taskId.status === 'TIMEOUT') {
         ctx.status = 504;
