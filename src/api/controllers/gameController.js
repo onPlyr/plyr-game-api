@@ -6,7 +6,7 @@ const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
 const { logActivity } = require('../../utils/activity');
 
-const approve = async ({plyrId, gameId, token, amount, expiresIn}) => {
+const approve = async ({plyrId, gameId, token, tokens, amount, expiresIn}) => {
   await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
 }
 
@@ -62,24 +62,37 @@ const insertTask = async (params, taskName, sync = false) => {
 }
 
 const postGameApprove = async (ctx) => {
-  const { plyrId, gameId, token, amount, expiresIn } = ctx.request.body;
-  console.log('postGameApprove', plyrId, gameId, token, amount, expiresIn);
+  const { plyrId, gameId, token, tokens, amount, amounts, expiresIn } = ctx.request.body;
+  console.log('postGameApprove', plyrId, gameId, token, tokens, amount, expiresIn);
   try {
-    if (!plyrId || !gameId || !token || !amount) {
+    if (!plyrId || !gameId) {
       ctx.status = 401;
       ctx.body = { error: "Input params was incorrect." };
       return;
     }
-
-    if (isNaN(amount) || Number(amount) <= 0) {
-      ctx.status = 401;
-      ctx.body = { error: "Approve amount was incorrect." };
-      return;
+    
+    if (token) {
+      if (isNaN(amount) || Number(amount) <= 0) {
+        ctx.status = 401;
+        ctx.body = { error: "Approve amount was incorrect." };
+        return;
+      }
+      await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+      await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });
     }
-    await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    if (tokens && tokens.length > 0) {  
+      for (let i = 0; i < tokens.length; i++) {
+        if (isNaN(amounts[i]) || Number(amounts[i]) <= 0) {
+          ctx.status = 401;
+          ctx.body = { error: "Approve amount was incorrect." };
+          return;
+        }
+        await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
+        await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i] });
+      }
+    }
     ctx.status = 200;
     ctx.body = { message: 'Approved' };
-    await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: token.toLowerCase(), amount });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -165,6 +178,7 @@ const postGameRevokeBySignature = async (ctx) => {
 const postGameCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   let { expiresIn, sync } = ctx.request.body;
+  console.log('postGameCreate', {gameId, expiresIn, sync});
   try {
     if (!expiresIn) {
       expiresIn = 30 * 24 * 60 * 60;
@@ -193,6 +207,8 @@ const postGameJoin = async (ctx) => {
   const { roomId, sync } = ctx.request.body;
   try {
     const plyrIds = ctx.state.plyrIds;
+    console.log('postGameJoin', {gameId, plyrIds, roomId, sync});
+
     // check all plyrId isJoined, and return unjoined plyrIds
     const unjoinedPlyrIds = [];
     for (const plyrId of plyrIds) {
@@ -211,6 +227,23 @@ const postGameJoin = async (ctx) => {
     const taskId = await insertTask({ plyrIds: unjoinedPlyrIds, gameId, roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
     if (sync) {
+      let times = 50;
+      while (times > 0) {
+        let allJoined = true;
+        for (const plyrId of plyrIds) {
+          const _joined = await isJoined({plyrId, gameId, roomId});
+          if (!_joined) {
+            allJoined = false;
+            break;
+          }
+        }
+        if (allJoined) {
+          _joined = true;
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        times--;
+      }
       ctx.body = taskId;
       if (taskId.status === 'TIMEOUT') {
         ctx.status = 504;
@@ -232,6 +265,7 @@ const postGameLeave = async (ctx) => {
   const { roomId, sync } = ctx.request.body;
   try {
     const plyrIds = ctx.state.plyrIds;
+    console.log('postGameLeave', {gameId, plyrIds, roomId, sync});
     const taskId = await insertTask({ plyrIds, gameId, roomId }, 'leaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -255,6 +289,7 @@ const postGamePay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { plyrId } = ctx.state.payload;
   const { roomId, token, amount, sync } = ctx.request.body;
+  console.log('postGamePay', {gameId, plyrId, roomId, token, amount, sync});
   try {
     const _joined = await isJoined({plyrId, gameId, roomId});
     if (!_joined) {
@@ -285,6 +320,13 @@ const postGameBatchPay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const plyrIds = ctx.state.plyrIds;
   const { roomId, tokens, amounts, sync } = ctx.request.body;
+  console.log('postGameBatchPay', {gameId, plyrIds, roomId, tokens, amounts, sync});
+  if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
+    ctx.status = 400;
+    ctx.body = { error: 'Tokens and amounts must be the same length' };
+    return;
+  }
+
   try {
     const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchPayGameRoom', sync);
     ctx.status = 200;
@@ -337,6 +379,12 @@ const postGameEarn = async (ctx) => {
 const postGameBatchEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+  console.log('postGameBatchEarn', {gameId, plyrIds, roomId, tokens, amounts, sync});
+  if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
+    ctx.status = 400;
+    ctx.body = { error: 'Tokens and amounts must be the same length' };
+    return;
+  }
   try {
     const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchEarnGameRoom', sync);
     ctx.status = 200;
@@ -360,6 +408,7 @@ const postGameBatchEarn = async (ctx) => {
 const postGameEnd = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { roomId, sync } = ctx.request.body;  
+  console.log('postGameEnd', {gameId, roomId, sync});
   try {
     const taskId = await insertTask({ gameId, roomId }, 'endGameRoom', sync);
     ctx.status = 200;
@@ -416,7 +465,7 @@ const postGameCreateJoinPay = async (ctx) => {
       ctx.body = { error: 'Input params was incorrect.' };
       return;
     }
-
+    console.log('postGameCreateJoinPay', {gameId, expiresIn, plyrIds, tokens, amounts, sync});
     const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -447,7 +496,7 @@ const postGameJoinPay = async (ctx) => {
       ctx.body = { error: 'Input params was incorrect.' };
       return;
     }
-
+    console.log('postGameJoinPay', {gameId, roomId, plyrIds, tokens, amounts, sync});
     const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'joinPayGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -476,6 +525,7 @@ const postGameEarnLeaveEnd = async (ctx) => {
       ctx.body = { error: 'Input params was incorrect.' };
       return;
     }
+    console.log('postGameEarnLeaveEnd', {gameId, roomId, plyrIds, tokens, amounts, sync});
     const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom', sync);
     ctx.status = 200;
     if (sync) {
@@ -504,6 +554,7 @@ const postGameEarnLeave = async (ctx) => {
       ctx.body = { error: 'Input params was incorrect.' };
       return;
     }
+    console.log('postGameEarnLeave', {gameId, roomId, plyrIds, tokens, amounts, sync});
     const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {

@@ -92,10 +92,8 @@ router.post('/game/revokeBySignature', hmacAuth('user'), gameController.postGame
 router.post('/game/create', hmacAuth('user'), gameController.postGameCreate);
 router.post('/game/join', hmacAuth('user'), checkSessionJwts, gameController.postGameJoin);
 router.post('/game/leave', hmacAuth('user'), checkSessionJwts, checkAllJoined, gameController.postGameLeave);
-router.post('/game/pay', hmacAuth('user'), checkSessionJwt, checkAllowance, gameController.postGamePay);
-router.post('/game/batchPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, checkAllJoined, gameController.postGameBatchPay);
-router.post('/game/earn', hmacAuth('user'), gameController.postGameEarn);
-router.post('/game/batchEarn', hmacAuth('user'), checkTokens, gameController.postGameBatchEarn);
+router.post('/game/pay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, checkAllJoined, gameController.postGameBatchPay);
+router.post('/game/earn', hmacAuth('user'), checkTokens, gameController.postGameBatchEarn);
 router.post('/game/end', hmacAuth('user'), gameController.postGameEnd);
 router.post('/game/close', hmacAuth('user'), gameController.postGameClose);
 router.post('/game/createJoinPay', hmacAuth('user'), checkSessionJwts, checkTokens, checkAllowances, gameController.postGameCreateJoinPay);

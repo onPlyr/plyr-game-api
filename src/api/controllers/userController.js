@@ -660,8 +660,8 @@ exports.postLogin = async (ctx) => {
 }
 
 exports.postLoginAndApprove = async (ctx) => {
-  const { plyrId, expiresIn, gameId, token, amount } = ctx.request.body;
-  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, amount);
+  const { plyrId, expiresIn, gameId, token, tokens, amount, amounts } = ctx.request.body;
+  console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, tokens, amount);
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
   const deadline = user.deadline ? user.deadline : {};
@@ -673,19 +673,35 @@ exports.postLoginAndApprove = async (ctx) => {
   const payload = { plyrId: plyrId.toLowerCase(), nonce: gameNonce, gameId, primaryAddress: user.primaryAddress, mirrorAddress: user.mirror };
   const JWT = generateJwtToken(payload, expiresIn);
 
-  if (!plyrId || !gameId || !token || !amount) {
+  if (!plyrId || !gameId) {
     ctx.status = 401;
     ctx.body = { error: "Input params was incorrect." };
     return;
   }
 
-  if (isNaN(amount) || Number(amount) <= 0) {
-    ctx.status = 401;
-    ctx.body = { error: "Approve amount was incorrect." };
-    return;
+
+
+  if (token) {
+    if (isNaN(amount) || Number(amount) <= 0) {
+      ctx.status = 401;
+      ctx.body = { error: "Approve amount was incorrect." };
+      return;
+    }
+    await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+    await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
   }
 
-  await approve({ plyrId, gameId, token: token.toLowerCase(), amount, expiresIn });
+  if (tokens && tokens.length > 0) {
+    for (let i = 0; i < tokens.length; i++) {
+      if (isNaN(amounts[i]) || Number(amounts[i]) <= 0) {
+        ctx.status = 401;
+        ctx.body = { error: "Approve amount was incorrect." };
+        return;
+      }
+      await approve({ plyrId, gameId, token: tokens[i].toLowerCase(), amount: amounts[i], expiresIn });
+      await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token: tokens[i], amount: amounts[i], expiresIn });
+    }
+  }
 
   delete payload.nonce;
 
@@ -697,7 +713,6 @@ exports.postLoginAndApprove = async (ctx) => {
     ippClaimed: user.ippClaimed,
     isIPP: user.isInstantPlayPass,
   }
-  await logActivity(plyrId, gameId, 'user', 'loginAndApprove', { gameId, token, amount, expiresIn });
 }
 
 exports.postLogout = async (ctx) => {
