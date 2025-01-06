@@ -187,7 +187,7 @@ class TokenListService {
                     }
                 });
                 console.log('CMC DEX price returned:', JSON.stringify(response.data, null, 2));
-                if (response.data && response.data.data && response.data.data.quote) {
+                if (response.data && response.data.data && response.data.data.length > 0) {
                     prices[token.cmcDexAddress] = response.data.data[0].quote[0].price.toString();
                 }
             }
