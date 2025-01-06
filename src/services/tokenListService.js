@@ -186,9 +186,8 @@ class TokenListService {
                         convert_id: 2781 // USD
                     }
                 });
-
+                console.log('CMC DEX price returned:', JSON.stringify(response.data, null, 2));
                 if (response.data && response.data.data && response.data.data.quote) {
-                    console.log('CMC DEX price returned:', JSON.stringify(response.data, null, 2));
                     prices[token.cmcDexAddress] = response.data.data.quote.USD.price.toString();
                 }
             }
