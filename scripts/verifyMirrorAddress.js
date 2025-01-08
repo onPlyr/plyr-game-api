@@ -1,6 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const UserInfo = require('../src/models/userInfo');
+const InstantPlayPass = require('../src/models/instantPlayPass');
+
 const { chain } = require('../src/config');
 const { getRedisClient } = require('../src/db/redis');
 const { getAddress } = require('viem');
@@ -25,7 +27,7 @@ async function main() {
         { verified: false },
         { verified: { $exists: false } }
       ]
-    }, { plyrId: 1, mirror: 1 });
+    }, { plyrId: 1, mirror: 1, primaryAddress: 1, plyrId: 1, chainId: 1 });
     console.log(`✓ Found ${users.length} users to process`);
 
     users = users.reverse();
