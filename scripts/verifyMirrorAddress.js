@@ -1,11 +1,32 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const UserInfo = require('../src/models/userInfo');
-const InstantPlayPass = require('../src/models/instantPlayPass');
+
+const ENSABI = [{
+  "inputs": [
+    {
+      "internalType": "string",
+      "name": "_ensName",
+      "type": "string"
+    }
+  ],
+  "name": "getENSAddress",
+  "outputs": [
+    {
+      "internalType": "address",
+      "name": "",
+      "type": "address"
+    }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+}];
+
+const ENSADDR = '0x9684c4d61A62CFc43174953B814995E412cA1096';
 
 const { chain } = require('../src/config');
 const { getRedisClient } = require('../src/db/redis');
-const { getAddress } = require('viem');
+const { getAddress, zeroAddress } = require('viem');
 const redis = getRedisClient();
 
 async function main() {
@@ -13,7 +34,7 @@ async function main() {
   let skipCount = 0;
   let errorCount = 0;
 
-  let create = process.argv.includes('--create');
+  let create = true; // process.argv.includes('--create');
 
   try {
     // Connect to MongoDB
@@ -36,10 +57,9 @@ async function main() {
     for (const user of users) {
       try {
         console.log('mirror', user.plyrId, user.mirror);
-        let bytecode = await chain.getCode({ address: user.mirror });
-        console.log('bytecode', bytecode ? bytecode.length : bytecode);
-
-        if (bytecode) {
+        let addr = await chain.readContract({ address: ENSADDR, abi: ENSABI, functionName: 'getENSAddress', args: [user.mirror] });
+        console.log('addr', addr);
+        if (addr !== zeroAddress) {
           await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
           processedCount++;
         } else {
