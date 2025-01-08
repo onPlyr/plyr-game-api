@@ -54,7 +54,7 @@ async function main() {
     users = users.reverse();
 
     // Process users in batches of 20
-    const batchSize = 20;
+    const batchSize = 2;
     for (let i = 0; i < users.length; i += batchSize) {
       const batch = users.slice(i, i + batchSize);
       const promises = batch.map(async (user) => {
