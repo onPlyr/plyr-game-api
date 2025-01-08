@@ -46,7 +46,7 @@ const plyrMainnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://subnets.avax.network/plyr/mainnet/rpc']
+      http: ['https://mainnet-plyr-ub739.avax.network/ext/bc/HUwWdyoExrb1HgVp5X5sh3AWqhYFnKkfXBfGmGL3qjDsnMoR4/rpc?token=aa3b2d729082b89b1065b7d98c00982fd0ab59e641ee2ebd420d1fcdc87814c3']
     }
   },
   blockExplorers: {
