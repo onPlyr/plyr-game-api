@@ -53,51 +53,55 @@ async function main() {
 
     users = users.reverse();
 
-    // Process each user
-    for (const user of users) {
-      try {
-        console.log('mirror', user.plyrId, user.mirror);
-        let addr = await chain.readContract({ address: ENSADDR, abi: ENSABI, functionName: 'getENSAddress', args: [user.plyrId] });
-        console.log('addr', addr);
-        if (addr !== zeroAddress) {
-          await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
-          processedCount++;
-        } else {
-          console.log('❌ Not contract, Please create again!', user);
-          if (!create) {
-            skipCount++;
-            continue;
-          }
-          const STREAM_KEY = 'mystream';
-          if (user.ippClaimed) {
-            // insert message into redis stream
-            const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({
-              address: getAddress(user.primaryAddress),
-              mirror: getAddress(user.mirror),
-              plyrId: user.plyrId,
-              chainId: user.chainId || 62831,
-            }));
-            console.log('Added message ID:', messageId);
+    // Process users in batches of 20
+    const batchSize = 20;
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+      const promises = batch.map(async (user) => {
+        try {
+          console.log('mirror', user.plyrId, user.mirror);
+          let addr = await chain.readContract({ address: ENSADDR, abi: ENSABI, functionName: 'getENSAddress', args: [user.plyrId] });
+          console.log('addr', addr);
+          if (addr !== zeroAddress) {
+            await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
+            processedCount++;
           } else {
-            // insert message into redis stream
-            const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
-              address: getAddress(user.primaryAddress),
-              plyrId: user.plyrId,
-              chainId: user.chainId || 62831,
-            }));
-            console.log('Added message ID:', messageId);
+            console.log('❌ Not contract, Please create again!', user);
+            if (!create) {
+              skipCount++;
+              return;
+            }
+            const STREAM_KEY = 'mystream';
+            if (user.ippClaimed) {
+              const messageId = await redis.xadd(STREAM_KEY, '*', 'createUserWithMirror', JSON.stringify({
+                address: getAddress(user.primaryAddress),
+                mirror: getAddress(user.mirror),
+                plyrId: user.plyrId,
+                chainId: user.chainId || 62831,
+              }));
+              console.log('Added message ID:', messageId);
+            } else {
+              const messageId = await redis.xadd(STREAM_KEY, '*', 'createUser', JSON.stringify({
+                address: getAddress(user.primaryAddress),
+                plyrId: user.plyrId,
+                chainId: user.chainId || 62831,
+              }));
+              console.log('Added message ID:', messageId);
+            }
+            skipCount++;
           }
-          skipCount++;
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ Error processing user ${user.plyrId}:`, error.message);
         }
-        // Log progress every 10 users
-        if ((processedCount + skipCount) % 10 === 0) {
-          const progress = (((processedCount + skipCount) / users.length) * 100).toFixed(2);
-          console.log(`Progress: ${progress}% (${processedCount + skipCount}/${users.length})`);
-        }
-      } catch (error) {
-        errorCount++;
-        console.error(`❌ Error processing user ${user.plyrId}:`, error.message);
-      }
+      });
+
+      // Wait for all promises in the current batch to complete
+      await Promise.all(promises);
+
+      // Log progress after each batch
+      const progress = (((i + batchSize) / users.length) * 100).toFixed(2);
+      console.log(`Progress: ${progress}% (${i + batchSize}/${users.length})`);
     }
 
     // Cleanup
