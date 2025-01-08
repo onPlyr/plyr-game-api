@@ -57,7 +57,7 @@ async function main() {
     for (const user of users) {
       try {
         console.log('mirror', user.plyrId, user.mirror);
-        let addr = await chain.readContract({ address: ENSADDR, abi: ENSABI, functionName: 'getENSAddress', args: [user.mirror] });
+        let addr = await chain.readContract({ address: ENSADDR, abi: ENSABI, functionName: 'getENSAddress', args: [user.plyrId] });
         console.log('addr', addr);
         if (addr !== zeroAddress) {
           await UserInfo.updateOne({ plyrId: user.plyrId }, { verified: true });
