@@ -1,7 +1,7 @@
 const { chain } = require('../config');
 const { encodeFunctionData, createPublicClient, http } = require('viem');
 
-const backupRpc = 'https://mainnet-plyr-ub739.avax.network/ext/bc/HUwWdyoExrb1HgVp5X5sh3AWqhYFnKkfXBfGmGL3qjDsnMoR4/rpc?token=aa3b2d729082b89b1065b7d98c00982fd0ab59e641ee2ebd420d1fcdc87814c3';
+const backupRpc = 'https://subnets.avax.network/plyr/mainnet/rpc';
 
 const publicClient = createPublicClient({
   chain: chain.chain,
