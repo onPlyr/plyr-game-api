@@ -20,13 +20,15 @@ async function main() {
     console.log('✓ Connected to MongoDB successfully');
 
     // Get all users from MongoDB
-    const users = await UserInfo.find({
+    let users = await UserInfo.find({
       $or: [
         { verified: false },
         { verified: { $exists: false } }
       ]
     }, { plyrId: 1, mirror: 1 });
     console.log(`✓ Found ${users.length} users to process`);
+
+    users = users.reverse();
 
     // Process each user
     for (const user of users) {
