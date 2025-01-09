@@ -54,14 +54,8 @@ class TokenListService {
                 this.tokenList = response.data;
                 this.tokenList.tokens = this.tokenList.tokens.filter(token => token.chainId === localChainId);
                 
-                // Fetch and add CMC prices
-                const prices = await this.fetchCMCPrices(this.tokenList.tokens);
-                this.tokenList.tokens = this.tokenList.tokens.map(token => ({
-                    ...token,
-                    price: token.cmcId ? prices[token.cmcId] : null,
-                    updatedAt: new Date().toISOString(),
-                    nextUpdatedAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
-                }));
+                // Fetch prices from multiple sources
+                await this.updateTokenPrices(this.tokenList.tokens);
 
                 console.log('Token list data received:', JSON.stringify(this.tokenList, null, 2));
                 this.lastEtag = response.headers.etag;
@@ -77,6 +71,46 @@ class TokenListService {
                 console.error('Error fetching token list:', error.message);
             }
         }
+    }
+
+    async updateTokenPrices(tokens) {
+        const currentTime = new Date().toISOString();
+        const nextUpdate = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+        // Group tokens by price source
+        const cmcTokens = tokens.filter(token => token.cmcId);
+        const cgTokens = tokens.filter(token => !token.cmcId && token.cgId);
+        const dexTokens = tokens.filter(token => !token.cmcId && !token.cgId && token.cmcDexAddress);
+
+        // Fetch prices from different sources
+        const cmcPrices = await this.fetchCMCPrices(cmcTokens);
+        const cgPrices = await this.fetchCGPrices(cgTokens);
+        const dexPrices = await this.fetchCMCDexPrices(dexTokens);
+
+        // Update tokens with prices and sources
+        this.tokenList.tokens = tokens.map(token => {
+            let price = null;
+            let priceSource = null;
+
+            if (token.cmcId && cmcPrices[token.cmcId]) {
+                price = cmcPrices[token.cmcId];
+                priceSource = 'cmc_api';
+            } else if (!token.cmcId && token.cgId && cgPrices[token.cgId]) {
+                price = cgPrices[token.cgId];
+                priceSource = 'cg_api';
+            } else if (!token.cmcId && !token.cgId && token.cmcDexAddress && dexPrices[token.cmcDexAddress]) {
+                price = dexPrices[token.cmcDexAddress];
+                priceSource = 'cmc_dex_api';
+            }
+
+            return {
+                ...token,
+                price,
+                priceSource,
+                updatedAt: currentTime,
+                nextUpdatedAt: nextUpdate
+            };
+        });
     }
 
     async fetchCMCPrices(tokens) {
@@ -108,6 +142,62 @@ class TokenListService {
         }
     }
 
+    async fetchCGPrices(tokens) {
+        try {
+            console.log('Fetching CG prices for tokens:', tokens.map(token => [token.symbol, token.cgId]).join(', '));
+            const cgIds = tokens.map(token => token.cgId).filter(id => id);
+            if (cgIds.length === 0) return {};
+
+            const response = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
+                params: {
+                    ids: cgIds.join(','),
+                    vs_currencies: 'usd'
+                }
+            });
+
+            const prices = {};
+            if (response.data) {
+                console.log('CG price returned:', JSON.stringify(response.data, null, 2));
+                Object.entries(response.data).forEach(([id, data]) => {
+                    prices[id] = data.usd.toString();
+                });
+            }
+            return prices;
+        } catch (error) {
+            console.error('Error fetching CoinGecko prices:', error.message);
+            return {};
+        }
+    }
+
+    async fetchCMCDexPrices(tokens) {
+        try {
+            console.log('Fetching CMC DEX prices for tokens:', tokens.map(token => [token.symbol, token.cmcDexAddress]).join(', '));
+            const prices = {};
+            for (const token of tokens) {
+                if (!token.cmcDexAddress || !token.cmcDexNetwork) continue;
+
+                const response = await axios.get('https://pro-api.coinmarketcap.com/v4/dex/pairs/quotes/latest', {
+                    headers: {
+                        'X-CMC_PRO_API_KEY': '27bbe891-0ed7-4354-808c-8c128786965b'
+                    },
+                    params: {
+                        network_slug: token.cmcDexNetwork,
+                        contract_address: token.cmcDexAddress,
+                        convert_id: 2781 // USD
+                    }
+                });
+                console.log('CMC DEX price returned:', JSON.stringify(response.data, null, 2));
+                if (response.data && response.data.data && response.data.data.length > 0) {
+                    prices[token.cmcDexAddress] = response.data.data[0].quote[0].price.toString();
+                }
+            }
+            return prices;
+        } catch (error) {
+            console.error('Error fetching CMC DEX prices:', error.message);
+            return {};
+        }
+    }
+
     async getTokenList() {
         if (!this.initialized) {
             await this.initialize();
@@ -115,7 +205,6 @@ class TokenListService {
         return this.tokenList;
     }
 
-    // 设置回调函数的方法
     setTokenListUpdateCallback(callback) {
         this.onTokenListUpdate = callback;
     }

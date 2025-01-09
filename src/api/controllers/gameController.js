@@ -92,7 +92,7 @@ const postGameApprove = async (ctx) => {
       }
     }
     ctx.status = 200;
-    ctx.body = { message: 'Approved' };
+    ctx.body = { message: 'Approved', success: true };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
