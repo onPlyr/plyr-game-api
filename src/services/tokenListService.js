@@ -70,6 +70,8 @@ class TokenListService {
             } else {
                 console.error('Error fetching token list:', error.message);
             }
+            // Fetch prices from multiple sources
+            await this.updateTokenPrices(this.tokenList.tokens);
         }
     }
 
