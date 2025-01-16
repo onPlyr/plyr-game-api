@@ -78,11 +78,14 @@ async function main() {
           INSERT INTO address_to_tags
           (address_hash, tag_id, inserted_at, updated_at)
           VALUES (decode($1, 'hex'), $2, current_timestamp, current_timestamp);
-          
-          INSERT INTO address_names VALUES (decode($1, 'hex'),$3,false,current_timestamp,current_timestamp);
         `;
 
-        await client.query(insertQuery, [address.replace('0x', ''), newId, name]);
+        insertQuery2 = `INSERT INTO address_names VALUES (decode($1, 'hex'),$2,false,current_timestamp,current_timestamp);`
+
+        await Promise.all([
+          client.query(insertQuery, [address.replace('0x', ''), newId]),
+          client.query(insertQuery2, [address.replace('0x', ''), name])
+        ]);
 
         processedCount++;
         
