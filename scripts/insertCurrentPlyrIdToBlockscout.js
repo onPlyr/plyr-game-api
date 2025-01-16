@@ -80,7 +80,12 @@ async function main() {
           VALUES (decode($1, 'hex'), $2, current_timestamp, current_timestamp);
         `;
 
-        await client.query(insertQuery, [address.replace('0x', ''), newId]);
+        insertQuery2 = `INSERT INTO address_names VALUES (decode($1, 'hex'),$2,false,current_timestamp,current_timestamp);`
+
+        await Promise.all([
+          client.query(insertQuery, [address.replace('0x', ''), newId]),
+          client.query(insertQuery2, [address.replace('0x', ''), name])
+        ]);
 
         processedCount++;
         
