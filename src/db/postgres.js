@@ -68,7 +68,16 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
           DELETE FROM address_to_tags
           WHERE address_hash = decode($1, 'hex');
         `;
-        await client.query(deleteQuery, [address.replace('0x', '')]);
+
+        const deleteQuery2 = `
+          DELETE FROM address_names
+          WHERE address_hash = decode($1, 'hex');
+        `;
+
+        await Promise.all([
+          client.query(deleteQuery, [address.replace('0x', '')]),
+          client.query(deleteQuery2, [address.replace('0x', '')])
+        ]);
 
         insertQuery = `
           INSERT INTO address_to_tags
@@ -76,7 +85,12 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
           VALUES (decode($1, 'hex'), $2, current_timestamp, current_timestamp);
         `;
 
-        await client.query(insertQuery, [address.replace('0x', ''), newId]);
+        insertQuery2 = `INSERT INTO address_names VALUES (decode($1, 'hex'),$2,false,current_timestamp,current_timestamp);`
+
+        await Promise.all([
+          client.query(insertQuery, [address.replace('0x', ''), newId]),
+          client.query(insertQuery2, [address.replace('0x', ''), name])
+        ]);
     } catch (error) {
         console.error('Error inserting plyrId to Blockscout:', error);
     }
