@@ -85,7 +85,7 @@ async function insertPlyrIdToBlockscout(_plyrId, _address) {
           VALUES (decode($1, 'hex'), $2, current_timestamp, current_timestamp);
         `;
 
-        insertQuery2 = `INSERT INTO address_names VALUES (decode($1, 'hex'),$2,false,current_timestamp,current_timestamp);`
+        const insertQuery2 = `INSERT INTO address_names VALUES (decode($1, 'hex'),$2,false,current_timestamp,current_timestamp);`
 
         await Promise.all([
           client.query(insertQuery, [address.replace('0x', ''), newId]),
