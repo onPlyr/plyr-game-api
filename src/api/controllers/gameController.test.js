@@ -47,7 +47,7 @@ describe('Game Controller', () => {
       await gameController.postGameApprove(ctx);
 
       expect(ctx.status).toBe(200);
-      expect(ctx.body).toEqual({ message: 'Approved' });
+      expect(ctx.body).toEqual({ message: 'Approved', success: true });
     });
 
     test('handles errors', async () => {
