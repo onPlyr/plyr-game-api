@@ -903,6 +903,7 @@ exports.getUserBalance = async (ctx) => {
 
   // Track token symbols for mapping results
   const tokenSymbols = ['plyr'];
+  const tokenDecimals = [18];
 
   // Add balance check for each non-zero address token
   for (const [symbol, tokenInfo] of Object.entries(tokenList)) {
@@ -914,6 +915,7 @@ exports.getUserBalance = async (ctx) => {
         args: [user.mirror]
       }));
       tokenSymbols.push(symbol);
+      tokenDecimals.push(tokenInfo.decimals);
     }
   }
 
@@ -922,7 +924,7 @@ exports.getUserBalance = async (ctx) => {
   // Format response with all token balances
   const response = {};
   balances.forEach((balance, index) => {
-    response[tokenSymbols[index]] = formatEther(balance);
+    response[tokenSymbols[index]] = formatUnits(balance, tokenDecimals[index]);
   });
 
   ctx.status = 200;
@@ -949,6 +951,7 @@ exports.getAddressBalance = async (ctx) => {
 
   // Track token symbols for mapping results
   const tokenSymbols = ['plyr'];
+  const tokenDecimals = [18];
 
   // Add balance check for each non-zero address token
   for (const [symbol, tokenInfo] of Object.entries(tokenList)) {
@@ -960,6 +963,7 @@ exports.getAddressBalance = async (ctx) => {
         args: [address]
       }));
       tokenSymbols.push(symbol);
+      tokenDecimals.push(tokenInfo.decimals);
     }
   }
 
@@ -968,7 +972,7 @@ exports.getAddressBalance = async (ctx) => {
   // Format response with all token balances
   const response = {};
   balances.forEach((balance, index) => {
-    response[tokenSymbols[index]] = formatEther(balance);
+    response[tokenSymbols[index]] = formatUnits(balance, tokenDecimals[index]);
   });
 
   ctx.status = 200;
