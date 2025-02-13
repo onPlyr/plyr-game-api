@@ -7,11 +7,11 @@ const { checkTaskStatus } = require("../../services/task");
 const { logActivity } = require('../../utils/activity');
 
 const approve = async ({plyrId, gameId, token, tokens, amount, expiresIn}) => {
-  await UserApprove.updateOne({plyrId, gameId, token: token.toLowerCase()}, {plyrId, gameId, token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
+  await UserApprove.updateOne({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase()}, {plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase(), amount, expiresIn, createdAt: Date.now()}, {upsert: true});
 }
 
 const getAllowance = async ({plyrId, gameId, token}) => {
-  const userApprove = await UserApprove.findOne({plyrId, gameId, token: token.toLowerCase()});
+  const userApprove = await UserApprove.findOne({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase()});
   if (!userApprove || (userApprove.expiresIn * 1000) + new Date(userApprove.createdAt).getTime() < Date.now()) {
     return 0;
   }
@@ -19,12 +19,12 @@ const getAllowance = async ({plyrId, gameId, token}) => {
 }
 
 const getAllowances = async ({plyrId}) => {
-  const userApproves = await UserApprove.find({plyrId});
+  const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase()});
   return userApproves;
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
-  const query = { plyrId };
+  const query = { plyrId: plyrId.toLowerCase() };
   
   if (token.toLowerCase() !== 'all') {
     query.token = token.toLowerCase();
@@ -102,7 +102,7 @@ const postGameApprove = async (ctx) => {
 const getGameAllowance = async (ctx) => {
   const { plyrId, gameId, token } = ctx.params;
   try {
-    const allowance = await getAllowance({ plyrId, gameId, token: token.toLowerCase() });
+    const allowance = await getAllowance({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase() });
     ctx.status = 200;
     ctx.body = { allowance };
   } catch (error) {
@@ -114,7 +114,7 @@ const getGameAllowance = async (ctx) => {
 const getGameAllowances = async (ctx) => {
   const { plyrId } = ctx.params;
   try {
-    const allowances = await getAllowances({ plyrId });
+    const allowances = await getAllowances({ plyrId: plyrId.toLowerCase() });
     ctx.status = 200;
     ctx.body = { allowances };
   } catch (error) {
@@ -126,10 +126,10 @@ const getGameAllowances = async (ctx) => {
 const postGameRevoke = async (ctx) => {
   const { plyrId, gameId, token } = ctx.request.body;
   try {
-    await revoke({ plyrId, gameId, token });
+    await revoke({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase() });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
-    await logActivity(plyrId, gameId, 'game', 'revoke', { gameId, token: token.toLowerCase() });
+    await logActivity(plyrId.toLowerCase(), gameId, 'game', 'revoke', { gameId: gameId.toLowerCase(), token: token.toLowerCase() });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -165,10 +165,10 @@ const postGameRevokeBySignature = async (ctx) => {
       return;
     }
 
-    await revoke({ plyrId, gameId, token });
+    await revoke({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase() });
     ctx.status = 200;
     ctx.body = { message: 'Revoked' };
-    await logActivity(plyrId, gameId, 'game', 'revoke', { gameId, token: token.toLowerCase() });
+    await logActivity(plyrId.toLowerCase(), gameId.toLowerCase(), 'game', 'revoke', { gameId: gameId.toLowerCase(), token: token.toLowerCase() });
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -183,7 +183,7 @@ const postGameCreate = async (ctx) => {
     if (!expiresIn) {
       expiresIn = 30 * 24 * 60 * 60;
     }
-    const taskId = await insertTask({ gameId, expiresIn }, 'createGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), expiresIn }, 'createGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -212,9 +212,9 @@ const postGameJoin = async (ctx) => {
     // check all plyrId isJoined, and return unjoined plyrIds
     const unjoinedPlyrIds = [];
     for (const plyrId of plyrIds) {
-      const _joined = await isJoined({plyrId, gameId, roomId});
+      const _joined = await isJoined({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId});
       if (!_joined) {
-        unjoinedPlyrIds.push(plyrId);
+        unjoinedPlyrIds.push(plyrId.toLowerCase());
       }
     }
 
@@ -224,14 +224,14 @@ const postGameJoin = async (ctx) => {
       return;
     }
 
-    const taskId = await insertTask({ plyrIds: unjoinedPlyrIds, gameId, roomId }, 'joinGameRoom', sync);
+    const taskId = await insertTask({ plyrIds: unjoinedPlyrIds, gameId: gameId.toLowerCase(), roomId }, 'joinGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       let times = 50;
       while (times > 0) {
         let allJoined = true;
         for (const plyrId of plyrIds) {
-          const _joined = await isJoined({plyrId, gameId, roomId});
+          const _joined = await isJoined({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId});
           if (!_joined) {
             allJoined = false;
             break;
@@ -261,12 +261,12 @@ const postGameJoin = async (ctx) => {
 }
 
 const postGameLeave = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { roomId, sync } = ctx.request.body;
   try {
     const plyrIds = ctx.state.plyrIds;
     console.log('postGameLeave', {gameId, plyrIds, roomId, sync});
-    const taskId = await insertTask({ plyrIds, gameId, roomId }, 'leaveGameRoom', sync);
+    const taskId = await insertTask({ plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase() }, 'leaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -286,18 +286,18 @@ const postGameLeave = async (ctx) => {
 }
 
 const postGamePay = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { plyrId } = ctx.state.payload;
   const { roomId, token, amount, sync } = ctx.request.body;
   console.log('postGamePay', {gameId, plyrId, roomId, token, amount, sync});
   try {
-    const _joined = await isJoined({plyrId, gameId, roomId});
+    const _joined = await isJoined({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId});
     if (!_joined) {
       ctx.status = 400;
       ctx.body = { error: 'Player is not joined' };
       return;
     }
-    const taskId = await insertTask({ plyrId, gameId, roomId, token, amount }, 'payGameRoom', sync);
+    const taskId = await insertTask({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), token: token.toLowerCase(), amount }, 'payGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -317,8 +317,8 @@ const postGamePay = async (ctx) => {
 }
 
 const postGameBatchPay = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
-  const plyrIds = ctx.state.plyrIds;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
+  const plyrIds = ctx.state.plyrIds.map(plyrId => plyrId.toLowerCase());
   const { roomId, tokens, amounts, sync } = ctx.request.body;
   console.log('postGameBatchPay', {gameId, plyrIds, roomId, tokens, amounts, sync});
   if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
@@ -328,7 +328,7 @@ const postGameBatchPay = async (ctx) => {
   }
 
   try {
-    const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchPayGameRoom', sync);
+    const taskId = await insertTask({ plyrIds, gameId, roomId: roomId.toLowerCase(), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'batchPayGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -348,16 +348,16 @@ const postGameBatchPay = async (ctx) => {
 }
 
 const postGameEarn = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { plyrId, roomId, token, amount, sync } = ctx.request.body;
   try {
-    const _joined = await isJoined({plyrId, gameId, roomId});
+    const _joined = await isJoined({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase()});
     if (!_joined) {
       ctx.status = 400;
       ctx.body = { error: 'Player is not joined' };
       return;
     }
-    const taskId = await insertTask({ plyrId,gameId, roomId, token, amount }, 'earnGameRoom', sync);
+    const taskId = await insertTask({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), token: token.toLowerCase(), amount }, 'earnGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -377,7 +377,7 @@ const postGameEarn = async (ctx) => {
 }
 
 const postGameBatchEarn = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
   console.log('postGameBatchEarn', {gameId, plyrIds, roomId, tokens, amounts, sync});
   if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
@@ -386,7 +386,7 @@ const postGameBatchEarn = async (ctx) => {
     return;
   }
   try {
-    const taskId = await insertTask({ plyrIds, gameId, roomId, tokens, amounts }, 'batchEarnGameRoom', sync);
+    const taskId = await insertTask({ plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'batchEarnGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -406,11 +406,11 @@ const postGameBatchEarn = async (ctx) => {
 }
 
 const postGameEnd = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { roomId, sync } = ctx.request.body;  
   console.log('postGameEnd', {gameId, roomId, sync});
   try {
-    const taskId = await insertTask({ gameId, roomId }, 'endGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase() }, 'endGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -432,7 +432,7 @@ const postGameEnd = async (ctx) => {
 const postGameClose = async (ctx) => {
   const { gameId, roomId, sync } = ctx.request.body;
   try {
-    const taskId = await insertTask({ gameId, roomId }, 'closeGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase() }, 'closeGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -453,7 +453,7 @@ const postGameClose = async (ctx) => {
 
 const postGameCreateJoinPay = async (ctx) => {
   try {
-    const gameId = ctx.state.apiKey.plyrId;
+    const gameId = ctx.state.apiKey.plyrId.toLowerCase();
     const plyrIds = ctx.state.plyrIds;
     let { expiresIn, tokens, amounts, sync } = ctx.request.body;
     if (!expiresIn) {
@@ -466,7 +466,7 @@ const postGameCreateJoinPay = async (ctx) => {
       return;
     }
     console.log('postGameCreateJoinPay', {gameId, expiresIn, plyrIds, tokens, amounts, sync});
-    const taskId = await insertTask({ gameId, expiresIn, plyrIds, tokens, amounts }, 'createJoinPayGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), expiresIn, plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'createJoinPayGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -487,7 +487,7 @@ const postGameCreateJoinPay = async (ctx) => {
 
 const postGameJoinPay = async (ctx) => {
   try {
-    const gameId = ctx.state.apiKey.plyrId;
+    const gameId = ctx.state.apiKey.plyrId.toLowerCase();
     const plyrIds = ctx.state.plyrIds;
     let { roomId, tokens, amounts, sync } = ctx.request.body;
 
@@ -497,7 +497,7 @@ const postGameJoinPay = async (ctx) => {
       return;
     }
     console.log('postGameJoinPay', {gameId, roomId, plyrIds, tokens, amounts, sync});
-    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'joinPayGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'joinPayGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -518,7 +518,7 @@ const postGameJoinPay = async (ctx) => {
 
 const postGameEarnLeaveEnd = async (ctx) => {
   try {
-    const gameId = ctx.state.apiKey.plyrId;
+    const gameId = ctx.state.apiKey.plyrId.toLowerCase();
     const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
     if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
       ctx.status = 400;
@@ -526,7 +526,7 @@ const postGameEarnLeaveEnd = async (ctx) => {
       return;
     }
     console.log('postGameEarnLeaveEnd', {gameId, roomId, plyrIds, tokens, amounts, sync});
-    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveEndGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'earnLeaveEndGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -547,7 +547,7 @@ const postGameEarnLeaveEnd = async (ctx) => {
 
 const postGameEarnLeave = async (ctx) => {
   try {
-    const gameId = ctx.state.apiKey.plyrId;
+    const gameId = ctx.state.apiKey.plyrId.toLowerCase();
     const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
     if (plyrIds.length !== tokens.length || plyrIds.length !== amounts.length) {
       ctx.status = 400;
@@ -555,7 +555,7 @@ const postGameEarnLeave = async (ctx) => {
       return;
     }
     console.log('postGameEarnLeave', {gameId, roomId, plyrIds, tokens, amounts, sync});
-    const taskId = await insertTask({ gameId, roomId, plyrIds, tokens, amounts }, 'earnLeaveGameRoom', sync);
+    const taskId = await insertTask({ gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase(), plyrIds: plyrIds.map(plyrId => plyrId.toLowerCase()), tokens: tokens.map(token => token.toLowerCase()), amounts }, 'earnLeaveGameRoom', sync);
     ctx.status = 200;
     if (sync) {
       ctx.body = taskId;
@@ -575,7 +575,7 @@ const postGameEarnLeave = async (ctx) => {
 }
 
 const getIsJoined = async (ctx) => {
-  const gameId = ctx.state.apiKey.plyrId;
+  const gameId = ctx.state.apiKey.plyrId.toLowerCase();
   const { roomId, plyrId } = ctx.request.query;
 
   if (!plyrId) {
@@ -590,7 +590,7 @@ const getIsJoined = async (ctx) => {
     return;
   }
   
-  const ret = await isJoined({plyrId, gameId, roomId});
+  const ret = await isJoined({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), roomId: roomId.toLowerCase()});
   ctx.status = 200;
   ctx.body = { isJoined: ret };
 }
