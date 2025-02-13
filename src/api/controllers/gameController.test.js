@@ -199,7 +199,7 @@ describe('Game Controller', () => {
     test('successfully creates a game', async () => {
       ctx.request.body = { expiresIn: 3600 };
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
       };
 
       await gameController.postGameCreate(ctx);
@@ -216,7 +216,7 @@ describe('Game Controller', () => {
         '*',
         'createGameRoom',
         JSON.stringify({
-          gameId: 'testGameId',
+          gameId: 'testgameid',
           expiresIn: 3600,
         })
       );
@@ -225,7 +225,7 @@ describe('Game Controller', () => {
     test('uses default expiresIn when not provided', async () => {
       ctx.request.body = {};
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
       };
 
       await gameController.postGameCreate(ctx);
@@ -242,7 +242,7 @@ describe('Game Controller', () => {
         '*',
         'createGameRoom',
         JSON.stringify({
-          gameId: 'testGameId',
+          gameId: 'testgameid',
           expiresIn: 30 * 24 * 60 * 60,
         })
       );
@@ -251,9 +251,9 @@ describe('Game Controller', () => {
   
   describe('postGameLeave', () => {
     test('successfully leaves a game', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1', 'jwt2'] };
+      ctx.request.body = { roomId: 'testroom', sessionJwts: ['jwt1', 'jwt2'] };
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
         plyrIds: ['player1', 'player2'],
       };
   
@@ -272,8 +272,8 @@ describe('Game Controller', () => {
         'leaveGameRoom',
         JSON.stringify({
           plyrIds: ['player1', 'player2'],
-          gameId: 'testGameId',
-          roomId: 'testRoom',
+          gameId: 'testgameid',
+          roomId: 'testroom',
         })
       );
     });
@@ -281,15 +281,15 @@ describe('Game Controller', () => {
   
   describe('postGamePay', () => {
     test('successfully processes a payment', async () => {
-      ctx.request.body = { roomId: 'testRoom', sessionJwts: ['jwt1'], token: 'testToken', amount: 100 };
+      ctx.request.body = { roomId: 'testroom', sessionJwts: ['jwt1'], token: 'testtoken', amount: 100 };
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
         plyrIds: ['testplayer'],
         payload: {
           plyrId: 'testplayer',
-          gameId: 'testGameId',
-          roomId: 'testRoom',
-          token: 'testToken',
+          gameId: 'testgameid',
+          roomId: 'testroom',
+          token: 'testtoken',
           amount: 100,
         },
       };
@@ -312,9 +312,9 @@ describe('Game Controller', () => {
         'payGameRoom',
         JSON.stringify({
           plyrId: 'testplayer',
-          gameId: 'testGameId',
-          roomId: 'testRoom',
-          token: 'testToken',
+          gameId: 'testgameid',
+          roomId: 'testroom',
+          token: 'testtoken',
           amount: 100,
         })
       );
@@ -323,9 +323,9 @@ describe('Game Controller', () => {
   
   describe('postGameEarn', () => {
     test('successfully processes earnings', async () => {
-      ctx.request.body = { roomId: 'testRoom', plyrId: 'testplayer', token: 'testToken', amount: 200 };
+      ctx.request.body = { roomId: 'testroom', plyrId: 'testplayer', token: 'testtoken', amount: 200 };
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
       };
 
       isJoined.mockResolvedValue(true);
@@ -345,9 +345,9 @@ describe('Game Controller', () => {
         'earnGameRoom',
         JSON.stringify({
           plyrId: 'testplayer',
-          gameId: 'testGameId',
-          roomId: 'testRoom',
-          token: 'testToken',
+          gameId: 'testgameid',
+          roomId: 'testroom',
+          token: 'testtoken',
           amount: 200,
         })
       );
@@ -356,9 +356,9 @@ describe('Game Controller', () => {
 
   describe('postGameEnd', () => {
     test('successfully ends a game', async () => {
-      ctx.request.body = { roomId: 'testRoom' };
+      ctx.request.body = { roomId: 'testroom' };
       ctx.state = {
-        apiKey: { plyrId: 'testGameId' },
+        apiKey: { plyrId: 'testgameid' },
       };
 
       await gameController.postGameEnd(ctx);
@@ -375,8 +375,8 @@ describe('Game Controller', () => {
         '*',
         'endGameRoom',
         JSON.stringify({
-          gameId: 'testGameId',
-          roomId: 'testRoom',
+          gameId: 'testgameid',
+          roomId: 'testroom',
         })
       );
     });
@@ -384,7 +384,7 @@ describe('Game Controller', () => {
 
   describe('postGameClose', () => {
     test('successfully closes a game', async () => {
-      ctx.request.body = { gameId: 'testGameId', roomId: 'testRoom' };
+      ctx.request.body = { gameId: 'testgameid', roomId: 'testroom' };
 
       await gameController.postGameClose(ctx);
 
@@ -400,8 +400,8 @@ describe('Game Controller', () => {
         '*',
         'closeGameRoom',
         JSON.stringify({
-          gameId: 'testGameId',
-          roomId: 'testRoom',
+          gameId: 'testgameid',
+          roomId: 'testroom',
         })
       );
     });
