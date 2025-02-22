@@ -9,6 +9,7 @@ const withdrawController = require('../controllers/withdrawController');
 const instantPlayPassController = require('../controllers/instantPlayPassController');
 const activityLogsController = require('../controllers/activityLogsController');
 const nftController = require('../controllers/nftController');
+const permissionController = require('../controllers/permissionController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -114,5 +115,14 @@ router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
 
 // nft apis
 router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
+
+// permission apis
+router.post('/permission/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
+router.get('/permission/status/:plyrId', hmacAuth('user'), permissionController.getStatus);
+router.get('/permission/pending', hmacAuth('user'), permissionController.getPendingPermissions);
+router.post('/permission/reject', hmacAuth('user'), permissionController.postRejectPermission);
+router.post('/permission/approve', hmacAuth('user'), permissionController.postApprovePermission);
+router.post('/permission/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
+router.post('/permission/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
 
 module.exports = router;
