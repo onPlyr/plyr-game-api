@@ -12,6 +12,7 @@ const instantPlayPassController = require('../controllers/instantPlayPassControl
 const activityLogsController = require('../controllers/activityLogsController');
 const nftController = require('../controllers/nftController');
 const permissionController = require('../controllers/permissionController');
+const authController = require('../controllers/authController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -130,5 +131,9 @@ router.post('/developer/reject', hmacAuth('user'), permissionController.postReje
 router.post('/developer/approve', hmacAuth('user'), permissionController.postApprovePermission);
 router.post('/developer/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
 router.post('/developer/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
+
+// Authenticated apis for sidekick / plyr[connect]
+router.get('/auth/read/:uid', hmacAuth('user'), authController.getRead);
+router.post('/auth/revoke/:uid', hmacAuth('user'), authController.postRevoke);
 
 module.exports = router;
