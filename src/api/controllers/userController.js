@@ -658,7 +658,7 @@ exports.postLogin = async (ctx) => {
   }
 
   if (uid) {
-    await Auth.create({ uid: uid, data: JWT });
+    await Auth.create({ uid: uid, data: ctx.body });
   }
   await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
@@ -709,10 +709,6 @@ exports.postLoginAndApprove = async (ctx) => {
 
   delete payload.nonce;
 
-  if (uid) {
-    await Auth.create({ uid: uid, data: JWT });
-  }
-
   ctx.status = 200;
   ctx.body = {
     sessionJwt: JWT,
@@ -720,6 +716,10 @@ exports.postLoginAndApprove = async (ctx) => {
     avatar: getAvatarUrl(user.avatar),
     ippClaimed: user.ippClaimed,
     isIPP: user.isInstantPlayPass,
+  }
+
+  if (uid) {
+    await Auth.create({ uid: uid, data: ctx.body });
   }
 }
 

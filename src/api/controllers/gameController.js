@@ -93,12 +93,11 @@ const postGameApprove = async (ctx) => {
       }
     }
 
-    if (uid) {
-      await Auth.create({ uid, data: { message: 'Approved', success: true } });
-    }
-
     ctx.status = 200;
     ctx.body = { message: 'Approved', success: true };
+    if (uid) {
+      await Auth.create({ uid, data: ctx.body });
+    }
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
