@@ -117,12 +117,12 @@ router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
 router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
 
 // permission apis
-router.post('/permission/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
-router.get('/permission/status/:plyrId', hmacAuth('user'), permissionController.getStatus);
-router.get('/permission/pending', hmacAuth('user'), permissionController.getPendingPermissions);
-router.post('/permission/reject', hmacAuth('user'), permissionController.postRejectPermission);
-router.post('/permission/approve', hmacAuth('user'), permissionController.postApprovePermission);
-router.post('/permission/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
-router.post('/permission/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
+router.post('/developer/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
+router.get('/developer/status/:plyrId', hmacAuth('user'), permissionController.getStatus);
+router.get('/developer/list/:status', hmacAuth('user'), permissionController.getListingStatus);
+router.post('/developer/reject', hmacAuth('user'), permissionController.postRejectPermission);
+router.post('/developer/approve', hmacAuth('user'), permissionController.postApprovePermission);
+router.post('/developer/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
+router.post('/developer/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
 
 module.exports = router;

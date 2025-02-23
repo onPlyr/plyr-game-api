@@ -81,8 +81,9 @@ exports.postUpgradePermission = async (ctx) => {
   } 
 }
 
-exports.getPendingPermissions = async (ctx) => {
-  const p = await PermissionUpgrade.find({ status: 'pending' });
+exports.getListingStatus = async (ctx) => {
+  const status = ctx.params.status;
+  const p = await PermissionUpgrade.find({ status });
   ctx.status = 200;
   ctx.body = p;
   return;
