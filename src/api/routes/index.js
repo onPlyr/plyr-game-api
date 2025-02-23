@@ -11,6 +11,7 @@ const networkController = require('../controllers/networkController');
 const instantPlayPassController = require('../controllers/instantPlayPassController');
 const activityLogsController = require('../controllers/activityLogsController');
 const nftController = require('../controllers/nftController');
+const permissionController = require('../controllers/permissionController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -120,5 +121,14 @@ router.get('/network/lockedSupply', networkController.getLockedSupply);
 router.get('/network/totalSupply', networkController.getTotalSupply);
 // nft apis
 router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
+
+// permission apis
+router.post('/developer/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
+router.get('/developer/status/:plyrId', hmacAuth('user'), permissionController.getStatus);
+router.get('/developer/listing/:status', hmacAuth('user'), permissionController.getListingStatus);
+router.post('/developer/reject', hmacAuth('user'), permissionController.postRejectPermission);
+router.post('/developer/approve', hmacAuth('user'), permissionController.postApprovePermission);
+router.post('/developer/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
+router.post('/developer/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
 
 module.exports = router;

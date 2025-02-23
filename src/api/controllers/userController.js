@@ -4,7 +4,6 @@ const { calcMirrorAddress } = require('../../utils/calcMirror');
 const { verifyPlyrid, getAvatarUrl, is2faUsed } = require('../../utils/utils');
 const { getRedisClient } = require('../../db/redis');
 const Secondary = require('../../models/secondary');
-const ApiKey = require('../../models/apiKey');
 const { authenticator } = require('otplib');
 const { generateJwtToken, verifyToken } = require('../../utils/jwt');
 const config = require('../../config');
@@ -1150,3 +1149,9 @@ exports.getAvatars = async (ctx) => {
     })),
   };
 }
+
+
+exports.getJwtStorageByRandom = async (ctx) => { }
+
+exports.revokeJwtStorageByRandom = async (ctx) => { }
+

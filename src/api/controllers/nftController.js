@@ -83,6 +83,8 @@ exports.getNft = async (ctx) => {
 
     const nfts = await getNftByAddresses(_chain, _contract, addrs);
 
+    console.log('getNftByAddresses', nfts.length);
+
     const metaJsons = await getMetaJson(nfts.map(nft => nft.nft.tokenURI));
 
     ctx.status = 200;
