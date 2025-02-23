@@ -13,7 +13,7 @@ const InstantPlayPass = require('../../models/instantPlayPass');
 const { logActivity } = require('../../utils/activity');
 const redis = getRedisClient();
 const { insertPlyrIdToBlockscout } = require('../../db/postgres');
-const Sidekick = require('../../models/sidekick');
+const Auth = require('../../models/auth');
 
 authenticator.options = {
   step: 30,
@@ -628,7 +628,7 @@ exports.getSecondary = async (ctx) => {
 }
 
 exports.postLogin = async (ctx) => {
-  let { plyrId, expiresIn, gameId, sidekickRandom } = ctx.request.body;
+  let { plyrId, expiresIn, gameId, uid } = ctx.request.body;
   console.log('postLogin', plyrId, expiresIn, gameId);
   const user = ctx.state.user;
   const userApiKey = ctx.state.apiKey;
@@ -657,14 +657,14 @@ exports.postLogin = async (ctx) => {
     isIPP: user.isInstantPlayPass,
   }
 
-  if (sidekickRandom) {
-    await Sidekick.create({ random: sidekickRandom, jwt: JWT });
+  if (uid) {
+    await Auth.create({ uid: uid, data: JWT });
   }
   await logActivity(plyrId, gameId, 'user', 'login', { gameId });
 }
 
 exports.postLoginAndApprove = async (ctx) => {
-  const { plyrId, expiresIn, gameId, token, tokens, amount, amounts, sidekickRandom } = ctx.request.body;
+  const { plyrId, expiresIn, gameId, token, tokens, amount, amounts, uid } = ctx.request.body;
   console.log('postLoginAndApprove', plyrId, expiresIn, gameId, token, tokens, amount);
   const user = ctx.state.user;
   const nonce = user.nonce ? user.nonce : {};
@@ -709,8 +709,8 @@ exports.postLoginAndApprove = async (ctx) => {
 
   delete payload.nonce;
 
-  if (sidekickRandom) {
-    await Sidekick.create({ random: sidekickRandom, jwt: JWT });
+  if (uid) {
+    await Auth.create({ uid: uid, data: JWT });
   }
 
   ctx.status = 200;

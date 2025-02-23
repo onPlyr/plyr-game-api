@@ -2,6 +2,7 @@ const { verifyMessage } = require("viem");
 const { getRedisClient } = require("../../db/redis");
 const UserApprove = require('../../models/userApprove');
 const UserInfo = require("../../models/userInfo");
+const Auth = require('../../models/auth');
 const { isJoined } = require("../../services/game");
 const { checkTaskStatus } = require("../../services/task");
 const { logActivity } = require('../../utils/activity');
@@ -62,7 +63,7 @@ const insertTask = async (params, taskName, sync = false) => {
 }
 
 const postGameApprove = async (ctx) => {
-  const { plyrId, gameId, token, tokens, amount, amounts, expiresIn } = ctx.request.body;
+  const { plyrId, gameId, token, tokens, amount, amounts, expiresIn, uid } = ctx.request.body;
   console.log('postGameApprove', plyrId, gameId, token, tokens, amount, expiresIn);
   try {
     if (!plyrId || !gameId) {
@@ -91,6 +92,11 @@ const postGameApprove = async (ctx) => {
         await logActivity(plyrId, gameId, 'game', 'approve', { gameId, token: tokens[i].toLowerCase(), amount: amounts[i] });
       }
     }
+
+    if (uid) {
+      await Auth.create({ uid, data: { message: 'Approved', success: true } });
+    }
+
     ctx.status = 200;
     ctx.body = { message: 'Approved', success: true };
   } catch (error) {
