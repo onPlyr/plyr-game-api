@@ -13,7 +13,7 @@ exports.getNftByAddresses = async (chain, contract, addrs) => {
     const url = nftSubgraphs[chain];
     const query = `
         query {
-            ownerships(where: { nft_: { contract: "${contract}" }, owner_in: ${JSON.stringify(addrs.map(addr => addr.toLowerCase()))} }) {
+            ownerships(first: 1000, where: { nft_: { contract: "${contract}" }, owner_in: ${JSON.stringify(addrs.map(addr => addr.toLowerCase()))} }) {
                 owner
                 nft {
                     tokenID
