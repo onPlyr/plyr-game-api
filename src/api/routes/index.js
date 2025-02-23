@@ -10,6 +10,7 @@ const instantPlayPassController = require('../controllers/instantPlayPassControl
 const activityLogsController = require('../controllers/activityLogsController');
 const nftController = require('../controllers/nftController');
 const permissionController = require('../controllers/permissionController');
+const sidekickController = require('../controllers/sidekickController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -124,5 +125,9 @@ router.post('/developer/reject', hmacAuth('user'), permissionController.postReje
 router.post('/developer/approve', hmacAuth('user'), permissionController.postApprovePermission);
 router.post('/developer/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
 router.post('/developer/resetApiKey', hmacAuth('user'), permissionController.resetApiKey);
+
+// sidekick apis
+router.get('/sidekick/authenticatedData/read/:sidekickRandom', hmacAuth('user'), sidekickController.getReadJwt);
+router.post('/sidekick/authenticatedData/revoke/:sidekickRandom', hmacAuth('user'), sidekickController.postRevokeJwt);
 
 module.exports = router;
