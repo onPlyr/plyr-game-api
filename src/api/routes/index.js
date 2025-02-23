@@ -119,7 +119,7 @@ router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getN
 // permission apis
 router.post('/developer/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
 router.get('/developer/status/:plyrId', hmacAuth('user'), permissionController.getStatus);
-router.get('/developer/list/:status', hmacAuth('user'), permissionController.getListingStatus);
+router.get('/developer/listing/:status', hmacAuth('user'), permissionController.getListingStatus);
 router.post('/developer/reject', hmacAuth('user'), permissionController.postRejectPermission);
 router.post('/developer/approve', hmacAuth('user'), permissionController.postApprovePermission);
 router.post('/developer/revealApiKey', hmacAuth('user'), permissionController.postRevealApiKey)
