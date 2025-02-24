@@ -156,7 +156,7 @@ exports.postRejectPermission = async (ctx) => {
 
     await isPendingPermissionUpgrade(plyrId);
 
-    const signatureMessage = `Approve ${plyrId.toUpperCase()}\'s permission upgrade`;
+    const signatureMessage = `Reject ${plyrId.toUpperCase()}\'s permission upgrade`;
 
     const address = await recoverMessageAddress({
       message: signatureMessage,
@@ -171,16 +171,9 @@ exports.postRejectPermission = async (ctx) => {
 
     await PermissionUpgrade.updateOne({ plyrId }, { status: 'failed', approvedBy: admin.name, approvedAt: Date.now() });
 
-    await ApiKey.create({
-      plyrId,
-      apiKey: generateApiKey(),
-      secretKey: generateSecretKey(),
-      role: 'game'
-    });
-
     ctx.status = 200;
     ctx.body = {
-      message: 'Permission upgrade approved'
+      message: 'Permission upgrade rejected'
     };
   } catch (error) {
     ctx.status = 400;
