@@ -149,10 +149,12 @@ exports.postApprovePermission = async (ctx) => {
 
 exports.postRejectPermission = async (ctx) => {
   let { plyrId, signature } = ctx.request.body;
+  console.log('postRejectPermission 1', { plyrId, signature });
 
   try {
 
     plyrId = plyrId.toLowerCase();
+
 
     await isPendingPermissionUpgrade(plyrId);
 
@@ -163,7 +165,11 @@ exports.postRejectPermission = async (ctx) => {
       signature
     });
 
+    console.log('postRejectPermission 2', { address, signatureMessage, signature });
+
     const admin = await Admin.findOne({ address });
+
+    console.log('postRejectPermission 3', { admin });
 
     if (!admin) {
       throw new Error('Invalid signature');
