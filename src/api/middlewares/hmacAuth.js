@@ -44,11 +44,20 @@ function hmacAuth(requiredRole) {
       return;
     }
 
-    // Check role
-    if (requiredRole && apiKeyDoc.role !== requiredRole && apiKeyDoc.role !== 'admin') {
-      ctx.status = 403;
-      ctx.body = { error: 'Insufficient permissions' };
-      return;
+    // Define roles hierarchy from lowest to highest
+    const roles = ['user', 'game', 'admin'];
+
+    // Check role - allow access if the API key's role is higher in the hierarchy
+    if (requiredRole) {
+      const requiredRoleIndex = roles.indexOf(requiredRole);
+      const apiKeyRoleIndex = roles.indexOf(apiKeyDoc.role);
+      
+      // If either role is not in our hierarchy or the API key's role is lower than required
+      if (requiredRoleIndex === -1 || apiKeyRoleIndex === -1 || apiKeyRoleIndex < requiredRoleIndex) {
+        ctx.status = 403;
+        ctx.body = { error: 'Insufficient permissions' };
+        return;
+      }
     }
 
     ctx.state.apiKey = apiKeyDoc;
