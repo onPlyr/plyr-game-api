@@ -116,6 +116,18 @@ const getGameAllowance = async (ctx) => {
   }
 }
 
+const getGameAllowanceByGameId = async (ctx) => {
+  const { plyrId, gameId } = ctx.params;
+  try {
+    const allowance = await getAllowance({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase() });
+    ctx.status = 200;
+    ctx.body = { allowance };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
 const getGameAllowances = async (ctx) => {
   const { plyrId } = ctx.params;
   try {
@@ -603,6 +615,7 @@ const getIsJoined = async (ctx) => {
 module.exports = {
   postGameApprove,
   getGameAllowance,
+  getGameAllowanceByGameId,
   getGameAllowances,
   postGameRevoke,
   postGameRevokeBySignature,
