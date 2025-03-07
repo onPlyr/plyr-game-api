@@ -28,7 +28,10 @@ const getAllowancesByGame = async ({plyrId, gameId}) => {
     return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
   }).map(approval => {
     // Convert to plain object if it's a Mongoose document
-    return approval.toObject ? approval.toObject() : {...approval};
+    let ret = approval.toObject ? approval.toObject() : {...approval};
+    delete ret._id;
+    delete ret.__v;
+    return ret;
   });
   
   return result;
@@ -43,7 +46,10 @@ const getAllowances = async ({plyrId}) => {
     return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
   }).map(approval => {
     // Convert to plain object if it's a Mongoose document
-    return approval.toObject ? approval.toObject() : {...approval};
+    let ret = approval.toObject ? approval.toObject() : {...approval};
+    delete ret._id;
+    delete ret.__v;
+    return ret;
   });
   
   return result;
