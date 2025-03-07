@@ -19,9 +19,40 @@ const getAllowance = async ({plyrId, gameId, token}) => {
   return userApprove.amount;
 }
 
+const getAllowancesByGame = async ({plyrId, gameId}) => {
+  const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase()});
+  
+  // Filter out expired approvals
+  const result = userApproves.filter(approval => {
+    // Check if the approval is still valid (not expired)
+    return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
+  }).map(approval => {
+    // Convert to plain object if it's a Mongoose document
+    let ret = approval.toObject ? approval.toObject() : {...approval};
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  });
+  
+  return result;
+}
+
 const getAllowances = async ({plyrId}) => {
   const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase()});
-  return userApproves;
+  
+  // Filter out expired approvals
+  const result = userApproves.filter(approval => {
+    // Check if the approval is still valid (not expired)
+    return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
+  }).map(approval => {
+    // Convert to plain object if it's a Mongoose document
+    let ret = approval.toObject ? approval.toObject() : {...approval};
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  });
+  
+  return result;
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
@@ -110,6 +141,18 @@ const getGameAllowance = async (ctx) => {
     const allowance = await getAllowance({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase(), token: token.toLowerCase() });
     ctx.status = 200;
     ctx.body = { allowance };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: error.message };
+  }
+}
+
+const getGameAllowanceByGameId = async (ctx) => {
+  const { plyrId, gameId } = ctx.params;
+    try {
+    const allowances = await getAllowancesByGame({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase() });
+    ctx.status = 200;
+    ctx.body = { allowances };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
@@ -603,6 +646,7 @@ const getIsJoined = async (ctx) => {
 module.exports = {
   postGameApprove,
   getGameAllowance,
+  getGameAllowanceByGameId,
   getGameAllowances,
   postGameRevoke,
   postGameRevokeBySignature,
