@@ -19,20 +19,31 @@ const getAllowance = async ({plyrId, gameId, token}) => {
   return userApprove.amount;
 }
 
+const getAllowancesByGame = async ({plyrId, gameId}) => {
+  const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase()});
+  
+  // Filter out expired approvals
+  const result = userApproves.filter(approval => {
+    // Check if the approval is still valid (not expired)
+    return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
+  }).map(approval => {
+    // Convert to plain object if it's a Mongoose document
+    return approval.toObject ? approval.toObject() : {...approval};
+  });
+  
+  return result;
+}
+
 const getAllowances = async ({plyrId}) => {
   const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase()});
   
-  // Check for expired approvals and update the amount accordingly
-  const result = userApproves.map(approval => {
-    // Create a new object to avoid modifying the original document
-    const approvalData = approval.toObject ? approval.toObject() : {...approval};
-    
-    // Check if the approval is expired
-    if ((approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() < Date.now()) {
-      approvalData.amount = 0;
-    }
-    
-    return approvalData;
+  // Filter out expired approvals
+  const result = userApproves.filter(approval => {
+    // Check if the approval is still valid (not expired)
+    return (approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() >= Date.now();
+  }).map(approval => {
+    // Convert to plain object if it's a Mongoose document
+    return approval.toObject ? approval.toObject() : {...approval};
   });
   
   return result;
@@ -132,25 +143,8 @@ const getGameAllowance = async (ctx) => {
 
 const getGameAllowanceByGameId = async (ctx) => {
   const { plyrId, gameId } = ctx.params;
-  try {
-    // Find all approvals for this plyrId and gameId
-    const userApproves = await UserApprove.find({
-      plyrId: plyrId.toLowerCase(), 
-      gameId: gameId.toLowerCase()
-    });
-    
-    // Format the response with all token allowances for this game
-    const allowances = {};
-    
-    for (const approval of userApproves) {
-      // Check if the approval is expired
-      if ((approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() < Date.now()) {
-        allowances[approval.token] = 0;
-      } else {
-        allowances[approval.token] = approval.amount;
-      }
-    }
-    
+    try {
+    const allowances = await getAllowancesByGame({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase() });
     ctx.status = 200;
     ctx.body = { allowances };
   } catch (error) {
