@@ -374,7 +374,7 @@ const combineSamePlyrId = (plyrIds, tokens, amounts) => {
     if (index === -1) {
       result.push({ plyrId, token, amount });
     } else {
-      result[index].amount = formatEther(parseEther(result[index].amount) + parseEther(amount));
+      result[index].amount = formatEther(parseEther(result[index].amount.toString()) + parseEther(amount.toString()));
     }
   }
   return {
