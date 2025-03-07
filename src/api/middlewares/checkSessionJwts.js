@@ -54,8 +54,8 @@ const checkSessionJwts = async (ctx, next) => {
       }
 
       const deadline = user.deadline ? user.deadline : {};
-      const gameDeadline = deadline[gameId] ? deadline[gameId] : 0;
-      if (gameDeadline > Date.now()) {
+      const gameDeadline = deadline[gameId] ? deadline[gameId] : (Date.now() + 86400*1000);
+      if (gameDeadline < Date.now()) {
         isAllValid = false;
         invalidPlyrIds[plyrId] = 'JWT deadline is expired';
         return;
