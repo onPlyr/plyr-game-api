@@ -1094,7 +1094,11 @@ exports.postDiscardSessionBySignature = async (ctx) => {
   
   const deadline = user.deadline ? user.deadline : {};
   delete deadline[gameId];
-  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline } });
+
+  const nonce = user.nonce ? user.nonce : {};
+  nonce[gameId] = nonce[gameId] ? nonce[gameId] + 1 : 1;
+
+  await UserInfo.updateOne({ plyrId: user.plyrId }, { $set: { deadline, nonce } });
 
   ctx.status = 200;
   ctx.body = {
