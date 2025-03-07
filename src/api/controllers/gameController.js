@@ -1,4 +1,4 @@
-const { verifyMessage } = require("viem");
+const { verifyMessage, parseEther, formatEther } = require("viem");
 const { getRedisClient } = require("../../db/redis");
 const UserApprove = require('../../models/userApprove');
 const UserInfo = require("../../models/userInfo");
@@ -364,10 +364,32 @@ const postGamePay = async (ctx) => {
   }
 }
 
+const combineSamePlyrId = (plyrIds, tokens, amounts) => {
+  const result = [];
+  for (let i = 0; i < plyrIds.length; i++) {
+    const plyrId = plyrIds[i];
+    const token = tokens[i];
+    const amount = amounts[i];
+    const index = result.findIndex(item => item.plyrId.toLowerCase() === plyrId.toLowerCase() && item.token.toLowerCase() === token.toLowerCase());
+    if (index === -1) {
+      result.push({ plyrId, token, amount });
+    } else {
+      result[index].amount = formatEther(parseEther(result[index].amount) + parseEther(amount));
+    }
+  }
+  return {
+    plyrIds: result.map(item => item.plyrId),
+    tokens: result.map(item => item.token),
+    amounts: result.map(item => item.amount),
+  };
+}
+
 const postGameBatchPay = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId.toLowerCase();
-  const plyrIds = ctx.state.plyrIds.map(plyrId => plyrId.toLowerCase());
-  const { roomId, tokens, amounts, sync } = ctx.request.body;
+  let plyrIds = ctx.state.plyrIds.map(plyrId => plyrId.toLowerCase());
+  let { roomId, tokens, amounts, sync } = ctx.request.body;
+  ({ plyrIds, tokens, amounts } = combineSamePlyrId(plyrIds, tokens, amounts));
+
   console.log('postGameBatchPay', {gameId, plyrIds, roomId, tokens, amounts, sync});
   if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
     ctx.status = 400;
@@ -426,7 +448,8 @@ const postGameEarn = async (ctx) => {
 
 const postGameBatchEarn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId.toLowerCase();
-  const { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+  let { plyrIds, roomId, tokens, amounts, sync } = ctx.request.body;
+  ({ plyrIds, tokens, amounts } = combineSamePlyrId(plyrIds, tokens, amounts));
   console.log('postGameBatchEarn', {gameId, plyrIds, roomId, tokens, amounts, sync});
   if (tokens.length !== amounts.length || tokens.length !== plyrIds.length) {
     ctx.status = 400;
