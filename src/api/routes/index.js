@@ -86,7 +86,7 @@ router.post('/airdrop/claimAllClaimableReward', hmacAuth('user'), airdropControl
 // game apis
 router.post('/game/approve', hmacAuth('user'), otpAuth, checkToken, checkGameId, gameController.postGameApprove);
 router.get('/game/allowance/:plyrId/:gameId/:token', hmacAuth('user'), gameController.getGameAllowance);
-router.get('/game/allowance-by-game/:plyrId/:gameId', hmacAuth('user'), gameController.getGameAllowanceByGameId);
+router.get('/game/allowanceByGameId/:plyrId/:gameId', hmacAuth('user'), gameController.getGameAllowanceByGameId);
 router.get('/game/allowances/:plyrId', hmacAuth('user'), gameController.getGameAllowances);
 router.post('/game/revoke', hmacAuth('user'), otpAuth, gameController.postGameRevoke);
 router.post('/game/revokeBySignature', hmacAuth('user'), gameController.postGameRevokeBySignature);
