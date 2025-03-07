@@ -21,7 +21,21 @@ const getAllowance = async ({plyrId, gameId, token}) => {
 
 const getAllowances = async ({plyrId}) => {
   const userApproves = await UserApprove.find({plyrId: plyrId.toLowerCase()});
-  return userApproves;
+  
+  // Check for expired approvals and update the amount accordingly
+  const result = userApproves.map(approval => {
+    // Create a new object to avoid modifying the original document
+    const approvalData = approval.toObject ? approval.toObject() : {...approval};
+    
+    // Check if the approval is expired
+    if ((approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() < Date.now()) {
+      approvalData.amount = 0;
+    }
+    
+    return approvalData;
+  });
+  
+  return result;
 }
 
 const revoke = async ({plyrId, gameId, token}) => {
@@ -119,9 +133,26 @@ const getGameAllowance = async (ctx) => {
 const getGameAllowanceByGameId = async (ctx) => {
   const { plyrId, gameId } = ctx.params;
   try {
-    const allowance = await getAllowance({ plyrId: plyrId.toLowerCase(), gameId: gameId.toLowerCase() });
+    // Find all approvals for this plyrId and gameId
+    const userApproves = await UserApprove.find({
+      plyrId: plyrId.toLowerCase(), 
+      gameId: gameId.toLowerCase()
+    });
+    
+    // Format the response with all token allowances for this game
+    const allowances = {};
+    
+    for (const approval of userApproves) {
+      // Check if the approval is expired
+      if ((approval.expiresIn * 1000) + new Date(approval.createdAt).getTime() < Date.now()) {
+        allowances[approval.token] = 0;
+      } else {
+        allowances[approval.token] = approval.amount;
+      }
+    }
+    
     ctx.status = 200;
-    ctx.body = { allowance };
+    ctx.body = { allowances };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: error.message };
