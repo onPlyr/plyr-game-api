@@ -17,6 +17,8 @@ exports.postChipCreate = async (ctx) => {
 
   const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol}, 'createGameChip', true);
   if (ret.status === 'SUCCESS') {
+    const { chip } = ret.taskData;
+    await Chip.updateOne({ gameId, chip }, { $set: { image } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
@@ -129,7 +131,7 @@ exports.getBalance = async (ctx) => {
 }
 
 exports.getInfo = async (ctx) => {
-  
+
 }
 
 const insertTask = async (params, taskName, sync = false) => {
