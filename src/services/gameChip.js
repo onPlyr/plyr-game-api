@@ -4,7 +4,7 @@ const { logActivity } = require('../utils/activity');
 const { getAddress, decodeEventLog, parseEther } = require('viem');
 const Chip = require('../models/chip');
 
-async function createGameChip({gameId, name, symbol}) {
+async function create({gameId, name, symbol}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -48,7 +48,7 @@ async function createGameChip({gameId, name, symbol}) {
   return {hash, result};
 }
 
-async function mintGameChips({chips, plyrIds, amounts}) {
+async function mint({chips, plyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -73,7 +73,7 @@ async function mintGameChips({chips, plyrIds, amounts}) {
   return {hash, result};
 }
 
-async function burnGameChips({chips, plyrIds, amounts}) {
+async function burn({chips, plyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -98,7 +98,7 @@ async function burnGameChips({chips, plyrIds, amounts}) {
   return {hash, result};
 }
 
-async function transferGameChips({chips, fromPlyrIds, toPlyrIds, amounts}) {
+async function transfer({chips, fromPlyrIds, toPlyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -125,4 +125,4 @@ async function transferGameChips({chips, fromPlyrIds, toPlyrIds, amounts}) {
   return {hash, result};
 }
 
-module.exports = { createGameChip, mintGameChips, burnGameChips, transferGameChips };
+module.exports = { create, mint, burn, transfer };

@@ -7,6 +7,7 @@ const { claimAirdropReward } = require('../services/airdrop');
 const { createWithdrawTx } = require('../services/withdraw');
 
 const gameRoom = require('../services/game');
+const gameChip = require('../services/gameChip');
 
 const redis = getRedisClient();
 
@@ -89,6 +90,14 @@ async function processMessage(id, message) {
         console.log('Processing game room task:', key, obj);
         let func = key.split('GameRoom')[0];
         const {hash: _hash, result: _result} = await gameRoom[func](obj);
+        hash = _hash;
+        result = _result;
+      }
+
+      if (key.includes('GameChip')) {
+        console.log('Processing game chip task:', key, obj);
+        let func = key.split('GameChip')[0];
+        const {hash: _hash, result: _result} = await gameChip[func](obj);
         hash = _hash;
         result = _result;
       }
