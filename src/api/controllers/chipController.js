@@ -2,7 +2,7 @@ const Chip = require('../../models/chip');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
 const { getAddress, erc20Abi, formatEther } = require('viem');
-const { chain } = require('../../config');
+const { chain, plyrRouterSC } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 
 
@@ -16,7 +16,7 @@ const postChipCreate = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol}, 'createGameChip', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol, image }, 'createGameChip', true);
   if (ret.status === 'SUCCESS') {
     const { chip } = ret.taskData;
     await Chip.updateOne({ gameId, chip }, { $set: { image } });
@@ -220,13 +220,35 @@ const getInfo = async (ctx) => {
     return;
   }
 
-  for(let i=0; i<chips.length; i++) {
-    delete chips[i]._id;
-    delete chips[i].__v;
-  }
+  let ret = await Promise.all(chips.map(async (chip) => {
+    let totalSupply = await chain.readContract({
+      address: chip.chip,
+      abi: erc20Abi,
+      functionName: 'totalSupply',
+      args: []
+    });
+    totalSupply = formatEther(totalSupply);
+
+    let holderCount = await chain.readContract({
+      address: plyrRouterSC,
+      abi: ROUTER_ABI,
+      functionName: 'holderCount',
+      args: [chip.chip]
+    });
+
+    return {
+      gameId: chip.gameId,
+      chip: chip.chip,
+      name: chip.name,
+      symbol: chip.symbol,
+      image: chip.image,
+      totalSupply,
+      holderCount,
+    };
+  }));
 
   ctx.status = 200;
-  ctx.body = chips;
+  ctx.body = ret;
 }
 
 const insertTask = async (params, taskName, sync = false) => {

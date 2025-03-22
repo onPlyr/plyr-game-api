@@ -4,7 +4,7 @@ const { logActivity } = require('../utils/activity');
 const { getAddress, decodeEventLog, parseEther } = require('viem');
 const Chip = require('../models/chip');
 
-async function create({gameId, name, symbol}) {
+async function create({gameId, name, symbol, image}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -36,8 +36,8 @@ async function create({gameId, name, symbol}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'ChipCreated') {
         const { chip, gameId } = decodedLog.args;
-        await Chip.updateOne({ gameId, chip }, { $set: { gameId, chip, name, symbol } }, { upsert: true });
-        result = { gameId, chip, name, symbol, hash };
+        await Chip.updateOne({ gameId, chip }, { $set: { gameId, chip, name, symbol, image } }, { upsert: true });
+        result = { gameId, chip, name, symbol, image, hash };
         await logActivity(gameId, gameId, 'gameChip', 'create', { gameId, chip, hash, success: receipt.status });
       }
     } catch (error) {
