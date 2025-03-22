@@ -48,7 +48,7 @@ async function create({gameId, name, symbol}) {
   return {hash, result};
 }
 
-async function mint({chips, plyrIds, amounts}) {
+async function mint({gameId, chips, plyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -73,7 +73,7 @@ async function mint({chips, plyrIds, amounts}) {
   return {hash, result};
 }
 
-async function burn({chips, plyrIds, amounts}) {
+async function burn({gameId,chips, plyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
@@ -98,7 +98,7 @@ async function burn({chips, plyrIds, amounts}) {
   return {hash, result};
 }
 
-async function transfer({chips, fromPlyrIds, toPlyrIds, amounts}) {
+async function transfer({gameId, chips, fromPlyrIds, toPlyrIds, amounts}) {
   let result = {};
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
