@@ -1,4 +1,4 @@
-const { chain, plyrRouterSC, ROUTER_ABI } = require('../config');
+const { chain, plyrRouterSC, ROUTER_ABI, GAME_CHIP_FACTORY_ABI } = require('../config');
 const { sendAndWaitTx } = require('../utils/tx');
 const { logActivity } = require('../utils/activity');
 const { getAddress, decodeEventLog, parseEther } = require('viem');
@@ -29,7 +29,7 @@ async function create({gameId, name, symbol}) {
     const log = receipt.logs[i];
     try {
       const decodedLog = decodeEventLog({
-        abi: ROUTER_ABI,
+        abi: GAME_CHIP_FACTORY_ABI,
         data: log.data,
         topics: log.topics,
       });
