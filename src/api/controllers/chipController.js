@@ -237,7 +237,7 @@ const getInfo = async (ctx) => {
       symbol: chip.symbol,
       image: chip.image,
       totalSupply: formatEther(info[4]),
-      holderCount: info[5],
+      holderCount: info[5].toString(),
     };
   }));
 
