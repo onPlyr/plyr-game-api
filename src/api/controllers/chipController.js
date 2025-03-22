@@ -166,7 +166,7 @@ const getBalance = async (ctx) => {
 
   let balances = await Promise.all(chips.map(async (chip)=>{
     const balance = await chain.readContract({
-      chip: chip.chip,
+      address: chip.chip,
       abi: erc20Abi,
       functionName: 'balanceOf',
       args: [user.mirror]
