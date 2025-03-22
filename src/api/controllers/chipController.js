@@ -200,7 +200,7 @@ const getBalance = async (ctx) => {
 const getInfo = async (ctx) => {
   const { gameId, chip } = ctx.query;
 
-  if(!gameId || !chip) {
+  if(!gameId && !chip) {
     ctx.status = 400;
     ctx.body = { error: 'gameId or chip are required' };
     return;
