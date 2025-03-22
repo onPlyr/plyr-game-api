@@ -103,7 +103,7 @@ async function transfer({gameId, chips, fromPlyrIds, toPlyrIds, amounts}) {
   const receipt = await sendAndWaitTx({
     address: plyrRouterSC,
     abi: ROUTER_ABI,
-    functionName: 'transferGameChips',
+    functionName: 'gameTransferGameChips',
     args: [
       chips,
       fromPlyrIds.map(plyrId => plyrId.slice(-5) === '.plyr' ? plyrId : plyrId + '.plyr'),
