@@ -1,8 +1,9 @@
-
 const Chip = require('../../models/chip');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
 const { getAddress } = require('viem');
+const { chain } = require('../../config');
+const UserInfo = require('../../models/userInfo');
 
 
 exports.postChipCreate = async (ctx) => {
@@ -127,11 +128,105 @@ exports.postChipTransfer = async (ctx) => {
 }
 
 exports.getBalance = async (ctx) => {
+  const { plyrId, gameId, chip } = ctx.query;
 
+  if(!plyrId) {
+    ctx.status = 400;
+    ctx.body = { error: 'plyrId is required' };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = { error: 'user not found' };
+    return;
+  }
+  
+  // Build query object with only defined filters
+  const query = {};
+  
+  // Only add gameId to query if it's defined
+  if (gameId !== undefined) {
+    query.gameId = gameId.toLowerCase();
+  }
+  
+  // Only add chip to query if it's defined
+  if (chip !== undefined) {
+    query.chip = getAddress(chip);
+  }
+  
+  // Execute the query with only the defined filters
+  const chips = await Chip.find(query);
+  if (!chips || chips.length === 0) {
+    ctx.status = 404;
+    ctx.body = { error: 'chip not found' };
+    return;
+  }
+
+  let balances = await Promise.all(chips.map(async (chip)=>{
+    const balance = await chain.readContract({
+      chip: chip.chip,
+      abi: erc20Abi,
+      functionName: 'balanceOf',
+      args: [user.mirror]
+    });
+    return {
+      gameId: chip.gameId,
+      name: chip.name,
+      symbol: chip.symbol,
+      chip: chip.chip,
+      balance: formatEther(balance)
+    };
+  }));
+
+  let ret = {};
+  balances.map((item)=>{
+    if (!ret[item.gameId]) {
+      ret[item.gameId] = {};
+    }
+
+    ret[item.gameId][item.chip] = {
+      name: item.name,
+      symbol: item.symbol,
+      balance: item.balance,
+    };
+  })
+  
+  ctx.status = 200;
+  ctx.body = ret;
 }
 
 exports.getInfo = async (ctx) => {
+  const { gameId, chip } = ctx.query;
 
+  if(!gameId || !chip) {
+    ctx.status = 400;
+    ctx.body = { error: 'gameId or chip are required' };
+    return;
+  }
+
+  let query = {};
+  if (gameId) {
+    query.gameId = gameId.toLowerCase();
+  }
+  if (chip) {
+    query.chip = getAddress(chip);
+  }
+  const chips = await Chip.find(query);
+  if (!chips || chips.length === 0) {
+    ctx.status = 404;
+    ctx.body = { error: 'chip not found' };
+    return;
+  }
+
+  for(let i=0; i<chips.length; i++) {
+    delete chips[i]._id;
+    delete chips[i].__v;
+  }
+
+  ctx.status = 200;
+  ctx.body = chips;
 }
 
 const insertTask = async (params, taskName, sync = false) => {

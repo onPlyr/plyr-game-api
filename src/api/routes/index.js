@@ -110,7 +110,7 @@ router.post('/game/chip/mint', hmacAuth('user'), chipController.postChipMint);
 router.post('/game/chip/burn', hmacAuth('user'), chipController.postChipBurn);
 router.post('/game/chip/transfer', hmacAuth('user'), chipController.postChipTransfer);
 router.get('/game/chip/balance', hmacAuth('user'), chipController.getBalance);
-router.get('/game/chip/info', hmacAuth('user'), chipController.getChipInfo);
+router.get('/game/chip/info', hmacAuth('user'), chipController.getInfo);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);
