@@ -6,7 +6,7 @@ const { chain } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 
 
-exports.postChipCreate = async (ctx) => {
+const postChipCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { name, symbol, image } = ctx.request.body;
 
@@ -28,7 +28,7 @@ exports.postChipCreate = async (ctx) => {
   }
 }
 
-exports.postChipMint = async (ctx) => {
+const postChipMint = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { chips, plyrIds, amounts } = ctx.request.body;
 
@@ -61,7 +61,7 @@ exports.postChipMint = async (ctx) => {
   }
 }
 
-exports.postChipBurn = async (ctx) => {
+const postChipBurn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { chips, plyrIds, amounts } = ctx.request.body;
 
@@ -94,7 +94,7 @@ exports.postChipBurn = async (ctx) => {
   }
 }
 
-exports.postChipTransfer = async (ctx) => {
+const postChipTransfer = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { chips, fromPlyrIds, toPlyrIds, amounts } = ctx.request.body;
 
@@ -127,7 +127,7 @@ exports.postChipTransfer = async (ctx) => {
   }
 }
 
-exports.getBalance = async (ctx) => {
+const getBalance = async (ctx) => {
   const { plyrId, gameId, chip } = ctx.query;
 
   if(!plyrId) {
@@ -197,7 +197,7 @@ exports.getBalance = async (ctx) => {
   ctx.body = ret;
 }
 
-exports.getInfo = async (ctx) => {
+const getInfo = async (ctx) => {
   const { gameId, chip } = ctx.query;
 
   if(!gameId || !chip) {
@@ -262,4 +262,15 @@ const isChipsBelongToGame = async (gameId, chips) => {
     }
   }
   return true;
+}
+
+
+module.exports = {
+  postChipCreate,
+  postChipMint,
+  postChipBurn,
+  postChipTransfer,
+  getBalance,
+  getInfo,
+  isChipsBelongToGame
 }
