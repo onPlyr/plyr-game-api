@@ -221,20 +221,14 @@ const getInfo = async (ctx) => {
   }
 
   let ret = await Promise.all(chips.map(async (chip) => {
-    let totalSupply = await chain.readContract({
-      address: chip.chip,
-      abi: erc20Abi,
-      functionName: 'totalSupply',
-      args: []
-    });
-    totalSupply = formatEther(totalSupply);
-
-    let holderCount = await chain.readContract({
+    let info = await chain.readContract({
       address: plyrRouterSC,
       abi: ROUTER_ABI,
-      functionName: 'holderCount',
+      functionName: 'chipInfo',
       args: [chip.chip]
     });
+
+    console.log('chip info', chip.chip, info);
 
     return {
       gameId: chip.gameId,
@@ -242,8 +236,8 @@ const getInfo = async (ctx) => {
       name: chip.name,
       symbol: chip.symbol,
       image: chip.image,
-      totalSupply,
-      holderCount,
+      totalSupply: formatEther(info.totalSupply),
+      holderCount: info.holderCount,
     };
   }));
 
