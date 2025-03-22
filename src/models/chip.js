@@ -5,6 +5,7 @@ const chipSchema = new mongoose.Schema({
   chip: { type: String, required: true },
   name: { type: String, required: true },
   symbol: { type: String, required: true },
+  image: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
 });
 
