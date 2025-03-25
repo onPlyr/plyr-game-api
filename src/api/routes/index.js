@@ -105,6 +105,7 @@ router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.pos
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
 // chip apis
+router.post('/game/chip/createBySignature', hmacAuth('user'), chipController.postChipCreateBySignature);
 router.post('/game/chip/create', hmacAuth('user'), chipController.postChipCreate);
 router.post('/game/chip/mint', hmacAuth('user'), chipController.postChipMint);
 router.post('/game/chip/burn', hmacAuth('user'), chipController.postChipBurn);

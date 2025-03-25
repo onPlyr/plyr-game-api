@@ -1,22 +1,65 @@
 const Chip = require('../../models/chip');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
-const { getAddress, erc20Abi, formatEther } = require('viem');
+const { getAddress, erc20Abi, formatEther, verifyMessage } = require('viem');
 const { chain, plyrRouterSC, ROUTER_ABI } = require('../../config');
 const UserInfo = require('../../models/userInfo');
+
+const postChipCreateBySignature = async (ctx) => {
+  const { gameId, name, symbol, image, signature } = ctx.request.body;
+  if (!gameId || !name || !symbol) {
+    ctx.status = 400;
+    ctx.body = { error: 'gameId, name, and symbol are required' };
+    return;
+  }
+
+  const user = await UserInfo.findOne({plyrId: gameId.toLowerCase()});
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = { error: 'user not found' };
+    return;
+  }
+
+  const signatureMessage = `Create game chip for ${gameId.toUpperCase()} ${name} ${symbol}`;
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol, image: image || '' }, 'createGameChip', true);
+  if (ret.status === 'SUCCESS') {
+    const { chip } = ret.taskData;
+    await Chip.updateOne({ gameId, chip }, { $set: { image } });
+    ctx.status = 200;
+    ctx.body = ret;
+  } else {
+    ctx.status = 500;
+    ctx.body = { error: ret.errorMessage };
+  }
+}
 
 
 const postChipCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const { name, symbol, image } = ctx.request.body;
 
-  if (!name || !symbol || !image) {
+  if (!name || !symbol) {
     ctx.status = 400;
     ctx.body = { error: 'name, symbol, and image are required' };
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol, image }, 'createGameChip', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), name, symbol, image: image || '' }, 'createGameChip', true);
   if (ret.status === 'SUCCESS') {
     const { chip } = ret.taskData;
     await Chip.updateOne({ gameId, chip }, { $set: { image } });
@@ -288,5 +331,6 @@ module.exports = {
   postChipTransfer,
   getBalance,
   getInfo,
-  isChipsBelongToGame
+  isChipsBelongToGame,
+  postChipCreateBySignature,
 }
