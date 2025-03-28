@@ -69,6 +69,7 @@ const client = createWalletClient({
 }).extend(publicActions);
 
 const ROUTER_ABI = require('./Router.json').abi;
+const GAME_CHIP_FACTORY_ABI = require('./GameChipFactory.json').abi;
 const REGISTER_ABI = require('./Register.json').abi;
 const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
@@ -148,6 +149,7 @@ module.exports = {
   plyrRegisterSC: '0x9684c4d61A62CFc43174953B814995E412cA1096',
   plyrRouterSC: '0x0EF26D14851c84Dca15CB0265d9EA74f9cAEb828',
   ROUTER_ABI,
+  GAME_CHIP_FACTORY_ABI,
   REGISTER_ABI,
   MIRROR_BYTECODE,
   airdropSC: '0x81256E05eC6f2630fA2454c820265F4FF75adf4A',

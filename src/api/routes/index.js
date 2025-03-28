@@ -13,6 +13,7 @@ const activityLogsController = require('../controllers/activityLogsController');
 const nftController = require('../controllers/nftController');
 const permissionController = require('../controllers/permissionController');
 const authController = require('../controllers/authController');
+const chipController = require('../controllers/chipController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -105,6 +106,15 @@ router.post('/game/earnLeaveEnd', hmacAuth('user'), checkTokens, gameController.
 router.post('/game/earnLeave', hmacAuth('user'), checkTokens, gameController.postGameEarnLeave);
 router.get('/game/isJoined', hmacAuth('user'), gameController.getIsJoined);
 
+// chip apis
+router.post('/game/chip/createBySignature', hmacAuth('user'), chipController.postChipCreateBySignature);
+router.post('/game/chip/create', hmacAuth('user'), chipController.postChipCreate);
+router.post('/game/chip/mint', hmacAuth('user'), chipController.postChipMint);
+router.post('/game/chip/burn', hmacAuth('user'), chipController.postChipBurn);
+router.post('/game/chip/transfer', hmacAuth('user'), chipController.postChipTransfer);
+router.get('/game/chip/balance', hmacAuth('user'), chipController.getBalance);
+router.get('/game/chip/info', hmacAuth('user'), chipController.getInfo);
+
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);
 router.get('/tokenlist/:tokenId', tokenListController.getTokenList);
@@ -136,5 +146,7 @@ router.post('/developer/resetApiKey', hmacAuth('user'), permissionController.res
 // Authenticated apis for sidekick / plyr[connect]
 router.get('/auth/read/:uid', hmacAuth('user'), authController.getRead);
 router.post('/auth/revoke/:uid', hmacAuth('user'), authController.postRevoke);
+
+
 
 module.exports = router;

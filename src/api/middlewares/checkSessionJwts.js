@@ -52,6 +52,15 @@ const checkSessionJwts = async (ctx, next) => {
         invalidPlyrIds[plyrId] = 'JWT nonce is expired';
         return;
       }
+
+      const deadline = user.deadline ? user.deadline : {};
+      const gameDeadline = deadline[gameId] ? deadline[gameId] : 0;
+      if (gameDeadline < Date.now()) {
+        isAllValid = false;
+        invalidPlyrIds[plyrId] = 'JWT deadline is expired';
+        return;
+      }
+
       users[plyrId] = user;
       return plyrId;
     }));
