@@ -105,6 +105,10 @@ const chainNameToChainId = {
   'avalanche': 43114,
   'plyrTestnet': 62831,
   'plyr': 16180,
+  'sepolia': 11155111,
+  'opSepolia': 11155420,
+  'bscTestnet': 97,
+  'bsc': 56,
 }
 
 const nftAlias = {
@@ -113,6 +117,34 @@ const nftAlias = {
   },
   43114: {
     'zoogenes': '0x9Fc13E6408CA6A997d6EB8A25440Cbcb20745E8B'.toLowerCase(),
+  }
+}
+
+const gameNftConfig = {
+  'fuji': {
+    gameNftFactory: '0x63F551298862f306B689724519D95eDA3dCDE5b8',
+    createCredit: 10,
+    mintCredit: 1,
+  },
+  'plyrTestnet': {
+    gameNftFactory: '0xacA844D00FABfB3C10Ccd6D2Ed1dBe42aC135951',
+    createCredit: 10,
+    mintCredit: 1,
+  },
+  'sepolia': {
+    gameNftFactory: '0x01259b567E63AD4AF08e36aE9EAe64bA3DD742af',
+    createCredit: 100,
+    mintCredit: 10,
+  },
+  'bscTestnet': {
+    gameNftFactory: '0x4959AB2B40Da96Dc955EE93138064BC36Bb45611',
+    createCredit: 80,
+    mintCredit: 8,
+  },
+  'opSepolia': {
+    gameNftFactory: '0x6780a04149971bA83E50b48CD41f0A5e85F3992f',
+    createCredit: 50,
+    mintCredit: 5,
   }
 }
 
@@ -138,4 +170,5 @@ module.exports = {
   chainNameToChainId,
   nftSubgraphs,
   nftAlias,
+  gameNftConfig,
 };
