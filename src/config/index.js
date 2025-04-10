@@ -50,6 +50,7 @@ const REGISTER_ABI = require('./Register.json').abi;
 const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
 const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
+const GAME_NFT_FACTORY_ABI = require('./GameNftFactory.json').abi;
 
 let _TOKEN_LIST = {
   'plyr': {
@@ -148,12 +149,51 @@ const gameNftConfig = {
   }
 }
 
+const CHAIN_CONFIG = {
+  'fuji': {
+    name: 'Avalanche Fuji',
+    chainId: 43113,
+    rpcUrls: ['https://avalanche-fuji-c-chain-rpc.publicnode.com', 'https://avalanche-fuji.drpc.org', 'https://api.avax-test.network/ext/bc/C/rpc'],
+    maxFeePerGas: 30e9,
+    maxPriorityFeePerGas: 1e9,
+  },
+  'plyrTestnet': {
+    name: 'Plyr Testnet',
+    chainId: 62831,
+    rpcUrls: ['https://subnets.avax.network/plyr/testnet/rpc'],
+    maxFeePerGas: 30e9,
+    maxPriorityFeePerGas: 1e9,
+  },
+  'sepolia': {
+    name: 'Sepolia',
+    chainId: 11155111,
+    rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com', 'https://eth-sepolia.public.blastapi.io'],
+    maxFeePerGas: 30e9,
+    maxPriorityFeePerGas: 1e9,
+  },
+  'bscTestnet': {
+    name: 'Binance Smart Chain Testnet',
+    chainId: 97,
+    rpcUrls: ['https://bsc-testnet-rpc.publicnode.com', 'https://api.zan.top/bsc-testnet'],
+    maxFeePerGas: 30e9,
+    maxPriorityFeePerGas: 1e9,
+  },
+  'opSepolia': {
+    name: 'Optimism Sepolia',
+    chainId: 11155420,
+    rpcUrls: ['https://optimism-sepolia-rpc.publicnode.com', 'https://sepolia.optimism.io'],
+    maxFeePerGas: 30e9,
+    maxPriorityFeePerGas: 1e9,
+  }
+}
+
 module.exports = {
   port: process.env.PORT || 3000,
   mongodbUri: process.env.MONGODB_URI,
   redisUrl: process.env.REDIS_URL,
   PK: process.env.PK,
   chain: client,
+  account,
   plyrRegisterSC: '0xC650e83b1cC9A1438fe2b1E9b4556B6fAa6B6Fb4',
   plyrRouterSC: '0xaABae47f41fee8f877c7F2641A306A01F7d8A2FA',
   ROUTER_ABI,
@@ -171,4 +211,6 @@ module.exports = {
   nftSubgraphs,
   nftAlias,
   gameNftConfig,
+  CHAIN_CONFIG,
+  GAME_NFT_FACTORY_ABI,
 };

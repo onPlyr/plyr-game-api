@@ -12,6 +12,7 @@ const nftController = require('../controllers/nftController');
 const permissionController = require('../controllers/permissionController');
 const authController = require('../controllers/authController');
 const chipController = require('../controllers/chipController');
+const gameNftController = require('../controllers/gameNftController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -112,6 +113,17 @@ router.post('/game/chip/burn', hmacAuth('user'), chipController.postChipBurn);
 router.post('/game/chip/transfer', hmacAuth('user'), chipController.postChipTransfer);
 router.get('/game/chip/balance', hmacAuth('user'), chipController.getBalance);
 router.get('/game/chip/info', hmacAuth('user'), chipController.getInfo);
+
+// game nft apis
+router.post('/game/nft/createBySignature', hmacAuth('user'), gameNftController.postNftCreateBySignature);
+router.post('/game/nft/create', hmacAuth('user'), gameNftController.postNftCreate);
+router.post('/game/nft/mint', hmacAuth('user'), gameNftController.postNftMint);
+router.post('/game/nft/burn', hmacAuth('user'), gameNftController.postNftBurn);
+router.post('/game/nft/transfer', hmacAuth('user'), gameNftController.postNftTransfer);
+router.get('/game/nft/balance', hmacAuth('user'), gameNftController.getBalance);
+router.get('/game/nft/info', hmacAuth('user'), gameNftController.getInfo);
+router.get('/game/nft/isHolding', hmacAuth('user'), gameNftController.getIsHolding);
+router.get('/game/nft/credit', hmacAuth('user'), gameNftController.getCredit);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);

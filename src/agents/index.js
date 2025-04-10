@@ -8,6 +8,7 @@ const { createWithdrawTx } = require('../services/withdraw');
 
 const gameRoom = require('../services/game');
 const gameChip = require('../services/gameChip');
+const gameNft = require('../services/gameNft');
 
 const redis = getRedisClient();
 
@@ -98,6 +99,14 @@ async function processMessage(id, message) {
         console.log('Processing game chip task:', key, obj);
         let func = key.split('GameChip')[0];
         const {hash: _hash, result: _result} = await gameChip[func](obj);
+        hash = _hash;
+        result = _result;
+      }
+
+      if (key.includes('GameNft')) {
+        console.log('Processing game nft task:', key, obj);
+        let func = key.split('GameNft')[0];
+        const {hash: _hash, result: _result} = await gameNft[func](obj);
         hash = _hash;
         result = _result;
       }
