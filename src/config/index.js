@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { defineChain, http, createWalletClient, publicActions } = require('viem');
+const { defineChain, http, createWalletClient, publicActions, defineChain } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');
 const tokenListService = require('../services/tokenListService');
 
@@ -186,6 +186,23 @@ const CHAIN_CONFIG = {
     maxPriorityFeePerGas: 1e9,
   }
 }
+
+Object.keys(CHAIN_CONFIG).forEach(chainTag => {
+  CHAIN_CONFIG[chainTag].chain = defineChain({
+    id: CHAIN_CONFIG[chainTag].chainId,
+    name: CHAIN_CONFIG[chainTag].name,
+    rpcUrls: {
+      default: {
+        http: CHAIN_CONFIG[chainTag].rpcUrls,
+      },
+    },
+    nativeCurrency: {
+      decimals: 18,
+      name: 'Ether',
+      symbol: 'ETH',
+    },
+  })
+});
 
 module.exports = {
   port: process.env.PORT || 3000,

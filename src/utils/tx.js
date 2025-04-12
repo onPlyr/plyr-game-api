@@ -154,6 +154,7 @@ exports.sendMultiChainTx = async ({chainTag, address, abi, functionName, args}) 
   // Create multiple public clients for the chain using all available RPCs
   const publicClients = chainConfig.rpcUrls.map(rpcUrl => {
     return createPublicClient({
+      chain: chainConfig.chain,
       transport: http(rpcUrl),
     });
   });
@@ -199,6 +200,7 @@ exports.sendMultiChainTx = async ({chainTag, address, abi, functionName, args}) 
 
     // Create wallet client for the chain
     const walletClient = createWalletClient({
+      chain: chainConfig.chain,
       account,
       transport: http(chainConfig.rpcUrls[0]), // Use first RPC for initial connection
     });
