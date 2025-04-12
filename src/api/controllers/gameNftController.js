@@ -16,7 +16,7 @@ const postNftCreateBySignature = async (ctx) => {
     return;
   }
 
-  const user = await UserInfo.findOne({plyrId: gameId.toLowerCase()});
+  const user = await UserInfo.findOne({ plyrId: gameId.toLowerCase() });
   if (!user) {
     ctx.status = 404;
     ctx.body = { error: 'user not found' };
@@ -247,7 +247,7 @@ const isNftsBelongToGame = async (gameId, nfts, chainTag) => {
 const getBalance = async (ctx) => {
   const { plyrId, gameId, nft, chainTag } = ctx.query;
 
-  if(!plyrId || !chainTag) {
+  if (!plyrId || !chainTag) {
     ctx.status = 400;
     ctx.body = { error: 'plyrId and chainTag are required' };
     return;
@@ -259,20 +259,20 @@ const getBalance = async (ctx) => {
     ctx.body = { error: 'user not found' };
     return;
   }
-  
+
   // Build query object with only defined filters
   const query = { chainTag };
-  
+
   // Only add gameId to query if it's defined
   if (gameId !== undefined) {
     query.gameId = gameId.toLowerCase();
   }
-  
+
   // Only add nft to query if it's defined
   if (nft !== undefined) {
     query.nft = getAddress(nft);
   }
-  
+
   // Execute the query with only the defined filters
   const gameNfts = await GameNft.find(query);
   if (!gameNfts || gameNfts.length === 0) {
@@ -285,7 +285,7 @@ const getBalance = async (ctx) => {
     transport: http(CHAIN_CONFIG[chainTag].rpcUrls[0]),
   });
 
-  let balances = await Promise.all(gameNfts.map(async (gameNft)=>{
+  let balances = await Promise.all(gameNfts.map(async (gameNft) => {
     const mirrorBalance = await publicClient.readContract({
       address: gameNft.nft,
       abi: erc721Abi,
@@ -298,7 +298,7 @@ const getBalance = async (ctx) => {
       functionName: 'balanceOf',
       args: [user.primaryAddress]
     });
-    const secondaries = await Secondary.find({plyrId: plyrId.toLowerCase()});
+    const secondaries = await Secondary.find({ plyrId: plyrId.toLowerCase() });
     const secondaryBalances = await Promise.all(secondaries.map(async (secondary) => {
       const balance = await publicClient.readContract({
         address: gameNft.nft,
@@ -321,7 +321,7 @@ const getBalance = async (ctx) => {
   }));
 
   let ret = {};
-  balances.map((item)=>{
+  balances.map((item) => {
     if (!ret[item.gameId]) {
       ret[item.gameId] = {};
     }
@@ -332,7 +332,7 @@ const getBalance = async (ctx) => {
       balance: item.balance,
     };
   })
-  
+
   ctx.status = 200;
   ctx.body = ret;
 }
@@ -340,7 +340,7 @@ const getBalance = async (ctx) => {
 const getIsHolding = async (ctx) => {
   const { plyrId, gameId, nft, chainTag } = ctx.query;
 
-  if(!plyrId || !gameId || !nft || !chainTag) {
+  if (!plyrId || !gameId || !nft || !chainTag) {
     ctx.status = 400;
     ctx.body = { error: 'plyrId, gameId, nft, and chainTag are required' };
     return;
@@ -376,7 +376,7 @@ const getIsHolding = async (ctx) => {
     functionName: 'balanceOf',
     args: [user.primaryAddress]
   });
-  const secondaries = await Secondary.find({plyrId: plyrId.toLowerCase()});
+  const secondaries = await Secondary.find({ plyrId: plyrId.toLowerCase() });
   const secondaryBalances = await Promise.all(secondaries.map(async (secondary) => {
     const balance = await publicClient.readContract({
       address: gameNft.nft,
@@ -390,13 +390,13 @@ const getIsHolding = async (ctx) => {
   }));
   const totalBalance = formatEther(mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n));
   ctx.status = 200;
-  ctx.body = { isHolding: totalBalance > 0, balance: totalBalance }; 
+  ctx.body = { isHolding: totalBalance > 0, balance: totalBalance };
 }
 
 const getInfo = async (ctx) => {
   const { gameId, nft, chainTag } = ctx.query;
 
-  if(!gameId && !nft) {
+  if (!gameId && !nft) {
     ctx.status = 400;
     ctx.body = { error: 'gameId or nft are required' };
     return;
@@ -408,7 +408,7 @@ const getInfo = async (ctx) => {
     return;
   }
 
-  let query = {chainTag};
+  let query = { chainTag };
   if (gameId) {
     query.gameId = gameId.toLowerCase();
   }
@@ -499,27 +499,75 @@ const costCredit = async (gameId, chainTag, method) => {
 }
 
 const postUploadFile = async (ctx) => {
-  let { fileTxt, name, fileType } = ctx.request.body;
-  if (!fileTxt || !name || !fileType) {
-    ctx.status = 400;
-    ctx.body = { error: 'fileTxt, name, and fileType are required' };
-    return;
-  }
+  try {
+    let { fileTxt, name, fileType } = ctx.request.body;
 
-  const url = await uploadFile(fileTxt, name, fileType);
-  ctx.status = 200;
-  ctx.body = { url };
+    if (!fileTxt || !name || !fileType) {
+      ctx.status = 400;
+      ctx.body = { error: 'fileTxt, name, and fileType are required' };
+      return;
+    }
+
+    const allowedTypes = [
+      'image/',
+      'application/json',
+      'text/plain',
+    ];
+
+    const isAllowedType = allowedTypes.some(type =>
+      fileType.startsWith(type)
+    );
+
+    if (!isAllowedType) {
+      ctx.status = 400;
+      ctx.body = { error: 'Unsupported file type' };
+      return;
+    }
+
+    const url = await uploadFile(fileTxt, name, fileType);
+
+    ctx.status = 200;
+    ctx.body = { url };
+  } catch (error) {
+    console.error('Upload error:', error);
+    ctx.status = 500;
+    ctx.body = { error: 'Upload failed' };
+  }
 }
 
 const uploadFile = async (fileTxt, name, fileType) => {
   const pinata = new PinataSDK({
     pinataJwt: process.env.PINATA_JWT,
   });
-  
-  const file = new File([fileTxt], name, { type: fileType });
-  const upload = await pinata.upload.public.file(file).group('2734fd44-7e7a-490e-b35b-f2c8fc01b116');
-  console.log('upload', upload);
-  return `https://ipfs.plyr.network/ipfs/${upload.cid}`
+
+  let fileBuffer;
+
+  if (fileType.startsWith('image/')) {
+    const base64Data = fileTxt.replace(/^data:[^,]+,/, '');
+    fileBuffer = Buffer.from(base64Data, 'base64');
+  } else if (fileType === 'application/json') {
+    if (typeof fileTxt === 'string') {
+      try {
+        JSON.parse(fileTxt);
+        fileBuffer = Buffer.from(fileTxt);
+      } catch (e) {
+        throw new Error('Invalid JSON format');
+      }
+    } else {
+      fileBuffer = Buffer.from(JSON.stringify(fileTxt));
+    }
+  } else {
+    fileBuffer = Buffer.from(fileTxt);
+  }
+
+  const upload = await pinata.upload.public.buffer(fileBuffer, {
+    name: name,
+    contentType: fileType,
+    group: '2734fd44-7e7a-490e-b35b-f2c8fc01b116'
+  });
+
+  console.log('Upload successful:', upload);
+  return `https://ipfs.plyr.network/ipfs/${upload.cid}`;
 }
 
 module.exports = {
