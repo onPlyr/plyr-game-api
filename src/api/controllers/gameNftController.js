@@ -3,7 +3,7 @@ const Secondary = require('../../models/secondary');
 const GameCredit = require('../../models/gameCredit');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
-const { getAddress, erc20Abi, formatEther, verifyMessage, erc721Abi } = require('viem');
+const { getAddress, erc20Abi, formatEther, verifyMessage, erc721Abi, createPublicClient } = require('viem');
 const { CHAIN_CONFIG, gameNftConfig, GAME_NFT_FACTORY_ABI } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 const { PinataSDK } = require('pinata');
@@ -299,6 +299,7 @@ const getBalance = async (ctx) => {
   }
 
   const publicClient = await createPublicClient({
+    chain: CHAIN_CONFIG[chainTag].chain,
     transport: http(CHAIN_CONFIG[chainTag].rpcUrls[0]),
   });
 
@@ -385,6 +386,7 @@ const getIsHolding = async (ctx) => {
   }
 
   const publicClient = await createPublicClient({
+    chain: CHAIN_CONFIG[chainTag].chain,
     transport: http(CHAIN_CONFIG[chainTag].rpcUrls[0]),
   });
 
@@ -448,6 +450,7 @@ const getInfo = async (ctx) => {
   }
 
   const publicClient = await createPublicClient({
+    chain: CHAIN_CONFIG[chainTag].chain,
     transport: http(CHAIN_CONFIG[chainTag].rpcUrls[0]),
   });
 
