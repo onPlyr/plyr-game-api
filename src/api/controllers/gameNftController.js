@@ -3,7 +3,7 @@ const Secondary = require('../../models/secondary');
 const GameCredit = require('../../models/gameCredit');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
-const { getAddress, erc20Abi, formatEther, verifyMessage, erc721Abi, createPublicClient, http } = require('viem');
+const { getAddress, verifyMessage, erc721Abi, createPublicClient, http } = require('viem');
 const { CHAIN_CONFIG, gameNftConfig, GAME_NFT_FACTORY_ABI } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 const { PinataSDK } = require('pinata');
@@ -328,7 +328,7 @@ const getBalance = async (ctx) => {
         balance
       };
     }));
-    const totalBalance = formatEther(mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n));
+    const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
     return {
       gameId: gameNft.gameId,
       name: gameNft.name,
@@ -414,7 +414,7 @@ const getIsHolding = async (ctx) => {
       balance
     };
   }));
-  const totalBalance = formatEther(mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n));
+  const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
   ctx.status = 200;
   ctx.body = { isHolding: totalBalance > 0, balance: totalBalance }; 
 }
