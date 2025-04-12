@@ -87,8 +87,8 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId, hash };
-        await logActivity(gameId, gameId, 'gameNft', 'mint', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        await logActivity(gameId, gameId, 'gameNft', 'mint', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
@@ -133,8 +133,8 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId, hash };
-        await logActivity(gameId, gameId, 'gameNft', 'burn', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        await logActivity(gameId, gameId, 'gameNft', 'burn', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
@@ -181,8 +181,8 @@ async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tok
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId, hash };
-        await logActivity(gameId, gameId, 'gameNft', 'transfer', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        await logActivity(gameId, gameId, 'gameNft', 'transfer', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
