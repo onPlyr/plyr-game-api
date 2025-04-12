@@ -1,7 +1,7 @@
 const { GAME_NFT_FACTORY_ABI } = require('../config');
 const { sendMultiChainTx } = require('../utils/tx');
 const { logActivity } = require('../utils/activity');
-const { decodeEventLog } = require('viem');
+const { decodeEventLog, erc721Abi } = require('viem');
 const GameNft = require('../models/gameNft');
 const { gameNftConfig} = require('../config');
 
@@ -75,6 +75,26 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
   if (receipt.status !== 'success') {
     throw new Error('Transaction Receipt Failed');
   }
+
+  for (let i = 0; i < receipt.logs.length; i++) {
+    const log = receipt.logs[i];
+    try {
+      const decodedLog = decodeEventLog({
+        abi: erc721Abi,
+        data: log.data,
+        topics: log.topics,
+      });
+      console.log('Decoded log', i, ':', decodedLog);
+      if (decodedLog.eventName === 'Transfer') {
+        const { from, to, tokenId } = decodedLog.args;
+        result = { gameId, from, to, tokenId, hash };
+        await logActivity(gameId, gameId, 'gameNft', 'mint', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+      }
+    } catch (error) {
+      console.log('Failed to decode log', i, ':', error.message);
+    }
+  }
+
   return {hash, result};
 }
 
@@ -100,6 +120,25 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
   }
   if (receipt.status !== 'success') {
     throw new Error('Transaction Receipt Failed');
+  }
+
+  for (let i = 0; i < receipt.logs.length; i++) {
+    const log = receipt.logs[i];
+    try {
+      const decodedLog = decodeEventLog({
+        abi: erc721Abi,
+        data: log.data,
+        topics: log.topics,
+      });
+      console.log('Decoded log', i, ':', decodedLog);
+      if (decodedLog.eventName === 'Transfer') {
+        const { from, to, tokenId } = decodedLog.args;
+        result = { gameId, from, to, tokenId, hash };
+        await logActivity(gameId, gameId, 'gameNft', 'burn', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+      }
+    } catch (error) {
+      console.log('Failed to decode log', i, ':', error.message);
+    }
   }
   return {hash, result};
 }
@@ -129,6 +168,25 @@ async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tok
   }
   if (receipt.status !== 'success') {
     throw new Error('Transaction Receipt Failed');
+  }
+
+  for (let i = 0; i < receipt.logs.length; i++) {
+    const log = receipt.logs[i];
+    try {
+      const decodedLog = decodeEventLog({
+        abi: erc721Abi,
+        data: log.data,
+        topics: log.topics,
+      });
+      console.log('Decoded log', i, ':', decodedLog);
+      if (decodedLog.eventName === 'Transfer') {
+        const { from, to, tokenId } = decodedLog.args;
+        result = { gameId, from, to, tokenId, hash };
+        await logActivity(gameId, gameId, 'gameNft', 'transfer', { gameId, from, to, tokenId, chainTag, hash, success: receipt.status });
+      }
+    } catch (error) {
+      console.log('Failed to decode log', i, ':', error.message);
+    }
   }
   return {hash, result};
 }
