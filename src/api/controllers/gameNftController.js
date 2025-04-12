@@ -6,6 +6,7 @@ const { checkTaskStatus } = require("../../services/task");
 const { getAddress, erc20Abi, formatEther, verifyMessage, erc721Abi } = require('viem');
 const { chain, plyrRouterSC, ROUTER_ABI, CHAIN_CONFIG, gameNftConfig } = require('../../config');
 const UserInfo = require('../../models/userInfo');
+const { PinataSDK } = require('pinata');
 
 const postNftCreateBySignature = async (ctx) => {
   const { gameId, chainTag, name, symbol, image, signature } = ctx.request.body;
@@ -90,11 +91,17 @@ const postNftCreate = async (ctx) => {
 
 const postNftMint = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { chainTag, nfts, addresses, tokenUris } = ctx.request.body;
+  let { chainTag, nfts, addresses, tokenUris, metaJsons } = ctx.request.body;
 
-  if (!nfts || !addresses || !tokenUris || !chainTag) {
+  if (!nfts || !addresses || !chainTag) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, addresses, tokenUris, and chainTag are required' };
+    ctx.body = { error: 'nfts, addresses, and chainTag are required' };
+    return;
+  }
+
+  if (!tokenUris && !metaJsons) {
+    ctx.status = 400;
+    ctx.body = { error: 'tokenUris or metaJsons are required' };
     return;
   }
 
@@ -104,11 +111,26 @@ const postNftMint = async (ctx) => {
     return;
   }
 
+  if (metaJsons && metaJsons.length !== addresses.length) {
+    ctx.status = 400;
+    ctx.body = { error: 'addresses and metaJsons must be the same length' };
+    return;
+  }
+
   const isBelong = await isNftsBelongToGame(gameId, nfts, chainTag);
   if (!isBelong) {
     ctx.status = 400;
     ctx.body = { error: 'nfts do not belong to this game' };
     return;
+  }
+
+  const timestamp = Date.now();
+  if (metaJsons && !tokenUris) {
+    tokenUris = [];
+    for (let i = 0; i < metaJsons.length; i++) {
+      const url = await uploadFile(JSON.stringify(metaJsons[i], null, 2), nfts[i] + '_' + timestamp + '_' + i, 'application/json');
+      tokenUris.push(url);
+    }
   }
 
   try {
@@ -476,6 +498,29 @@ const costCredit = async (gameId, chainTag, method) => {
   await GameCredit.updateOne({ gameId: gameId.toLowerCase() }, { $inc: { credit: -cost } });
 }
 
+const postUploadFile = async (ctx) => {
+  let { fileTxt, name, fileType } = ctx.request.body;
+  if (!fileTxt || !name || !fileType) {
+    ctx.status = 400;
+    ctx.body = { error: 'fileTxt, name, and fileType are required' };
+    return;
+  }
+
+  const url = await uploadFile(fileTxt, name, fileType);
+  ctx.status = 200;
+  ctx.body = { url };
+}
+
+const uploadFile = async (fileTxt, name, fileType) => {
+  const pinata = new PinataSDK({
+    pinataJwt: process.env.PINATA_JWT,
+  });
+  
+  const file = new File([fileTxt], name, { type: fileType });
+  const upload = await pinata.upload.public.file(file);
+  return `https://ipfs.plyr.network/ipfs/${upload.cid}`
+}
+
 module.exports = {
   postNftCreate,
   postNftMint,
@@ -487,4 +532,5 @@ module.exports = {
   getCredit,
   isNftsBelongToGame,
   postNftCreateBySignature,
+  postUploadFile,
 }

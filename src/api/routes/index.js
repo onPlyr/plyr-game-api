@@ -124,6 +124,7 @@ router.get('/game/nft/balance', hmacAuth('user'), gameNftController.getBalance);
 router.get('/game/nft/info', hmacAuth('user'), gameNftController.getInfo);
 router.get('/game/nft/isHolding', hmacAuth('user'), gameNftController.getIsHolding);
 router.get('/game/nft/credit', hmacAuth('user'), gameNftController.getCredit);
+router.post('/game/nft/upload', hmacAuth('user'), gameNftController.postUploadFile);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);
