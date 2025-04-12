@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { defineChain, http, createWalletClient, publicActions, defineChain } = require('viem');
+const { defineChain, http, createWalletClient, publicActions } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');
 const tokenListService = require('../services/tokenListService');
 
