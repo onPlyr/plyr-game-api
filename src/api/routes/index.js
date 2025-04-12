@@ -121,9 +121,9 @@ router.post('/game/nft/create', hmacAuth('user'), checkChainId, gameNftControlle
 router.post('/game/nft/mint', hmacAuth('user'), checkChainId, gameNftController.postNftMint);
 router.post('/game/nft/burn', hmacAuth('user'), checkChainId, gameNftController.postNftBurn);
 router.post('/game/nft/transfer', hmacAuth('user'), checkChainId, gameNftController.postNftTransfer);
-router.get('/game/nft/balance', hmacAuth('user'), checkChainId, gameNftController.getBalance);
-router.get('/game/nft/info', hmacAuth('user'), checkChainId, gameNftController.getInfo);
-router.get('/game/nft/isHolding', hmacAuth('user'), checkChainId, gameNftController.getIsHolding);
+router.get('/game/nft/balance', hmacAuth('user'), gameNftController.getBalance);
+router.get('/game/nft/info', hmacAuth('user'), gameNftController.getInfo);
+router.get('/game/nft/isHolding', hmacAuth('user'), gameNftController.getIsHolding);
 router.get('/game/nft/credit', hmacAuth('user'), gameNftController.getCredit);
 router.post('/game/nft/upload', hmacAuth('user'), gameNftController.postUploadFile);
 
