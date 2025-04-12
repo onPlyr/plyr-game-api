@@ -468,7 +468,7 @@ const getInfo = async (ctx) => {
       name: gameNft.name,
       symbol: gameNft.symbol,
       image: gameNft.image,
-      totalSupply: formatEther(info[4]),
+      totalSupply: info[4].toString(),
       holderCount: info[5].toString(),
     };
   }));
