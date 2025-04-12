@@ -4,17 +4,20 @@ const GameCredit = require('../../models/gameCredit');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
 const { getAddress, erc20Abi, formatEther, verifyMessage, erc721Abi } = require('viem');
-const { chain, plyrRouterSC, ROUTER_ABI, CHAIN_CONFIG, gameNftConfig } = require('../../config');
+const { CHAIN_CONFIG, gameNftConfig, GAME_NFT_FACTORY_ABI } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 const { PinataSDK } = require('pinata');
+const { getChainTag } = require('../middlewares/checkChainId');
 
 const postNftCreateBySignature = async (ctx) => {
-  const { gameId, chainTag, name, symbol, image, signature } = ctx.request.body;
-  if (!gameId || !name || !symbol || !chainTag) {
+  const { gameId, name, symbol, image, signature } = ctx.request.body;
+  if (!gameId || !name || !symbol) {
     ctx.status = 400;
-    ctx.body = { error: 'gameId, name, symbol, and chainTag are required' };
+    ctx.body = { error: 'gameId, name, symbol, and chainId are required' };
     return;
   }
+
+  const chainTag = ctx.state.chainTag;
 
   const user = await UserInfo.findOne({plyrId: gameId.toLowerCase()});
   if (!user) {
@@ -61,11 +64,12 @@ const postNftCreateBySignature = async (ctx) => {
 
 const postNftCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { chainTag, name, symbol, image } = ctx.request.body;
+  const { name, symbol, image } = ctx.request.body;
+  const chainTag = ctx.state.chainTag;
 
-  if (!name || !symbol || !chainTag) {
+  if (!name || !symbol) {
     ctx.status = 400;
-    ctx.body = { error: 'name, symbol, and chainTag are required' };
+    ctx.body = { error: 'name, symbol, and chainId are required' };
     return;
   }
 
@@ -91,13 +95,15 @@ const postNftCreate = async (ctx) => {
 
 const postNftMint = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  let { chainTag, nfts, addresses, tokenUris, metaJsons } = ctx.request.body;
+  let { nfts, addresses, tokenUris, metaJsons } = ctx.request.body;
 
-  if (!nfts || !addresses || !chainTag) {
+  if (!nfts || !addresses) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, addresses, and chainTag are required' };
+    ctx.body = { error: 'nfts, addresses, and chainId are required' };
     return;
   }
+
+  const chainTag = ctx.state.chainTag;
 
   if (!tokenUris && !metaJsons) {
     ctx.status = 400;
@@ -153,13 +159,15 @@ const postNftMint = async (ctx) => {
 
 const postNftBurn = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { chainTag, nfts, tokenIds } = ctx.request.body;
+  const { nfts, tokenIds } = ctx.request.body;
 
-  if (!nfts || !tokenIds || !chainTag) {
+  if (!nfts || !tokenIds) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, tokenIds, and chainTag are required' };
+    ctx.body = { error: 'nfts, tokenIds, and chainId are required' };
     return;
   }
+
+  const chainTag = ctx.state.chainTag;
 
   if (tokenIds.length !== nfts.length) {
     ctx.status = 400;
@@ -194,13 +202,15 @@ const postNftBurn = async (ctx) => {
 
 const postNftTransfer = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { chainTag, nfts, fromAddresses, toAddresses, tokenIds } = ctx.request.body;
+  const { nfts, fromAddresses, toAddresses, tokenIds } = ctx.request.body;
 
-  if (!nfts || !fromAddresses || !toAddresses || !tokenIds || !chainTag) {
+  if (!nfts || !fromAddresses || !toAddresses || !tokenIds) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, fromAddresses, toAddresses, tokenIds, and chainTag are required' };
+    ctx.body = { error: 'nfts, fromAddresses, toAddresses, tokenIds, and chainId are required' };
     return;
   }
+
+  const chainTag = ctx.state.chainTag;
 
   if (fromAddresses.length !== tokenIds.length || toAddresses.length !== tokenIds.length) {
     ctx.status = 400;
@@ -245,11 +255,18 @@ const isNftsBelongToGame = async (gameId, nfts, chainTag) => {
 }
 
 const getBalance = async (ctx) => {
-  const { plyrId, gameId, nft, chainTag } = ctx.query;
+  const { plyrId, gameId, nft, chainId } = ctx.query;
 
-  if(!plyrId || !chainTag) {
+  if(!plyrId || !chainId) {
     ctx.status = 400;
-    ctx.body = { error: 'plyrId and chainTag are required' };
+    ctx.body = { error: 'plyrId and chainId are required' };
+    return;
+  }
+
+  const chainTag = getChainTag(chainId);
+  if (!chainTag) {
+    ctx.status = 400;
+    ctx.body = { error: 'Invalid chainId' };
     return;
   }
 
@@ -338,11 +355,18 @@ const getBalance = async (ctx) => {
 }
 
 const getIsHolding = async (ctx) => {
-  const { plyrId, gameId, nft, chainTag } = ctx.query;
+  const { plyrId, gameId, nft, chainId } = ctx.query;
 
-  if(!plyrId || !gameId || !nft || !chainTag) {
+  if(!plyrId || !gameId || !nft || !chainId) {
     ctx.status = 400;
-    ctx.body = { error: 'plyrId, gameId, nft, and chainTag are required' };
+    ctx.body = { error: 'plyrId, gameId, nft, and chainId are required' };
+    return;
+  }
+
+  const chainTag = getChainTag(chainId);
+  if (!chainTag) {
+    ctx.status = 400;
+    ctx.body = { error: 'Invalid chainId' };
     return;
   }
 
@@ -394,7 +418,7 @@ const getIsHolding = async (ctx) => {
 }
 
 const getInfo = async (ctx) => {
-  const { gameId, nft, chainTag } = ctx.query;
+  const { gameId, nft, chainId } = ctx.query;
 
   if(!gameId && !nft) {
     ctx.status = 400;
@@ -402,9 +426,10 @@ const getInfo = async (ctx) => {
     return;
   }
 
+  const chainTag = getChainTag(chainId);
   if (!chainTag) {
     ctx.status = 400;
-    ctx.body = { error: 'chainTag is required' };
+    ctx.body = { error: 'Invalid chainId' };
     return;
   }
 
@@ -428,8 +453,8 @@ const getInfo = async (ctx) => {
 
   let ret = await Promise.all(gameNfts.map(async (gameNft) => {
     let info = await publicClient.readContract({
-      address: plyrRouterSC,
-      abi: ROUTER_ABI,
+      address: gameNftConfig[chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
       functionName: 'nftInfo',
       args: [gameNft.nft]
     });
@@ -456,7 +481,8 @@ const getCredit = async (ctx) => {
     await GameCredit.create({ gameId: gameId.toLowerCase() });
     gameCredit = await GameCredit.findOne({ gameId: gameId.toLowerCase() });
   }
-  return gameCredit.credit;
+  ctx.status = 200;
+  ctx.body = { credit: gameCredit.credit };
 }
 
 const insertTask = async (params, taskName, sync = false) => {
