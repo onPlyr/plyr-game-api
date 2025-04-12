@@ -111,9 +111,9 @@ const postNftMint = async (ctx) => {
     return;
   }
 
-  if (addresses.length !== tokenUris.length) {
+  if (addresses.length !== nfts.length) {
     ctx.status = 400;
-    ctx.body = { error: 'addresses and tokenUris must be the same length' };
+    ctx.body = { error: 'addresses and nfts must be the same length' };
     return;
   }
 
