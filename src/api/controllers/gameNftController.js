@@ -520,10 +520,12 @@ const uploadFile = async (content, fileType) => {
 
   if (fileType === 'application/json') {
     const upload = await pinata.upload.public.json(content).group(groupId);
+    console.log('upload', upload);
     return `https://ipfs.plyr.network/ipfs/${upload.cid}`;
   } else {
     // use base64
     const upload = await pinata.upload.public.base64(content).group(groupId);
+    console.log('upload', upload);
     return `https://ipfs.plyr.network/ipfs/${upload.cid}`;
   }
 }
