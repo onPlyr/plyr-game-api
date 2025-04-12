@@ -149,7 +149,7 @@ exports.sendMultiChainTx = async ({chainTag, address, abi, functionName, args}) 
   }
 
   const chainConfig = CHAIN_CONFIG[chainTag];
-  console.log(`Sending transaction on ${chainConfig.name} (Chain Tag: ${chainTag})`);
+  console.log(`Sending transaction on ${chainConfig.name} (Chain Tag: ${chainTag}, Chain ID: ${chainConfig.chainId}, RPC URLs: ${chainConfig.rpcUrls}), functionName: ${functionName}, args: ${args}`);
 
   // Create multiple public clients for the chain using all available RPCs
   const publicClients = chainConfig.rpcUrls.map(rpcUrl => {
@@ -186,7 +186,7 @@ exports.sendMultiChainTx = async ({chainTag, address, abi, functionName, args}) 
 
     // Get nonces from all RPCs concurrently
     const nonces = await Promise.all(
-      publicClients.map(client => getNonceWithTimeout(client, 2000))
+      publicClients.map(client => getNonceWithTimeout(client, 20000))
     );
 
     // Filter out null nonces and get the maximum
