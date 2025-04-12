@@ -518,6 +518,7 @@ const uploadFile = async (fileTxt, name, fileType) => {
   
   const file = new File([fileTxt], name, { type: fileType });
   const upload = await pinata.upload.public.file(file);
+  console.log('upload', upload);
   return `https://ipfs.plyr.network/ipfs/${upload.cid}`
 }
 
