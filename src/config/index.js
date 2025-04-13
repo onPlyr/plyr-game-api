@@ -122,31 +122,26 @@ const nftAlias = {
 }
 
 const gameNftConfig = {
-  'fuji': {
-    gameNftFactory: '0x63F551298862f306B689724519D95eDA3dCDE5b8',
+  'plyrTestnet': {
+    gameNftFactory: '0xc20039FB9300f5eddFf899BDA38F9c5b4A0a246b',
     createCredit: 10,
     mintCredit: 1,
   },
-  'plyrTestnet': {
-    gameNftFactory: '0xacA844D00FABfB3C10Ccd6D2Ed1dBe42aC135951',
+  'fuji': {
+    gameNftFactory: '0xdF16bcA5837C950B902968Cc55824428B6D5Bee7',
     createCredit: 10,
     mintCredit: 1,
   },
   'sepolia': {
-    gameNftFactory: '0x01259b567E63AD4AF08e36aE9EAe64bA3DD742af',
+    gameNftFactory: '0x41D6470cc6eB43C958Bbb0380162cDb70843a214',
     createCredit: 100,
     mintCredit: 10,
   },
   'bscTestnet': {
-    gameNftFactory: '0x4959AB2B40Da96Dc955EE93138064BC36Bb45611',
+    gameNftFactory: '0xf7f560b82414ca10Fabb00A32BCc39A3Cad74Fc7',
     createCredit: 80,
     mintCredit: 8,
   },
-  'opSepolia': {
-    gameNftFactory: '0x6780a04149971bA83E50b48CD41f0A5e85F3992f',
-    createCredit: 50,
-    mintCredit: 5,
-  }
 }
 
 const CHAIN_CONFIG = {
@@ -178,13 +173,6 @@ const CHAIN_CONFIG = {
     maxFeePerGas: 30e9,
     maxPriorityFeePerGas: 1e9,
   },
-  'opSepolia': {
-    name: 'Optimism Sepolia',
-    chainId: 11155420,
-    rpcUrls: ['https://optimism-sepolia-rpc.publicnode.com', 'https://sepolia.optimism.io'],
-    maxFeePerGas: 30e9,
-    maxPriorityFeePerGas: 1e9,
-  }
 }
 
 Object.keys(CHAIN_CONFIG).forEach(chainTag => {

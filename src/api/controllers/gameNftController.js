@@ -355,6 +355,107 @@ const getBalance = async (ctx) => {
   ctx.body = ret;
 }
 
+const getList = async (ctx) => {
+  const { plyrId, gameId, nft, chainId } = ctx.query;
+
+  if(!plyrId || !chainId) {
+    ctx.status = 400;
+    ctx.body = { error: 'plyrId and chainId are required' };
+    return;
+  }
+
+  const chainTag = getChainTag(chainId);
+  if (!chainTag) {
+    ctx.status = 400;
+    ctx.body = { error: 'Invalid chainId' };
+    return;
+  }
+
+  const user = await UserInfo.findOne({ plyrId: plyrId.toLowerCase() });
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = { error: 'user not found' };
+    return;
+  }
+  
+  // Build query object with only defined filters
+  const query = { chainTag };
+  
+  // Only add gameId to query if it's defined
+  if (gameId !== undefined) {
+    query.gameId = gameId.toLowerCase();
+  }
+  
+  // Only add nft to query if it's defined
+  if (nft !== undefined) {
+    query.nft = getAddress(nft);
+  }
+  
+  // Execute the query with only the defined filters
+  const gameNfts = await GameNft.find(query);
+  if (!gameNfts || gameNfts.length === 0) {
+    ctx.status = 404;
+    ctx.body = { error: 'nft not found' };
+    return;
+  }
+
+  const publicClient = await createPublicClient({
+    chain: CHAIN_CONFIG[chainTag].chain,
+    transport: http(CHAIN_CONFIG[chainTag].rpcUrls[0]),
+  });
+
+  let balances = await Promise.all(gameNfts.map(async (gameNft)=>{
+    const mirrorBalance = await publicClient.readContract({
+      address: gameNft.nft,
+      abi: erc721Abi,
+      functionName: 'balanceOf',
+      args: [user.mirror]
+    });
+    const primaryBalance = await publicClient.readContract({
+      address: gameNft.nft,
+      abi: erc721Abi,
+      functionName: 'balanceOf',
+      args: [user.primaryAddress]
+    });
+    const secondaries = await Secondary.find({plyrId: plyrId.toLowerCase()});
+    const secondaryBalances = await Promise.all(secondaries.map(async (secondary) => {
+      const balance = await publicClient.readContract({
+        address: gameNft.nft,
+        abi: erc721Abi,
+        functionName: 'balanceOf',
+        args: [secondary.secondaryAddress]
+      });
+      return {
+        balance
+      };
+    }));
+    const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
+    return {
+      gameId: gameNft.gameId,
+      name: gameNft.name,
+      symbol: gameNft.symbol,
+      nft: gameNft.nft,
+      balance: totalBalance
+    };
+  }));
+
+  let ret = {};
+  balances.map((item)=>{
+    if (!ret[item.gameId]) {
+      ret[item.gameId] = {};
+    }
+
+    ret[item.gameId][item.nft] = {
+      name: item.name,
+      symbol: item.symbol,
+      balance: item.balance,
+    };
+  })
+  
+  ctx.status = 200;
+  ctx.body = ret;
+}
+
 const getIsHolding = async (ctx) => {
   const { plyrId, gameId, nft, chainId } = ctx.query;
 
