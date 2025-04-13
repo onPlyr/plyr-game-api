@@ -429,7 +429,7 @@ const getList = async (ctx) => {
 
       return {
         owner: user.mirror,
-        tokenId,
+        tokenId: tokenId.toString(),
         tokenUri
       };
     }));
@@ -465,7 +465,7 @@ const getList = async (ctx) => {
 
       return {
         owner: user.primaryAddress,
-        tokenId,
+        tokenId: tokenId.toString(),
         tokenUri
       };
     }));
@@ -503,7 +503,7 @@ const getList = async (ctx) => {
 
         return {
           owner: secondary.secondaryAddress,
-          tokenId,
+          tokenId: tokenId.toString(),
           tokenUri
         };
       }));
