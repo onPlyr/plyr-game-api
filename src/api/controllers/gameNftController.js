@@ -416,7 +416,7 @@ const getList = async (ctx) => {
     let mirrorNfts = await Promise.all(Array.from({ length: Number(mirrorBalance.toString()) }, async (_, i) => {
       const tokenId = await publicClient.readContract({
         address: gameNft.nft,
-        abi: erc721Abi,
+        abi: GAME_NFT_ABI,
         functionName: 'tokenOfOwnerByIndex',
         args: [user.mirror, i]
       });
@@ -452,7 +452,7 @@ const getList = async (ctx) => {
     let primaryNfts = await Promise.all(Array.from({ length: Number(primaryBalance.toString()) }, async (_, i) => {
       const tokenId = await publicClient.readContract({
         address: gameNft.nft,
-        abi: erc721Abi,
+        abi: GAME_NFT_ABI,
         functionName: 'tokenOfOwnerByIndex',
         args: [user.primaryAddress, i]
       });
@@ -490,7 +490,7 @@ const getList = async (ctx) => {
       let nfts = await Promise.all(Array.from({ length: Number(balance.toString()) }, async (_, i) => {
         const tokenId = await publicClient.readContract({
           address: gameNft.nft,
-          abi: erc721Abi,
+          abi: GAME_NFT_ABI,
           functionName: 'tokenOfOwnerByIndex',
           args: [secondary.secondaryAddress, i]
         });
