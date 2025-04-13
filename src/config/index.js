@@ -51,6 +51,7 @@ const MIRROR_BYTECODE = require('./Mirror.json').bytecode;
 const AIRDROP_ABI = require('./Airdrop.json');
 const GAME_RULE_V1_ABI = require('./GameRuleV1.json').abi;
 const GAME_NFT_FACTORY_ABI = require('./GameNftFactory.json').abi;
+const GAME_NFT_ABI = require('./GameNft.json').abi;
 
 let _TOKEN_LIST = {
   'plyr': {
@@ -218,4 +219,5 @@ module.exports = {
   gameNftConfig,
   CHAIN_CONFIG,
   GAME_NFT_FACTORY_ABI,
+  GAME_NFT_ABI,
 };

@@ -10,7 +10,7 @@ const axios = require('axios');
 // Initialize cache with 1 hour TTL
 const metaCache = new NodeCache({ stdTTL: 3600 });
 
-exports.getNft = async (ctx) => {
+const getNft = async (ctx) => {
     const { chain, contract, plyrId } = ctx.params;
     if (!chain || !contract || !plyrId) {
         ctx.status = 400;
@@ -122,7 +122,7 @@ async function getAddessesFromPlyrId(plyrId) {
     };
 }
 
-async function getMetaJson(uris) {
+const getMetaJson = async (uris) => {
     console.log('[getMetaJson] Start with uris:', uris);
     if (!Array.isArray(uris)) {
         uris = [uris];
@@ -188,3 +188,6 @@ async function getMetaJson(uris) {
     console.log('[getMetaJson] Final results:', results);
     return results;
 }
+
+exports.getNft = getNft;
+exports.getMetaJson = getMetaJson;

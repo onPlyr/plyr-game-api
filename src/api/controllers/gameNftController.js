@@ -4,10 +4,12 @@ const GameCredit = require('../../models/gameCredit');
 const { getRedisClient } = require("../../db/redis");
 const { checkTaskStatus } = require("../../services/task");
 const { getAddress, verifyMessage, erc721Abi, createPublicClient, http } = require('viem');
-const { CHAIN_CONFIG, gameNftConfig, GAME_NFT_FACTORY_ABI } = require('../../config');
+const { CHAIN_CONFIG, gameNftConfig, GAME_NFT_FACTORY_ABI, GAME_NFT_ABI } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 const { PinataSDK } = require('pinata');
 const { getChainTag } = require('../middlewares/checkChainId');
+const { getMetaJson } = require('./nftController');
+const metaJson = require('../../models/metaJson');
 
 const postNftCreateBySignature = async (ctx) => {
   const { gameId, name, symbol, image, signature } = ctx.request.body;
@@ -411,13 +413,72 @@ const getList = async (ctx) => {
       functionName: 'balanceOf',
       args: [user.mirror]
     });
+    let mirrorNfts = await Promise.all(Array.from({ length: mirrorBalance }, async (_, i) => {
+      const tokenId = await publicClient.readContract({
+        address: gameNft.nft,
+        abi: erc721Abi,
+        functionName: 'tokenOfOwnerByIndex',
+        args: [user.mirror, i]
+      });
+      const tokenUri = await publicClient.readContract({
+        address: gameNft.nft,
+        abi: erc721Abi,
+        functionName: 'tokenURI',
+        args: [tokenId]
+      });
+
+      return {
+        owner: user.mirror,
+        tokenId,
+        tokenUri
+      };
+    }));
+
+    const mirrorUris = mirrorNfts.map(mirrorNft => mirrorNft.tokenUri);
+    const mirrorMetaJsons = await getMetaJson(mirrorUris);
+    mirrorNfts = mirrorNfts.map((mirrorNft, i) => ({
+      ...mirrorNft,
+      metaJson: mirrorMetaJsons[mirrorUris[i]],
+    }));
+
+    
     const primaryBalance = await publicClient.readContract({
       address: gameNft.nft,
       abi: erc721Abi,
       functionName: 'balanceOf',
       args: [user.primaryAddress]
     });
+
+    let primaryNfts = await Promise.all(Array.from({ length: primaryBalance }, async (_, i) => {
+      const tokenId = await publicClient.readContract({
+        address: gameNft.nft,
+        abi: erc721Abi,
+        functionName: 'tokenOfOwnerByIndex',
+        args: [user.primaryAddress, i]
+      });
+      const tokenUri = await publicClient.readContract({
+        address: gameNft.nft,
+        abi: erc721Abi,
+        functionName: 'tokenURI',
+        args: [tokenId]
+      });
+
+      return {
+        owner: user.primaryAddress,
+        tokenId,
+        tokenUri
+      };
+    }));
+
+    const primaryUris = primaryNfts.map(primaryNft => primaryNft.tokenUri);
+    const primaryMetaJsons = await getMetaJson(primaryUris);
+    primaryNfts = primaryNfts.map((primaryNft, i) => ({
+      ...primaryNft,
+      metaJson: primaryMetaJsons[primaryUris[i]],
+    }));
+
     const secondaries = await Secondary.find({plyrId: plyrId.toLowerCase()});
+    let secondaryNfts = [];
     const secondaryBalances = await Promise.all(secondaries.map(async (secondary) => {
       const balance = await publicClient.readContract({
         address: gameNft.nft,
@@ -425,6 +486,37 @@ const getList = async (ctx) => {
         functionName: 'balanceOf',
         args: [secondary.secondaryAddress]
       });
+
+      let nfts = await Promise.all(Array.from({ length: balance }, async (_, i) => {
+        const tokenId = await publicClient.readContract({
+          address: gameNft.nft,
+          abi: erc721Abi,
+          functionName: 'tokenOfOwnerByIndex',
+          args: [secondary.secondaryAddress, i]
+        });
+        const tokenUri = await publicClient.readContract({
+          address: gameNft.nft,
+          abi: erc721Abi,
+          functionName: 'tokenURI',
+          args: [tokenId]
+        });
+
+        return {
+          owner: secondary.secondaryAddress,
+          tokenId,
+          tokenUri
+        };
+      }));
+
+      const uris = nfts.map(nft => nft.tokenUri);
+      const metaJsons = await getMetaJson(uris);
+      nfts = nfts.map((nft, i) => ({
+        ...nft,
+        metaJson: metaJsons[uris[i]]
+      }));
+
+      secondaryNfts.push(...nfts);
+
       return {
         balance
       };
@@ -435,7 +527,7 @@ const getList = async (ctx) => {
       name: gameNft.name,
       symbol: gameNft.symbol,
       nft: gameNft.nft,
-      balance: totalBalance
+      balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts]
     };
   }));
 
@@ -448,7 +540,7 @@ const getList = async (ctx) => {
     ret[item.gameId][item.nft] = {
       name: item.name,
       symbol: item.symbol,
-      balance: item.balance,
+      details: item.balance,
     };
   })
   
@@ -666,6 +758,7 @@ module.exports = {
   postNftBurn,
   postNftTransfer,
   getBalance,
+  getList,
   getInfo,
   getIsHolding,
   getCredit,
