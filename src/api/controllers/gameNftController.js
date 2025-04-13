@@ -413,7 +413,7 @@ const getList = async (ctx) => {
       functionName: 'balanceOf',
       args: [user.mirror]
     });
-    let mirrorNfts = await Promise.all(Array.from({ length: mirrorBalance }, async (_, i) => {
+    let mirrorNfts = await Promise.all(Array.from({ length: Number(mirrorBalance.toString()) }, async (_, i) => {
       const tokenId = await publicClient.readContract({
         address: gameNft.nft,
         abi: erc721Abi,
@@ -449,7 +449,7 @@ const getList = async (ctx) => {
       args: [user.primaryAddress]
     });
 
-    let primaryNfts = await Promise.all(Array.from({ length: primaryBalance }, async (_, i) => {
+    let primaryNfts = await Promise.all(Array.from({ length: Number(primaryBalance.toString()) }, async (_, i) => {
       const tokenId = await publicClient.readContract({
         address: gameNft.nft,
         abi: erc721Abi,
@@ -487,7 +487,7 @@ const getList = async (ctx) => {
         args: [secondary.secondaryAddress]
       });
 
-      let nfts = await Promise.all(Array.from({ length: balance }, async (_, i) => {
+      let nfts = await Promise.all(Array.from({ length: Number(balance.toString()) }, async (_, i) => {
         const tokenId = await publicClient.readContract({
           address: gameNft.nft,
           abi: erc721Abi,
@@ -521,7 +521,6 @@ const getList = async (ctx) => {
         balance
       };
     }));
-    const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
     return {
       gameId: gameNft.gameId,
       name: gameNft.name,
