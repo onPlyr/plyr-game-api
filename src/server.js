@@ -10,6 +10,7 @@ process.on('uncaughtException', (error) => {
   console.log('Server will shut down in 3 seconds...');
   
   setTimeout(() => {
+    process.kill(process.pid, 'SIGTERM');
     process.exit(1);
   }, 3000);
 });
@@ -21,6 +22,7 @@ process.on('unhandledRejection', (reason, promise) => {
   console.log('Server will shut down in 3 seconds...');
   
   setTimeout(() => {
+    process.kill(process.pid, 'SIGTERM');
     process.exit(1);
   }, 3000);
 });
