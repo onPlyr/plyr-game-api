@@ -27,7 +27,7 @@ const checkSessionJwts = async (ctx, next) => {
       const payload = verifyToken(sessionJwt);
       if (!payload) {
         isAllValid = false;
-        invalidPlyrIds[plyrId] = 'Invalid sessionJwt';
+        invalidPlyrIds['unknown'] = 'Invalid sessionJwt';
         return;
       }
       const plyrId = payload.plyrId;
