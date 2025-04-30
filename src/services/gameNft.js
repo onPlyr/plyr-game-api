@@ -1,23 +1,109 @@
-const { GAME_NFT_FACTORY_ABI } = require('../config');
+const { GAME_NFT_FACTORY_ABI, TELEPORTER_MESSENGER_ABI } = require('../config');
 const { sendMultiChainTx } = require('../utils/tx');
 const { logActivity } = require('../utils/activity');
-const { decodeEventLog, erc721Abi } = require('viem');
+const { decodeEventLog, erc721Abi, createPublicClient, http } = require('viem');
 const GameNft = require('../models/gameNft');
 const { gameNftConfig} = require('../config');
+const axios = require('axios');
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getIcmMessageFromAPI(messageId) {
+  console.log('ICM HEADER:', process.env.ICM_HEADER);
+
+  let ret = await axios.get('https://glacier-api.avax.network/v1/icm/messages/'+messageId, {
+    headers: {
+      'x-glacier-api-key': process.env.ICM_HEADER
+    }
+  });
+
+  ret = ret.data;
+  return ret;
+}
+
+async function getIcmReceipt(receipt, chainTag) {
+  let _messageId;
+
+  for (let i = 0; i < receipt.logs.length; i++) {
+    const log = receipt.logs[i];
+    try {
+      const decodedLog = decodeEventLog({
+        abi: TELEPORTER_MESSENGER_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      console.log('Decoded log', i, ':', decodedLog);
+      if (decodedLog.eventName === 'SendCrossChainMessage') {
+        const { messageID } = decodedLog.args;
+        _messageId = messageID;
+        break;
+      }
+    } catch (error) {
+      console.log('Failed to decode log', i, ':', error.message);
+    }
+  }
+
+  if (!_messageId) {
+    throw new Error("Can not found messageID");
+  }
+
+  const chainConfig = CHAIN_CONFIG[chainTag];
+  const client = await createPublicClient({
+    chain: chainConfig.chain,
+    transport: http(chainConfig.rpcUrls[0]),
+  });
+  
+
+  let times = 0;
+  while(times++ < 60) {
+    await sleep(2000);
+    let ret = await getIcmMessageFromAPI(_messageId);
+    if (ret.destinationTransaction && ret.destinationTransaction.txHash && ret.messageExecuted) {
+      receipt = await client.getTransactionReceipt({
+        hash: ret.destinationTransaction.txHash,
+      });
+      return receipt;
+    }
+  }
+}
 
 async function create({gameId, name, symbol, image, chainTag}) {
   let result = {};
-  const receipt = await sendMultiChainTx({
-    chainTag,
-    address: gameNftConfig[chainTag].gameNftFactory,
-    abi: GAME_NFT_FACTORY_ABI,
-    functionName: 'createNft',
-    args: [
-      gameId,
-      name,
-      symbol
-    ]
-  });
+  let isRemote = ["fuji", "avalanche"].includes(chainTag);
+
+  let receipt;
+  if (isRemote) {
+    const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
+
+    receipt = await sendMultiChainTx({
+      chainTag: _chainTag,
+      address: gameNftConfig[_chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'createNftRemote',
+      args: [
+        gameId,
+        name,
+        symbol
+      ]
+    });
+
+    receipt = await getIcmReceipt(receipt, chainTag);
+  } else {
+    receipt = await sendMultiChainTx({
+      chainTag,
+      address: gameNftConfig[chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'createNft',
+      args: [
+        gameId,
+        name,
+        symbol
+      ]
+    });
+  }
+
 
   const hash = receipt.transactionHash;
 
@@ -52,17 +138,37 @@ async function create({gameId, name, symbol, image, chainTag}) {
 
 async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
   let result = {};
-  const receipt = await sendMultiChainTx({
-    chainTag,
-    address: gameNftConfig[chainTag].gameNftFactory,
-    abi: GAME_NFT_FACTORY_ABI,
-    functionName: 'batchMint',
-    args: [
-      nfts,
-      addresses,
-      tokenUris
-    ]
-  });
+
+  let receipt;
+  if (isRemote) {
+    const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
+
+    receipt = await sendMultiChainTx({
+      chainTag: _chainTag,
+      address: gameNftConfig[_chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchMintRemote',
+      args: [
+        nfts,
+        addresses,
+        tokenUris
+      ]
+    });
+
+    receipt = await getIcmReceipt(receipt, chainTag);
+  } else {
+    receipt = await sendMultiChainTx({
+      chainTag,
+      address: gameNftConfig[chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchMint',
+      args: [
+        nfts,
+        addresses,
+        tokenUris
+      ]
+    });
+  }
 
   const hash = receipt.transactionHash;
   console.log('mintGameNft receipt:', receipt);
@@ -100,16 +206,33 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
 
 async function burn({chainTag, gameId, nfts, tokenIds}) {
   let result = {};
-  const receipt = await sendMultiChainTx({
-    chainTag,
-    address: gameNftConfig[chainTag].gameNftFactory,
-    abi: GAME_NFT_FACTORY_ABI,
-    functionName: 'batchBurn',
-    args: [
-      nfts,
-      tokenIds
-    ]
-  });
+  let receipt;
+  if (isRemote) {
+    const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
+    receipt = await sendMultiChainTx({
+      chainTag: _chainTag,
+      address: gameNftConfig[_chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchBurnRemote',
+      args: [
+        nfts,
+        tokenIds
+      ]
+    });
+
+    receipt = await getIcmReceipt(receipt, chainTag);
+  } else {
+    receipt = await sendMultiChainTx({
+      chainTag,
+      address: gameNftConfig[chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchBurn',
+      args: [
+        nfts,
+        tokenIds
+      ]
+    });
+  }
 
   const hash = receipt.transactionHash;
   console.log('burnGameNft receipt:', receipt);
@@ -145,18 +268,38 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
 
 async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tokenIds}) {
   let result = {};
-  const receipt = await sendMultiChainTx({
-    chainTag,
-    address: gameNftConfig[chainTag].gameNftFactory,
-    abi: GAME_NFT_FACTORY_ABI,
-    functionName: 'batchGameTransfer',
-    args: [
-      nfts,
-      fromAddresses,
-      toAddresses,
-      tokenIds
-    ]
-  });
+
+  let receipt;
+  if (isRemote) {
+    const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
+    receipt = await sendMultiChainTx({
+      chainTag: _chainTag,
+      address: gameNftConfig[_chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchGameTransferRemote',
+      args: [
+        nfts,
+        fromAddresses,
+        toAddresses,
+        tokenIds
+      ]
+    });
+
+    receipt = await getIcmReceipt(receipt, chainTag);
+  } else {
+    receipt = await sendMultiChainTx({
+      chainTag,
+      address: gameNftConfig[chainTag].gameNftFactory,
+      abi: GAME_NFT_FACTORY_ABI,
+      functionName: 'batchGameTransfer',
+      args: [
+        nfts,
+        fromAddresses,
+        toAddresses,
+        tokenIds
+      ]
+    });
+  }
 
   const hash = receipt.transactionHash;
   console.log('transferGameNft receipt:', receipt);
