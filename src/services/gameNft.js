@@ -1,4 +1,4 @@
-const { GAME_NFT_FACTORY_ABI, TELEPORTER_MESSENGER_ABI } = require('../config');
+const { GAME_NFT_FACTORY_ABI, TELEPORTER_MESSENGER_ABI, CHAIN_CONFIG } = require('../config');
 const { sendMultiChainTx } = require('../utils/tx');
 const { logActivity } = require('../utils/activity');
 const { decodeEventLog, erc721Abi, createPublicClient, http } = require('viem');
