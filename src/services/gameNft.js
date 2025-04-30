@@ -138,6 +138,7 @@ async function create({gameId, name, symbol, image, chainTag}) {
 
 async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
   let result = {};
+  let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
   let receipt;
   if (isRemote) {
@@ -207,6 +208,8 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
 async function burn({chainTag, gameId, nfts, tokenIds}) {
   let result = {};
   let receipt;
+  let isRemote = ["fuji", "avalanche"].includes(chainTag);
+
   if (isRemote) {
     const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
     receipt = await sendMultiChainTx({
@@ -268,6 +271,8 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
 
 async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tokenIds}) {
   let result = {};
+
+  let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
   let receipt;
   if (isRemote) {
