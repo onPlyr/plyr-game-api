@@ -163,9 +163,9 @@ The system validates the `chainId` parameter through the `checkChainId` middlewa
 **Description:** Query whether a user holds a specific game NFT.
 
 **Request Parameters:**
-- `address`: User address (required)
+- `plyrId`: User address (required)
+- `gameId`: Game ID (required)
 - `nft`: NFT contract address (required)
-- `tokenId`: Token ID (optional)
 - `chainId`: Blockchain network ID (required)
 
 **Response:**
