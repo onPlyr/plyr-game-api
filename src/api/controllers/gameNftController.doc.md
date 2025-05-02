@@ -114,7 +114,7 @@ The system validates the `chainId` parameter through the `checkChainId` middlewa
 **Description:** Query the balance of game NFTs held by a user.
 
 **Request Parameters:**
-- `address`: User address (required)
+- `plyrId`: User plyrId (required)
 - `nft`: NFT contract address (optional)
 - `chainId`: Blockchain network ID (required)
 
@@ -129,12 +129,10 @@ The system validates the `chainId` parameter through the `checkChainId` middlewa
 **Description:** Query the list of game NFTs held by a user.
 
 **Request Parameters:**
-- `address`: User address (required)
+- `plyrId`: User plyrId (required)
 - `nft`: NFT contract address (optional)
 - `gameId`: Game ID (optional)
 - `chainId`: Blockchain network ID (required)
-- `page`: Page number (optional, default is 1)
-- `pageSize`: Number of items per page (optional, default is 10)
 
 **Response:**
 - Success: Returns the list of NFTs held by the user, including metadata
