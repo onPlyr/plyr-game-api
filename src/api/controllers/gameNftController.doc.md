@@ -116,6 +116,7 @@ The system validates the `chainId` parameter through the `checkChainId` middlewa
 **Request Parameters:**
 - `plyrId`: User plyrId (required)
 - `nft`: NFT contract address (optional)
+- `gameId`: Game ID (optional)
 - `chainId`: Blockchain network ID (required)
 
 **Response:**
