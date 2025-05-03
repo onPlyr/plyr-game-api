@@ -57,7 +57,7 @@ async function getIcmReceipt(receipt, chainTag) {
   
 
   let times = 0;
-  while(times++ < 60) {
+  while(times++ < 10) {
     await sleep(2000);
     let ret = await getIcmMessageFromAPI(_messageId);
     if (ret.destinationTransaction && ret.destinationTransaction.txHash && ret.messageExecuted) {
@@ -66,7 +66,13 @@ async function getIcmReceipt(receipt, chainTag) {
       });
       return receipt;
     }
+
+    if (ret.status === 'delivered' && ret.messageExecuted === false) {
+      throw new Error('Message is not executed');
+    }
   }
+
+  throw new Error('Message is not executed');
 }
 
 async function create({gameId, name, symbol, image, chainTag}) {
