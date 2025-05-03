@@ -118,6 +118,12 @@ async function processMessage(id, message) {
         errorMessage = 'Transaction Receipt Failed';
         break;
       }
+
+      if (error.message.includes('ICM message is failed')) {
+        errorMessage = 'ICM message is failed';
+        break;
+      }
+
       retries++;
       console.error(`error: ${key} Message failed: ${retries}/${maxRetries}:`, error);
       errorMessage = error.shortMessage;
