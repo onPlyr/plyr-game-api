@@ -336,6 +336,7 @@ const getBalance = async (ctx) => {
       name: gameNft.name,
       symbol: gameNft.symbol,
       nft: gameNft.nft,
+      image: gameNft.image,
       balance: totalBalance
     };
   }));
@@ -349,6 +350,7 @@ const getBalance = async (ctx) => {
     ret[item.gameId][item.nft] = {
       name: item.name,
       symbol: item.symbol,
+      image: item.image,
       balance: item.balance,
     };
   })

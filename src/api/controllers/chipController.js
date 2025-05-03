@@ -219,6 +219,7 @@ const getBalance = async (ctx) => {
       name: chip.name,
       symbol: chip.symbol,
       chip: chip.chip,
+      image: chip.image,
       balance: formatEther(balance)
     };
   }));
@@ -232,6 +233,7 @@ const getBalance = async (ctx) => {
     ret[item.gameId][item.chip] = {
       name: item.name,
       symbol: item.symbol,
+      image: item.image,
       balance: item.balance,
     };
   })
