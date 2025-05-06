@@ -11,9 +11,7 @@ const { generateJwtToken } = require('../../utils/jwt');
 const redis = getRedisClient();
 const { approve } = require('./gameController');
 const { logActivity } = require('../../utils/activity');
-const { insertPlyrIdToBlockscout } = require('../../db/postgres');
-
-
+const { insertBlockScoutTask } = require('../../utils/redisUtils');
 
 async function createRandomAddress() {
   const wallet = ethers.Wallet.createRandom();
@@ -110,7 +108,7 @@ exports.postRegister = async (ctx) => {
   delete payload.nonce;
 
   if (process.env.NODE_ENV !== 'test') {
-    await insertPlyrIdToBlockscout(plyrId, mirror);
+    await insertBlockScoutTask({plyrId, mirror}, 'createUser');
 
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
