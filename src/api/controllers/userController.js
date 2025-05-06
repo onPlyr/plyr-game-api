@@ -12,8 +12,8 @@ const MirrorClaim = require('../../models/mirrorClaim');
 const InstantPlayPass = require('../../models/instantPlayPass');
 const { logActivity } = require('../../utils/activity');
 const redis = getRedisClient();
-const { insertPlyrIdToBlockscout } = require('../../db/postgres');
 const Auth = require('../../models/auth');
+const { insertBlockScoutTask } = require('../../utils/redisUtils');
 
 authenticator.options = {
   step: 30,
@@ -163,7 +163,7 @@ exports.postRegister = async (ctx) => {
   });
 
   if (process.env.NODE_ENV !== 'test') {
-    await insertPlyrIdToBlockscout(plyrId, mirror);
+    await insertBlockScoutTask({plyrId, mirror}, 'createUser');
 
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
@@ -301,7 +301,7 @@ exports.postRegisterWithClaimingCode = async (ctx) => {
   await InstantPlayPass.updateOne({ plyrId: claimingCodeUser.plyrId }, { $set: { isDeleted: true } });
 
   if (process.env.NODE_ENV !== 'test') {
-    await insertPlyrIdToBlockscout(plyrId, mirror);
+    await insertBlockScoutTask({plyrId, mirror}, 'createUserWithMirror');
 
     const STREAM_KEY = 'mystream';
     // insert message into redis stream
