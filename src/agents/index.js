@@ -111,7 +111,7 @@ async function processMessage(id, message) {
         result = _result;
       }
 
-      await storeTaskResult(id, {...message, result}, 'SUCCESS', hash);
+      await storeTaskResult(id, {method: message[0], body: JSON.parse(message[1]), result}, 'SUCCESS', hash);
       return; // success, exit loop
     } catch (error) {
       if (error.message.includes('Transaction Receipt Failed')) {
