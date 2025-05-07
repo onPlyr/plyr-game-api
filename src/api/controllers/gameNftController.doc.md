@@ -158,7 +158,7 @@ The system validates the `chainId` parameter through the `checkChainId` middlewa
 
 ### 9. Query Holding Status
 
-**Endpoint:** `GET /api/game/nft/isHolding`
+**Endpoint:** `GET /api/game/nft/count`
 
 **Description:** Query whether a user holds a specific game NFT.
 

@@ -549,7 +549,7 @@ const getList = async (ctx) => {
   ctx.body = ret;
 }
 
-const getIsHolding = async (ctx) => {
+const getCount = async (ctx) => {
   const { plyrId, gameId, nft, chainId } = ctx.query;
 
   if(!plyrId || !gameId || !nft || !chainId) {
@@ -761,7 +761,7 @@ module.exports = {
   getBalance,
   getList,
   getInfo,
-  getIsHolding,
+  getCount,
   getCredit,
   isNftsBelongToGame,
   postNftCreateBySignature,
