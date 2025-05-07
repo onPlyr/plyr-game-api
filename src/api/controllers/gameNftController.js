@@ -528,6 +528,7 @@ const getList = async (ctx) => {
       name: gameNft.name,
       symbol: gameNft.symbol,
       nft: gameNft.nft,
+      image: gameNft.image,
       balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts]
     };
   }));
@@ -541,6 +542,7 @@ const getList = async (ctx) => {
     ret[item.gameId][item.nft] = {
       name: item.name,
       symbol: item.symbol,
+      image: item.image,
       details: item.balance,
     };
   })
