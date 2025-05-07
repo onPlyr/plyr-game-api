@@ -232,7 +232,7 @@ async function main() {
     game.secKey,
     body
   );
-  console.log("earnLeaveEnd response", response);
+  console.log("earnLeaveEnd response", JSON.stringify(response, null, 2));
 }
 
 main().then(()=>console.log('done')).catch(console.error);
