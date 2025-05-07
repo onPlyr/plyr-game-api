@@ -552,11 +552,11 @@ const getList = async (ctx) => {
 }
 
 const getCount = async (ctx) => {
-  const { plyrId, gameId, nft, chainId } = ctx.query;
+  const { plyrId, nft, chainId } = ctx.query;
 
-  if(!plyrId || !gameId || !nft || !chainId) {
+  if(!plyrId || !nft || !chainId) {
     ctx.status = 400;
-    ctx.body = { error: 'plyrId, gameId, nft, and chainId are required' };
+    ctx.body = { error: 'plyrId, nft, and chainId are required' };
     return;
   }
 
@@ -574,7 +574,7 @@ const getCount = async (ctx) => {
     return;
   }
 
-  const gameNft = await GameNft.findOne({ gameId: gameId.toLowerCase(), nft: getAddress(nft), chainTag });
+  const gameNft = await GameNft.findOne({ nft: getAddress(nft), chainTag });
   if (!gameNft) {
     ctx.status = 404;
     ctx.body = { error: 'nft not found' };
@@ -612,7 +612,7 @@ const getCount = async (ctx) => {
   }));
   const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
   ctx.status = 200;
-  ctx.body = { isHolding: totalBalance > 0, balance: totalBalance }; 
+  ctx.body = { balance: totalBalance }; 
 }
 
 const getInfo = async (ctx) => {
