@@ -3,12 +3,32 @@ const { chainNameToChainId, nftAlias } = require('../../config');
 const UserInfo = require('../../models/userInfo');
 const Secondary = require('../../models/secondary');
 const MetaJson = require('../../models/metaJson');
-const { getNftByAddresses } = require('../../services/subgraph');
+const { getNftByAddresses, getNftByTokenId } = require('../../services/subgraph');
 const NodeCache = require('node-cache');
 const axios = require('axios');
 
 // Initialize cache with 1 hour TTL
 const metaCache = new NodeCache({ stdTTL: 3600 });
+
+const getNftById = async (ctx) => {
+    const { chain, contract, tokenId } = ctx.params;
+    if (!chain || !contract || !tokenId) {
+        ctx.status = 400;
+        ctx.body = {
+            error: 'Chain, contract, and tokenId are required'
+        };
+        return;
+    }
+
+    const nft = await getNftByTokenId(chain, contract, tokenId);
+    const metaJsons = await getMetaJson([nft.tokenURI]);
+
+    ctx.status = 200;
+    ctx.body = {
+        ...nft,
+        ...metaJsons[nft.tokenURI]
+    };
+}
 
 const getNft = async (ctx) => {
     const { chain, contract, plyrId } = ctx.params;
@@ -191,3 +211,4 @@ const getMetaJson = async (uris) => {
 
 exports.getNft = getNft;
 exports.getMetaJson = getMetaJson;
+exports.getNftById = getNftById;

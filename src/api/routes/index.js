@@ -142,6 +142,7 @@ router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
 
 // nft apis
 router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
+router.get('/nft/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftById);
 
 // permission apis
 router.post('/developer/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);

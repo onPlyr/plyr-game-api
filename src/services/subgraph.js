@@ -1,6 +1,7 @@
 const { nftSubgraphs } = require('../config');
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 60 }); // 60 seconds TTL
+const cache2 = new NodeCache({ stdTTL: 365*24*3600 }); // 1 year TTL
 
 exports.getNftByAddresses = async (chain, contract, addrs) => {
     const cacheKey = `${chain}-${contract}-${addrs.sort().join(',')}`;
@@ -44,4 +45,48 @@ exports.getNftByAddresses = async (chain, contract, addrs) => {
 
     cache.set(cacheKey, data.ownerships);
     return data.ownerships;
+}
+
+exports.getNftByTokenId = async (chain, contract, tokenId) => {
+    const cacheKey = `${chain}-${contract}-${tokenId}`;
+
+    const cachedResult = cache2.get(cacheKey);
+    if (cachedResult) {
+        return cachedResult;
+    }
+
+    const url = nftSubgraphs[chain];
+    const query = `
+        query {
+            nfts( where: { contract: "${contract.toLowerCase()}", tokenID: "${tokenId}" }) {
+                tokenID
+                tokenURI
+                ownership {
+                    owner
+                    quantity
+                }
+            }
+        }
+    `;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Subgraph request failed: ${response.statusText}`);
+    }
+
+    const { data, errors } = await response.json();
+    
+    if (errors) {
+        throw new Error(`GraphQL Errors: ${JSON.stringify(errors)}`);
+    }
+
+    cache2.set(cacheKey, data.nfts);
+    return data.nfts;
 }
