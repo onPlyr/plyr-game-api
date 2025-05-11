@@ -315,7 +315,13 @@ const getBalance = async (ctx) => {
   
   // Only add nft to query if it's defined
   if (nft !== undefined) {
-    query.nft = getAddress(nft);
+    if (nft.includes(',')) {
+      // Handle comma-separated NFT addresses
+      const nftAddresses = nft.split(',').map(address => getAddress(address.trim()));
+      query.nft = { $in: nftAddresses };
+    } else {
+      query.nft = getAddress(nft);
+    }
   }
   
   // Execute the query with only the defined filters
@@ -418,7 +424,13 @@ const getList = async (ctx) => {
   
   // Only add nft to query if it's defined
   if (nft !== undefined) {
-    query.nft = getAddress(nft);
+    if (nft.includes(',')) {
+      // Handle comma-separated NFT addresses
+      const nftAddresses = nft.split(',').map(address => getAddress(address.trim()));
+      query.nft = { $in: nftAddresses };
+    } else {
+      query.nft = getAddress(nft);
+    }
   }
   
   // Execute the query with only the defined filters
