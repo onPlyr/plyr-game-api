@@ -11,6 +11,8 @@ const { getChainTag } = require('../middlewares/checkChainId');
 const { getMetaJson } = require('./nftController');
 const metaJson = require('../../models/metaJson');
 
+const MAX_BATCH_SIZE = 10; // max batch mint size for fuji and avalanche
+
 const postNftCreateBySignature = async (ctx) => {
   const { gameId, name, symbol, image, signature } = ctx.request.body;
   if (!gameId || !name || !symbol) {
@@ -106,6 +108,11 @@ const postNftMint = async (ctx) => {
   }
 
   const chainTag = ctx.state.chainTag;
+  if (addresses.length > MAX_BATCH_SIZE) {
+    ctx.status = 400;
+    ctx.body = { error: `addresses length must be less than ${MAX_BATCH_SIZE}` };
+    return;
+  }
 
   if (!tokenUris && !metaJsons) {
     ctx.status = 400;
@@ -171,6 +178,12 @@ const postNftBurn = async (ctx) => {
 
   const chainTag = ctx.state.chainTag;
 
+  if (nfts.length > MAX_BATCH_SIZE) {
+    ctx.status = 400;
+    ctx.body = { error: `nfts length must be less than ${MAX_BATCH_SIZE}` };
+    return;
+  }
+
   if (tokenIds.length !== nfts.length) {
     ctx.status = 400;
     ctx.body = { error: 'tokenIds and nfts must be the same length' };
@@ -209,6 +222,12 @@ const postNftTransfer = async (ctx) => {
   if (!nfts || !fromAddresses || !toAddresses || !tokenIds) {
     ctx.status = 400;
     ctx.body = { error: 'nfts, fromAddresses, toAddresses, tokenIds, and chainId are required' };
+    return;
+  }
+
+  if (nfts.length > MAX_BATCH_SIZE) {
+    ctx.status = 400;
+    ctx.body = { error: `nfts length must be less than ${MAX_BATCH_SIZE}` };
     return;
   }
 
