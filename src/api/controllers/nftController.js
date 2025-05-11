@@ -20,13 +20,39 @@ const getNftById = async (ctx) => {
         return;
     }
 
-    const nft = await getNftByTokenId(chain, contract, tokenId);
-    const metaJsons = await getMetaJson([nft.tokenURI]);
+    let _chain = chain;
+    let _contract = contract;
+
+    if (isNaN(chain)) {
+        _chain = chainNameToChainId[chain];
+        if (isNaN(_chain)) {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid chain'
+            };
+            return;
+        }
+    }
+
+    if (!isAddress(contract)) {
+        if (nftAlias[_chain] && nftAlias[_chain][contract]) {
+            _contract = nftAlias[_chain][contract];
+        } else {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid contract'
+            };
+            return;
+        }
+    }
+
+    const nfts = await getNftByTokenId(_chain, _contract, tokenId);
+    const metaJsons = await getMetaJson(nfts.map(nft => nft.tokenURI));
 
     ctx.status = 200;
     ctx.body = {
-        ...nft,
-        ...metaJsons[nft.tokenURI]
+        ...nfts[0],
+        ...metaJsons[nfts[0].tokenURI]
     };
 }
 
