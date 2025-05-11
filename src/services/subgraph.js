@@ -49,6 +49,7 @@ exports.getNftByAddresses = async (chain, contract, addrs) => {
 
 exports.getNftByTokenId = async (chain, contract, tokenId) => {
     const cacheKey = `${chain}-${contract}-${tokenId}`;
+    console.log('getNftByTokenId', cacheKey);
 
     const cachedResult = cache2.get(cacheKey);
     if (cachedResult) {
@@ -56,6 +57,7 @@ exports.getNftByTokenId = async (chain, contract, tokenId) => {
     }
 
     const url = nftSubgraphs[chain];
+    console.log('getNftByTokenId', url);
     const query = `
         query {
             nfts( where: { contract: "${contract.toLowerCase()}", tokenID: "${tokenId}" }) {
@@ -69,6 +71,8 @@ exports.getNftByTokenId = async (chain, contract, tokenId) => {
         }
     `;
 
+    console.log('getNftByTokenId', query);
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -77,12 +81,14 @@ exports.getNftByTokenId = async (chain, contract, tokenId) => {
         body: JSON.stringify({ query })
     });
 
+    console.log('getNftByTokenId', response);
+
     if (!response.ok) {
         throw new Error(`Subgraph request failed: ${response.statusText}`);
     }
 
     const { data, errors } = await response.json();
-    
+    console.log('getNftByTokenId', data, errors);    
     if (errors) {
         throw new Error(`GraphQL Errors: ${JSON.stringify(errors)}`);
     }
