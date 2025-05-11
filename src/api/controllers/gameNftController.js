@@ -212,6 +212,13 @@ const postNftTransfer = async (ctx) => {
     return;
   }
 
+  // check toAddresses !== 0x0
+  if (toAddresses.some(address => address.toLowerCase() === '0x0000000000000000000000000000000000000000')) {
+    ctx.status = 400;
+    ctx.body = { error: 'toAddresses cannot be 0x0' };
+    return;
+  }
+
   const chainTag = ctx.state.chainTag;
 
   if (fromAddresses.length !== tokenIds.length || toAddresses.length !== tokenIds.length) {
