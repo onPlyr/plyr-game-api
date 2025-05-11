@@ -143,7 +143,7 @@ async function create({gameId, name, symbol, image, chainTag}) {
 }
 
 async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
-  let result = {};
+  let result = [];
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
   let receipt;
@@ -200,7 +200,7 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        result.push({ gameId, from, to, tokenId: tokenId.toString(), hash });
         await logActivity(gameId, gameId, 'gameNft', 'mint', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
@@ -212,7 +212,7 @@ async function mint({chainTag, gameId, nfts, addresses, tokenUris}) {
 }
 
 async function burn({chainTag, gameId, nfts, tokenIds}) {
-  let result = {};
+  let result = [];
   let receipt;
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
@@ -265,7 +265,7 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        result.push({ gameId, from, to, tokenId: tokenId.toString(), hash });
         await logActivity(gameId, gameId, 'gameNft', 'burn', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
@@ -276,7 +276,7 @@ async function burn({chainTag, gameId, nfts, tokenIds}) {
 }
 
 async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tokenIds}) {
-  let result = {};
+  let result = [];
 
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
@@ -335,7 +335,7 @@ async function transfer({chainTag, gameId, nfts, fromAddresses, toAddresses, tok
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'Transfer') {
         const { from, to, tokenId } = decodedLog.args;
-        result = { gameId, from, to, tokenId: tokenId.toString(), hash };
+        result.push({ gameId, from, to, tokenId: tokenId.toString(), hash });
         await logActivity(gameId, gameId, 'gameNft', 'transfer', { gameId, from, to, tokenId: tokenId.toString(), chainTag, hash, success: receipt.status });
       }
     } catch (error) {
