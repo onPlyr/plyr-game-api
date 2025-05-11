@@ -127,6 +127,8 @@ router.get('/game/nft/info', hmacAuth('user'), gameNftController.getInfo);
 router.get('/game/nft/count', hmacAuth('user'), gameNftController.getCount);
 router.get('/game/nft/credit', hmacAuth('user'), gameNftController.getCredit);
 router.post('/game/nft/upload', hmacAuth('user'), gameNftController.postUploadFile);
+router.get('/game/nft/get/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftById);
+
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);
@@ -142,7 +144,6 @@ router.get('/isGame/:plyrId', hmacAuth('user'), withdrawController.getIsGame);
 
 // nft apis
 router.get('/nft/:chain/:contract/:plyrId', hmacAuth('user'), nftController.getNft);
-router.get('/nft/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftById);
 
 // permission apis
 router.post('/developer/upgrade', hmacAuth('user'), permissionController.postUpgradePermission);
