@@ -56,6 +56,92 @@ const getNftById = async (ctx) => {
     };
 }
 
+const getNftOwner = async (ctx) => {
+    const { chain, contract, tokenId } = ctx.params;
+    if (!chain || !contract || !tokenId) {
+        ctx.status = 400;
+        ctx.body = {
+            error: 'Chain, contract, and tokenId are required'
+        };
+        return;
+    }
+
+    let _chain = chain;
+    let _contract = contract;
+
+    if (isNaN(chain)) {
+        _chain = chainNameToChainId[chain];
+        if (isNaN(_chain)) {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid chain'
+            };
+            return;
+        }
+    }
+
+    if (!isAddress(contract)) {
+        if (nftAlias[_chain] && nftAlias[_chain][contract]) {
+            _contract = nftAlias[_chain][contract];
+        } else {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid contract'
+            };
+            return;
+        }
+    }
+
+    const nfts = await getNftByTokenId(_chain, _contract, tokenId);
+    ctx.status = 200;
+    ctx.body = {
+        owner: nfts[0].ownership[0].owner,
+    };
+}
+
+const getIsBurnt = async (ctx) => {
+    const { chain, contract, tokenId } = ctx.params;
+    if (!chain || !contract || !tokenId) {
+        ctx.status = 400;
+        ctx.body = {
+            error: 'Chain, contract, and tokenId are required'
+        };
+        return;
+    }
+
+    let _chain = chain;
+    let _contract = contract;
+
+    if (isNaN(chain)) {
+        _chain = chainNameToChainId[chain];
+        if (isNaN(_chain)) {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid chain'
+            };
+            return;
+        }
+    }
+
+    if (!isAddress(contract)) {
+        if (nftAlias[_chain] && nftAlias[_chain][contract]) {
+            _contract = nftAlias[_chain][contract];
+        } else {
+            ctx.status = 400;
+            ctx.body = {
+                error: 'Invalid contract'
+            };
+            return;
+        }
+    }
+
+    const nfts = await getNftByTokenId(_chain, _contract, tokenId);
+    ctx.status = 200;
+    ctx.body = {
+        isBurnt: nfts[0].ownership[0].owner === '0x0000000000000000000000000000000000000000',
+    };
+}
+
 const getNft = async (ctx) => {
     const { chain, contract, plyrId } = ctx.params;
     if (!chain || !contract || !plyrId) {
@@ -238,3 +324,5 @@ const getMetaJson = async (uris) => {
 exports.getNft = getNft;
 exports.getMetaJson = getMetaJson;
 exports.getNftById = getNftById;
+exports.getNftOwner = getNftOwner;
+exports.getIsBurnt = getIsBurnt;

@@ -1,7 +1,6 @@
 const { nftSubgraphs } = require('../config');
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 60 }); // 60 seconds TTL
-const cache2 = new NodeCache({ stdTTL: 365*24*3600 }); // 1 year TTL
 
 exports.getNftByAddresses = async (chain, contract, addrs) => {
     const cacheKey = `${chain}-${contract}-${addrs.sort().join(',')}`;
@@ -51,7 +50,7 @@ exports.getNftByTokenId = async (chain, contract, tokenId) => {
     const cacheKey = `${chain}-${contract}-${tokenId}`;
     console.log('getNftByTokenId', cacheKey);
 
-    const cachedResult = cache2.get(cacheKey);
+    const cachedResult = cache.get(cacheKey);
     if (cachedResult) {
         return cachedResult;
     }
@@ -93,6 +92,6 @@ exports.getNftByTokenId = async (chain, contract, tokenId) => {
         throw new Error(`GraphQL Errors: ${JSON.stringify(errors)}`);
     }
 
-    cache2.set(cacheKey, data.nfts);
+    cache.set(cacheKey, data.nfts);
     return data.nfts;
 }
