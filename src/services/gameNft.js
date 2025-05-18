@@ -75,7 +75,7 @@ async function getIcmReceipt(receipt, chainTag) {
   throw new Error('ICM message is failed');
 }
 
-async function create({gameId, name, symbol, image, chainTag}) {
+async function create({gameId, name, symbol, isSbt, image, chainTag}) {
   let result = {};
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
@@ -91,7 +91,8 @@ async function create({gameId, name, symbol, image, chainTag}) {
       args: [
         gameId,
         name,
-        symbol
+        symbol,
+        isSbt === true
       ]
     });
 
@@ -105,7 +106,8 @@ async function create({gameId, name, symbol, image, chainTag}) {
       args: [
         gameId,
         name,
-        symbol
+        symbol,
+        isSbt === true
       ]
     });
   }

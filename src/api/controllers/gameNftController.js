@@ -68,7 +68,7 @@ const postNftCreateBySignature = async (ctx) => {
 
 const postNftCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { name, symbol, image } = ctx.request.body;
+  const { name, symbol, image, isSbt } = ctx.request.body;
   const chainTag = ctx.state.chainTag;
 
   if (!name || !symbol) {
@@ -85,7 +85,7 @@ const postNftCreate = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '' }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
     await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image } });
