@@ -88,7 +88,7 @@ const postNftCreate = async (ctx) => {
   const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
@@ -283,7 +283,7 @@ const isNftsBelongToGame = async (gameId, nfts, chainTag) => {
 }
 
 const getBalance = async (ctx) => {
-  const { plyrId, gameId, nft, chainId } = ctx.query;
+  const { plyrId, gameId, nft, chainId, isSbt } = ctx.query;
 
   if(!plyrId || !chainId) {
     ctx.status = 400;
@@ -322,6 +322,11 @@ const getBalance = async (ctx) => {
     } else {
       query.nft = getAddress(nft);
     }
+  }
+
+  // Only add isSbt to query if it's defined
+  if (isSbt !== undefined) {
+    query.isSbt = isSbt === 'true';
   }
   
   // Execute the query with only the defined filters
@@ -369,7 +374,8 @@ const getBalance = async (ctx) => {
       symbol: gameNft.symbol,
       nft: gameNft.nft,
       image: gameNft.image,
-      balance: totalBalance
+      balance: totalBalance,
+      isSbt: gameNft.isSbt
     };
   }));
 
@@ -384,6 +390,7 @@ const getBalance = async (ctx) => {
       symbol: item.symbol,
       image: item.image,
       balance: item.balance,
+      isSbt: item.isSbt
     };
   })
   
@@ -392,7 +399,7 @@ const getBalance = async (ctx) => {
 }
 
 const getList = async (ctx) => {
-  const { plyrId, gameId, nft, chainId } = ctx.query;
+  const { plyrId, gameId, nft, chainId, isSbt } = ctx.query;
 
   if(!plyrId || !chainId) {
     ctx.status = 400;
@@ -431,6 +438,11 @@ const getList = async (ctx) => {
     } else {
       query.nft = getAddress(nft);
     }
+  }
+
+  // Only add isSbt to query if it's defined
+  if (isSbt !== undefined) {
+    query.isSbt = isSbt === 'true';
   }
   
   // Execute the query with only the defined filters
@@ -567,6 +579,7 @@ const getList = async (ctx) => {
       symbol: gameNft.symbol,
       nft: gameNft.nft,
       image: gameNft.image,
+      isSbt: gameNft.isSbt,
       balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts]
     };
   }));
@@ -581,6 +594,7 @@ const getList = async (ctx) => {
       name: item.name,
       symbol: item.symbol,
       image: item.image,
+      isSbt: item.isSbt,
       details: item.balance,
     };
   })
@@ -702,6 +716,7 @@ const getInfo = async (ctx) => {
       name: gameNft.name,
       symbol: gameNft.symbol,
       image: gameNft.image,
+      isSbt: gameNft.isSbt,
       totalSupply: info[4].toString(),
       holderCount: info[5].toString(),
     };
