@@ -131,7 +131,7 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'NftCreated') {
         const { nft, gameId } = decodedLog.args;
-        await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { gameId, nft, chainTag, name, symbol, image } }, { upsert: true });
+        await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { gameId, nft, chainTag, name, symbol, image, isSbt } }, { upsert: true });
         result = { gameId, nft, name, symbol, image, hash };
         await logActivity(gameId, gameId, 'gameNft', 'create', { gameId, nft, chainTag, hash, success: receipt.status });
       }

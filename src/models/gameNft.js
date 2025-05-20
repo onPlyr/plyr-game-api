@@ -6,7 +6,7 @@ const gameNftSchema = new mongoose.Schema({
   name: { type: String, required: true },
   symbol: { type: String, required: true },
   image: { type: String, required: false },
-  isSbt: { type: Boolean, required: false, default: false },
+  isSbt: { type: Boolean, required: false },
   chainTag: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
