@@ -375,7 +375,7 @@ const getBalance = async (ctx) => {
       nft: gameNft.nft,
       image: gameNft.image,
       balance: totalBalance,
-      isSbt: gameNft.isSbt
+      isSbt: gameNft.isSbt ? gameNft.isSbt : false
     };
   }));
 
@@ -390,7 +390,7 @@ const getBalance = async (ctx) => {
       symbol: item.symbol,
       image: item.image,
       balance: item.balance,
-      isSbt: item.isSbt
+      isSbt: item.isSbt ? item.isSbt : false
     };
   })
   
@@ -579,7 +579,7 @@ const getList = async (ctx) => {
       symbol: gameNft.symbol,
       nft: gameNft.nft,
       image: gameNft.image,
-      isSbt: gameNft.isSbt,
+      isSbt: gameNft.isSbt ? gameNft.isSbt : false,
       balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts]
     };
   }));
@@ -594,7 +594,7 @@ const getList = async (ctx) => {
       name: item.name,
       symbol: item.symbol,
       image: item.image,
-      isSbt: item.isSbt,
+      isSbt: item.isSbt ? item.isSbt : false,
       details: item.balance,
     };
   })
