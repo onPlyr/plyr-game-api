@@ -14,7 +14,7 @@ const metaJson = require('../../models/metaJson');
 const MAX_BATCH_SIZE = 10; // max batch mint size for fuji and avalanche
 
 const postNftCreateBySignature = async (ctx) => {
-  const { gameId, name, symbol, image, signature } = ctx.request.body;
+  const { gameId, name, symbol, image, signature, isSbt } = ctx.request.body;
   if (!gameId || !name || !symbol) {
     ctx.status = 400;
     ctx.body = { error: 'gameId, name, symbol, and chainId are required' };
@@ -54,10 +54,10 @@ const postNftCreateBySignature = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '' }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
