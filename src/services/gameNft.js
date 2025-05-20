@@ -79,6 +79,8 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
   let result = {};
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
+  console.log('create game nft', {gameId, name, symbol, isSbt, image, chainTag});
+
   let receipt;
   if (isRemote) {
     const _chainTag = chainTag === 'fuji' ? 'plyrTestnet' : 'avalanche';
@@ -92,7 +94,7 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
         gameId,
         name,
         symbol,
-        isSbt === true
+        isSbt === true || isSbt === 'true'
       ]
     });
 
@@ -107,7 +109,7 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
         gameId,
         name,
         symbol,
-        isSbt === true
+        isSbt === true || isSbt === 'true'
       ]
     });
   }
