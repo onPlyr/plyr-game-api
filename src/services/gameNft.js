@@ -67,10 +67,6 @@ async function getIcmReceipt(receipt, chainTag) {
       });
       return receipt;
     }
-
-    if (ret.status === 'delivered' && ret.messageExecuted === false) {
-      throw new Error('ICM message is failed');
-    }
   }
 
   throw new Error('ICM message is failed');
