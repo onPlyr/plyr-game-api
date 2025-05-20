@@ -60,6 +60,7 @@ async function getIcmReceipt(receipt, chainTag) {
   while(times++ < 30) {
     await sleep(2000);
     let ret = await getIcmMessageFromAPI(_messageId);
+    console.log('get icm message', ret);
     if (ret.destinationTransaction && ret.destinationTransaction.txHash && ret.messageExecuted) {
       receipt = await client.getTransactionReceipt({
         hash: ret.destinationTransaction.txHash,
