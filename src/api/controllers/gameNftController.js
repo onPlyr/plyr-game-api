@@ -14,7 +14,7 @@ const metaJson = require('../../models/metaJson');
 const MAX_BATCH_SIZE = 10; // max batch mint size for fuji and avalanche
 
 const postNftCreateBySignature = async (ctx) => {
-  const { gameId, name, symbol, image, signature, isSbt } = ctx.request.body;
+  const { gameId, name, symbol, image, signature, isSbt, isBadge, description } = ctx.request.body;
   if (!gameId || !name || !symbol) {
     ctx.status = 400;
     ctx.body = { error: 'gameId, name, symbol, and chainId are required' };
@@ -54,10 +54,10 @@ const postNftCreateBySignature = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt, isBadge, description } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
@@ -68,7 +68,7 @@ const postNftCreateBySignature = async (ctx) => {
 
 const postNftCreate = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
-  const { name, symbol, image, isSbt } = ctx.request.body;
+  const { name, symbol, image, isSbt, isBadge, description } = ctx.request.body;
   const chainTag = ctx.state.chainTag;
 
   if (!name || !symbol) {
@@ -85,16 +85,120 @@ const postNftCreate = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt, isBadge, description } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
     ctx.status = 500;
     ctx.body = { error: ret.errorMessage };
   }
+}
+
+const postBadgeMint = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const chainTag = ctx.state.chainTag;
+
+  let { nfts, plyrIds } = ctx.request.body;
+
+  if (!nfts || !plyrIds) {
+    ctx.status = 400;
+    ctx.body = { error: 'nfts, plyrIds, names, descriptions, images, and chainId are required' };
+    return;
+  }
+
+
+
+  let metaJsons = [];
+  for (let i = 0; i < plyrIds.length; i++) {
+    const nft = await GameNft.findOne({ gameId, nft: nfts[i], chainTag });
+    if (!nft) {
+      ctx.status = 400;
+      ctx.body = { error: 'nft not found' };
+      return;
+    }
+    
+    const metaJson = {
+      name: nft.name,
+      description: nft.description,
+      image: nft.image
+    };
+    metaJsons.push(metaJson);
+  }
+
+  let addresses = [];
+  for (let i = 0; i < plyrIds.length; i++) {
+    const user = await UserInfo.findOne({ plyrId: plyrIds[i].toLowerCase() });
+    if (!user) {
+      ctx.status = 400;
+      ctx.body = { error: 'user not found' };
+      return;
+    }
+    
+    addresses.push(user.mirror);
+  }
+
+  ctx.request.body = {
+    addresses,
+    metaJsons
+  };
+
+  return await postNftMint(ctx);
+}
+
+const postBadgeRemove = async (ctx) => {
+  const gameId = ctx.state.apiKey.plyrId;
+  const chainTag = ctx.state.chainTag;
+
+  let { nft } = ctx.request.body;
+
+  // remove badge nft info from db
+  await GameNft.deleteOne({ gameId, nft, chainTag });
+
+  ctx.status = 200;
+  ctx.body = { gameId, nft, chainTag };
+}
+
+const postBadgeRemoveBySignature = async (ctx) => {
+  const { gameId, nft, signature } = ctx.request.body;
+  if (!gameId || !nft) {
+    ctx.status = 400;
+    ctx.body = { error: 'gameId, nft, and chainId are required' };
+    return;
+  }
+
+  const chainTag = ctx.state.chainTag;
+
+  const user = await UserInfo.findOne({plyrId: gameId.toLowerCase()});
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = { error: 'user not found' };
+    return;
+  }
+
+  const signatureMessage = `Remove badge nft for ${gameId.toUpperCase()} ${nft}`;
+
+  const valid = await verifyMessage({
+    address: user.primaryAddress,
+    message: signatureMessage,
+    signature
+  });
+
+  if (!valid) {
+    ctx.status = 400;
+    ctx.body = {
+      error: 'Invalid signature'
+    };
+    return;
+  }
+
+  // remove badge nft info from db
+  await GameNft.deleteOne({ gameId, nft, chainTag });
+
+  ctx.status = 200;
+  ctx.body = { gameId, nft, chainTag };
 }
 
 const postNftMint = async (ctx) => {
@@ -283,7 +387,7 @@ const isNftsBelongToGame = async (gameId, nfts, chainTag) => {
 }
 
 const getBalance = async (ctx) => {
-  const { plyrId, gameId, nft, chainId, isSbt } = ctx.query;
+  const { plyrId, gameId, nft, chainId, isSbt, isBadge } = ctx.query;
 
   if(!plyrId || !chainId) {
     ctx.status = 400;
@@ -326,7 +430,11 @@ const getBalance = async (ctx) => {
 
   // Only add isSbt to query if it's defined
   if (isSbt !== undefined) {
-    query.isSbt = isSbt === 'true';
+    query.isSbt = isSbt === 'true' || isSbt === true;
+  }
+
+  if (isBadge !== undefined) {
+    query.isBadge = isBadge === 'true' || isBadge === true;
   }
   
   // Execute the query with only the defined filters
@@ -399,7 +507,7 @@ const getBalance = async (ctx) => {
 }
 
 const getList = async (ctx) => {
-  const { plyrId, gameId, nft, chainId, isSbt } = ctx.query;
+  const { plyrId, gameId, nft, chainId, isSbt, isBadge } = ctx.query;
 
   if(!plyrId || !chainId) {
     ctx.status = 400;
@@ -442,7 +550,12 @@ const getList = async (ctx) => {
 
   // Only add isSbt to query if it's defined
   if (isSbt !== undefined) {
-    query.isSbt = isSbt === 'true';
+    query.isSbt = isSbt === 'true' || isSbt === true;
+  }
+
+  // Only add isBadge to query if it's defined
+  if (isBadge !== undefined) {
+    query.isBadge = isBadge === 'true' || isBadge === true;
   }
   
   // Execute the query with only the defined filters
@@ -580,7 +693,12 @@ const getList = async (ctx) => {
       nft: gameNft.nft,
       image: gameNft.image,
       isSbt: gameNft.isSbt ? gameNft.isSbt : false,
-      balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts]
+      balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts],
+      balanceDetails: {
+        mirror: mirrorNfts,
+        primary: primaryNfts,
+        secondary: secondaryNfts
+      }
     };
   }));
 
@@ -596,6 +714,7 @@ const getList = async (ctx) => {
       image: item.image,
       isSbt: item.isSbt ? item.isSbt : false,
       details: item.balance,
+      balanceDetails: item.balanceDetails
     };
   })
   
@@ -813,6 +932,9 @@ module.exports = {
   postNftMint,
   postNftBurn,
   postNftTransfer,
+  postBadgeMint,
+  postBadgeRemove,
+  postBadgeRemoveBySignature,
   getBalance,
   getList,
   getInfo,

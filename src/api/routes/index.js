@@ -29,6 +29,7 @@ const checkGameId = require('../middlewares/checkGameId');
 const checkAllJoined = require('../middlewares/checkAllJoined');
 const tokenListController = require('../controllers/tokenListController');
 const { checkChainId } = require('../middlewares/checkChainId');
+const wrapBadge = require('../middlewares/wrapBadge');
 
 const router = new Router({
   prefix: '/api'
@@ -130,6 +131,22 @@ router.post('/game/nft/upload', hmacAuth('user'), gameNftController.postUploadFi
 router.get('/game/nft/get/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftById);
 router.get('/game/nft/owner/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftOwner);
 router.get('/game/nft/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getIsBurnt);
+
+// game badge apis
+router.post('/game/badge/createBySignature', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftCreateBySignature);
+router.post('/game/badge/create', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftCreate);
+router.post('/game/badge/mint', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeMint);
+router.post('/game/badge/remove', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemove);
+router.post('/game/badge/removeBySignature', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemoveBySignature);
+router.post('/game/badge/burn', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftBurn);
+router.post('/game/badge/transfer', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftTransfer);
+router.get('/game/badge/balance', hmacAuth('user'), wrapBadge, gameNftController.getBalance);
+router.get('/game/badge/list', hmacAuth('user'), wrapBadge, gameNftController.getList);
+router.get('/game/badge/info', hmacAuth('user'), wrapBadge, gameNftController.getInfo);
+router.get('/game/badge/count', hmacAuth('user'), wrapBadge, gameNftController.getCount);
+router.get('/game/badge/get/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftById);
+router.get('/game/badge/owner/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftOwner);
+router.get('/game/badge/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getIsBurnt);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);

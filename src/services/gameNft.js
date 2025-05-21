@@ -72,11 +72,11 @@ async function getIcmReceipt(receipt, chainTag) {
   throw new Error('ICM message is failed');
 }
 
-async function create({gameId, name, symbol, isSbt, image, chainTag}) {
+async function create({gameId, name, symbol, isSbt, isBadge, description, image, chainTag}) {
   let result = {};
   let isRemote = ["fuji", "avalanche"].includes(chainTag);
 
-  console.log('create game nft', {gameId, name, symbol, isSbt, image, chainTag});
+  console.log('create game nft', {gameId, name, symbol, isSbt, isBadge, description, image, chainTag});
 
   let receipt;
   if (isRemote) {
@@ -91,7 +91,7 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
         gameId,
         name,
         symbol,
-        isSbt === true || isSbt === 'true'
+        isSbt === true || isSbt === 'true' || isBadge === true || isBadge === 'true'
       ]
     });
 
@@ -106,7 +106,7 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
         gameId,
         name,
         symbol,
-        isSbt === true || isSbt === 'true'
+        isSbt === true || isSbt === 'true' || isBadge === true || isBadge === 'true'
       ]
     });
   }
@@ -131,9 +131,9 @@ async function create({gameId, name, symbol, isSbt, image, chainTag}) {
       console.log('Decoded log', i, ':', decodedLog);
       if (decodedLog.eventName === 'NftCreated') {
         const { nft, gameId } = decodedLog.args;
-        await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { gameId, nft, chainTag, name, symbol, image, isSbt } }, { upsert: true });
+        await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { gameId, nft, chainTag, name, symbol, image, isSbt, isBadge, description } }, { upsert: true });
         result = { gameId, nft, name, symbol, image, hash };
-        await logActivity(gameId, gameId, 'gameNft', 'create', { gameId, nft, chainTag, hash, success: receipt.status });
+        await logActivity(gameId, gameId, 'gameNft', 'create', { gameId, nft, chainTag, name, symbol, image, isSbt, isBadge, description, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);

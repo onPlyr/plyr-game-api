@@ -38,7 +38,7 @@ async function create({gameId, name, symbol, image}) {
         const { chip, gameId } = decodedLog.args;
         await Chip.updateOne({ gameId, chip }, { $set: { gameId, chip, name, symbol, image } }, { upsert: true });
         result = { gameId, chip, name, symbol, image, hash };
-        await logActivity(gameId, gameId, 'gameChip', 'create', { gameId, chip, hash, success: receipt.status });
+        await logActivity(gameId, gameId, 'gameChip', 'create', { gameId, chip, name, symbol, image, hash, success: receipt.status });
       }
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
