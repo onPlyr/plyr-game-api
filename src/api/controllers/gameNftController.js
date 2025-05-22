@@ -701,11 +701,6 @@ const getList = async (ctx) => {
       image: gameNft.image,
       isSbt: gameNft.isSbt ? gameNft.isSbt : false,
       balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts],
-      balanceDetails: {
-        mirror: mirrorNfts,
-        primary: primaryNfts,
-        secondary: secondaryNfts
-      }
     };
   }));
 
