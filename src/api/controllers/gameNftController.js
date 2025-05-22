@@ -105,7 +105,7 @@ const postBadgeMint = async (ctx) => {
 
   if (!nfts || !plyrIds) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, plyrIds, names, descriptions, images, and chainId are required' };
+    ctx.body = { error: 'nfts, plyrIds, and chainId are required' };
     return;
   }
 
@@ -141,6 +141,7 @@ const postBadgeMint = async (ctx) => {
   }
 
   ctx.request.body = {
+    ...ctx.request.body,
     addresses,
     metaJsons
   };
