@@ -54,10 +54,10 @@ const postNftCreateBySignature = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true || isBadge === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt, isBadge, description } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isBadge, description } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
@@ -85,10 +85,10 @@ const postNftCreate = async (ctx) => {
     return;
   }
 
-  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
+  const ret = await insertTask({ gameId: gameId.toLowerCase(), chainTag, name, symbol, image: image || '', isSbt: isSbt === true || isBadge === true, isBadge: isBadge === true, description: description || '' }, 'createGameNft', true);
   if (ret.status === 'SUCCESS') {
     const { nft } = ret.taskData;
-    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isSbt, isBadge, description } });
+    await GameNft.updateOne({ gameId, nft, chainTag }, { $set: { image, isBadge, description } });
     ctx.status = 200;
     ctx.body = ret;
   } else {
