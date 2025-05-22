@@ -484,7 +484,12 @@ const getBalance = async (ctx) => {
       nft: gameNft.nft,
       image: gameNft.image,
       balance: totalBalance,
-      isSbt: gameNft.isSbt ? gameNft.isSbt : false
+      isSbt: gameNft.isSbt ? gameNft.isSbt : false,
+      balanceDetails: {
+        mirror: mirrorBalance.toString(),
+        primary: primaryBalance.toString(),
+        secondaries: secondaryBalances.map(({ balance }) => balance.toString()),
+      }
     };
   }));
 
@@ -499,7 +504,8 @@ const getBalance = async (ctx) => {
       symbol: item.symbol,
       image: item.image,
       balance: item.balance,
-      isSbt: item.isSbt ? item.isSbt : false
+      isSbt: item.isSbt ? item.isSbt : false,
+      balanceDetails: item.balanceDetails
     };
   })
   

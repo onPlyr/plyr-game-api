@@ -139,7 +139,6 @@ router.post('/game/badge/mint', hmacAuth('user'), checkChainId, wrapBadge, gameN
 router.post('/game/badge/remove', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemove);
 router.post('/game/badge/removeBySignature', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemoveBySignature);
 router.post('/game/badge/burn', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftBurn);
-router.post('/game/badge/transfer', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftTransfer);
 router.get('/game/badge/balance', hmacAuth('user'), wrapBadge, gameNftController.getBalance);
 router.get('/game/badge/list', hmacAuth('user'), wrapBadge, gameNftController.getList);
 router.get('/game/badge/info', hmacAuth('user'), wrapBadge, gameNftController.getInfo);
