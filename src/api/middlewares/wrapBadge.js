@@ -2,8 +2,8 @@ const { chain } = require('../../config');
 
 const wrapBadge = async (ctx, next) => {
     // add isBadge = true to body
-    ctx.request.body.chainId = chain.id;
-    console.log('wrap Badge chainId', chain.id, chain);
+    ctx.request.body.chainId = chain.chain.id;
+    console.log('wrap Badge chainId', chain.chain.id, chain.chain);
     ctx.request.body.isBadge = true;
     ctx.query.isBadge = true;
 
