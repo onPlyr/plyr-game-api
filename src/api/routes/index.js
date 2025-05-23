@@ -133,12 +133,12 @@ router.get('/game/nft/owner/:chain/:contract/:tokenId', hmacAuth('user'), nftCon
 router.get('/game/nft/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getIsBurnt);
 
 // game badge apis
-router.post('/game/badge/createBySignature', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftCreateBySignature);
-router.post('/game/badge/create', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftCreate);
-router.post('/game/badge/mint', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeMint);
-router.post('/game/badge/remove', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemove);
-router.post('/game/badge/removeBySignature', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postBadgeRemoveBySignature);
-router.post('/game/badge/burn', hmacAuth('user'), checkChainId, wrapBadge, gameNftController.postNftBurn);
+router.post('/game/badge/createBySignature', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postNftCreateBySignature);
+router.post('/game/badge/create', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postNftCreate);
+router.post('/game/badge/mint', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postBadgeMint);
+router.post('/game/badge/remove', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postBadgeRemove);
+router.post('/game/badge/removeBySignature', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postBadgeRemoveBySignature);
+router.post('/game/badge/burn', hmacAuth('user'), wrapBadge, checkChainId, gameNftController.postNftBurn);
 router.get('/game/badge/balance', hmacAuth('user'), wrapBadge, gameNftController.getBalance);
 router.get('/game/badge/list', hmacAuth('user'), wrapBadge, gameNftController.getList);
 router.get('/game/badge/info', hmacAuth('user'), wrapBadge, gameNftController.getInfo);
