@@ -489,7 +489,7 @@ const getBalance = async (ctx) => {
       balanceDetails: {
         mirror: mirrorBalance.toString(),
         primary: primaryBalance.toString(),
-        secondaries: secondaryBalances.array.reduce((result, item) => {
+        secondaries: secondaryBalances.reduce((result, item) => {
           result[item.owner] = item.balance.toString();
           return result;
         }, {})
