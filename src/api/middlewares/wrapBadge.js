@@ -1,4 +1,4 @@
-const { chain } = require('../config/index.js');
+const { chain } = require('../../config');
 
 const wrapBadge = async (ctx, next) => {
     // add isBadge = true to body
