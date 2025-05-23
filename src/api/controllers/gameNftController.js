@@ -105,7 +105,7 @@ const postBadgeMint = async (ctx) => {
 
   if (!nfts || !plyrIds) {
     ctx.status = 400;
-    ctx.body = { error: 'nfts, plyrIds, and chainId are required' };
+    ctx.body = { error: 'badge, plyrIds are required' };
     return;
   }
 
