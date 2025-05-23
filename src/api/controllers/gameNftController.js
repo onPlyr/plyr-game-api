@@ -153,7 +153,13 @@ const postBadgeRemove = async (ctx) => {
   const gameId = ctx.state.apiKey.plyrId;
   const chainTag = ctx.state.chainTag;
 
-  let { nft } = ctx.request.body;
+  let { nft, badge } = ctx.request.body;
+
+  if (!badge) {
+    ctx.status = 400;
+    ctx.body = { error: 'badge is required' };
+    return;
+  }
 
   // remove badge nft info from db
   await GameNft.deleteOne({ gameId, nft, chainTag });
@@ -163,10 +169,10 @@ const postBadgeRemove = async (ctx) => {
 }
 
 const postBadgeRemoveBySignature = async (ctx) => {
-  const { gameId, nft, signature } = ctx.request.body;
-  if (!gameId || !nft) {
+  const { gameId, nft, signature, badge } = ctx.request.body;
+  if (!gameId || !badge) {
     ctx.status = 400;
-    ctx.body = { error: 'gameId, nft, and chainId are required' };
+    ctx.body = { error: 'gameId, badge, and chainId are required' };
     return;
   }
 
