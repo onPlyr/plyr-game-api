@@ -159,7 +159,7 @@ const postBadgeRemove = async (ctx) => {
   await GameNft.deleteOne({ gameId, nft, chainTag });
 
   ctx.status = 200;
-  ctx.body = { gameId, nft, chainTag };
+  ctx.body = { gameId, badge: nft, chainTag };
 }
 
 const postBadgeRemoveBySignature = async (ctx) => {
@@ -199,7 +199,7 @@ const postBadgeRemoveBySignature = async (ctx) => {
   await GameNft.deleteOne({ gameId, nft, chainTag });
 
   ctx.status = 200;
-  ctx.body = { gameId, nft, chainTag };
+  ctx.body = { gameId, badge: nft, chainTag };
 }
 
 const postNftMint = async (ctx) => {
@@ -473,7 +473,8 @@ const getBalance = async (ctx) => {
         args: [secondary.secondaryAddress]
       });
       return {
-        balance
+        owner: secondary.secondaryAddress,
+        balance: balance
       };
     }));
     const totalBalance = (mirrorBalance + primaryBalance + secondaryBalances.reduce((acc, { balance }) => acc + balance, 0n)).toString();
@@ -484,11 +485,14 @@ const getBalance = async (ctx) => {
       nft: gameNft.nft,
       image: gameNft.image,
       balance: totalBalance,
-      isSbt: gameNft.isSbt ? gameNft.isSbt : false,
+      isSbt: isBadge ? undefined : gameNft.isSbt ? gameNft.isSbt : false,
       balanceDetails: {
         mirror: mirrorBalance.toString(),
         primary: primaryBalance.toString(),
-        secondaries: secondaryBalances.map(({ balance }) => balance.toString()),
+        secondaries: secondaryBalances.array.reduce((result, item) => {
+          result[item.owner] = item.balance.toString();
+          return result;
+        }, {})
       }
     };
   }));
@@ -504,7 +508,7 @@ const getBalance = async (ctx) => {
       symbol: item.symbol,
       image: item.image,
       balance: item.balance,
-      isSbt: item.isSbt ? item.isSbt : false,
+      isSbt: isBadge ? undefined : item.isSbt ? item.isSbt : false,
       balanceDetails: item.balanceDetails
     };
   })
@@ -699,7 +703,7 @@ const getList = async (ctx) => {
       symbol: gameNft.symbol,
       nft: gameNft.nft,
       image: gameNft.image,
-      isSbt: gameNft.isSbt ? gameNft.isSbt : false,
+      isSbt: isBadge ? undefined : gameNft.isSbt ? gameNft.isSbt : false,
       balance: [...mirrorNfts, ...primaryNfts, ...secondaryNfts],
     };
   }));
@@ -714,7 +718,7 @@ const getList = async (ctx) => {
       name: item.name,
       symbol: item.symbol,
       image: item.image,
-      isSbt: item.isSbt ? item.isSbt : false,
+      isSbt: isBadge ? undefined : item.isSbt ? item.isSbt : false,
       details: item.balance,
       balanceDetails: item.balanceDetails
     };
@@ -789,7 +793,7 @@ const getCount = async (ctx) => {
 }
 
 const getInfo = async (ctx) => {
-  const { gameId, nft, chainId } = ctx.query;
+  const { gameId, nft, chainId, isBadge } = ctx.query;
 
   if(!gameId && !nft) {
     ctx.status = 400;
@@ -810,6 +814,9 @@ const getInfo = async (ctx) => {
   }
   if (nft) {
     query.nft = getAddress(nft);
+  }
+  if (isBadge) {
+    query.isBadge = true;
   }
   const gameNfts = await GameNft.find(query);
   if (!gameNfts || gameNfts.length === 0) {
@@ -833,11 +840,12 @@ const getInfo = async (ctx) => {
 
     return {
       gameId: gameNft.gameId,
-      nft: gameNft.nft,
+      nft: isBadge ? undefined : gameNft.nft,
+      badge: isBadge ? gameNft.nft : undefined,
       name: gameNft.name,
       symbol: gameNft.symbol,
       image: gameNft.image,
-      isSbt: gameNft.isSbt ? gameNft.isSbt : false,
+      isSbt: isBadge ? undefined : gameNft.isSbt ? gameNft.isSbt : false,
       totalSupply: info[4].toString(),
       holderCount: info[5].toString(),
     };

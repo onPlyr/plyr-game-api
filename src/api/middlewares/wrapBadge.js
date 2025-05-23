@@ -1,15 +1,23 @@
+const { chain } = require('../config/index.js');
 
 const wrapBadge = async (ctx, next) => {
     // add isBadge = true to body
-    const { chainId } = ctx.request.body;
-    const { chainId: _chainId } = ctx.query;
-    if (![16180, 62831].includes(chainId) && ![16180, 62831].includes(Number(_chainId))) {
-        ctx.status = 400;
-        ctx.body = { error: 'Only plyr and plyrTestnet support badge' };
-        return;
-    }
+    ctx.request.body.chainId = chain.id;
+    console.log('wrap Badge chainId', chain.id, chain);
     ctx.request.body.isBadge = true;
     ctx.query.isBadge = true;
+
+    if (ctx.body.badges) {
+        ctx.body.nfts = ctx.body.badges;
+    }
+
+    if (ctx.body.badge) {
+        ctx.body.nft = ctx.body.badge;
+    }
+
+    if (ctx.query.badge) {
+        ctx.query.nft = ctx.query.badge;
+    }
     await next();
 };
 
