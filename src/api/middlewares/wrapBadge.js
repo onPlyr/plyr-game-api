@@ -7,15 +7,15 @@ const wrapBadge = async (ctx, next) => {
     ctx.request.body.isBadge = true;
     ctx.query.isBadge = true;
 
-    if (ctx.body.badges) {
+    if (ctx.body?.badges) {
         ctx.body.nfts = ctx.body.badges;
     }
 
-    if (ctx.body.badge) {
+    if (ctx.body?.badge) {
         ctx.body.nft = ctx.body.badge;
     }
 
-    if (ctx.query.badge) {
+    if (ctx.query?.badge) {
         ctx.query.nft = ctx.query.badge;
     }
     await next();
