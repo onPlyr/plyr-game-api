@@ -143,9 +143,9 @@ router.get('/game/badge/balance', hmacAuth('user'), wrapBadge, gameNftController
 router.get('/game/badge/list', hmacAuth('user'), wrapBadge, gameNftController.getList);
 router.get('/game/badge/info', hmacAuth('user'), wrapBadge, gameNftController.getInfo);
 router.get('/game/badge/count', hmacAuth('user'), wrapBadge, gameNftController.getCount);
-router.get('/game/badge/get/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftById);
-router.get('/game/badge/owner/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftOwner);
-router.get('/game/badge/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getIsBurnt);
+// router.get('/game/badge/get/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftById);
+// router.get('/game/badge/owner/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getNftOwner);
+// router.get('/game/badge/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), wrapBadge, nftController.getIsBurnt);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);
