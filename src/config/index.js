@@ -114,6 +114,8 @@ const chainNameToChainId = {
   'bsc': 56,
 }
 
+const localChainTag = 'plyrTestnet';
+
 const nftAlias = {
   43113: {
     'zoogenes': '0x857890E33fdF115F4F318BDEee4115e0e7162537'.toLowerCase(),
@@ -222,4 +224,5 @@ module.exports = {
   GAME_NFT_FACTORY_ABI,
   GAME_NFT_ABI,
   TELEPORTER_MESSENGER_ABI,
+  localChainTag,
 };
