@@ -13,6 +13,7 @@ const permissionController = require('../controllers/permissionController');
 const authController = require('../controllers/authController');
 const chipController = require('../controllers/chipController');
 const gameNftController = require('../controllers/gameNftController');
+const gameBadgeController = require('../controllers/gameBadgeController');
 
 const hmacAuth = require('../middlewares/hmacAuth');
 const otpAuth = require('../middlewares/otpAuth');
@@ -130,6 +131,16 @@ router.post('/game/nft/upload', hmacAuth('user'), gameNftController.postUploadFi
 router.get('/game/nft/get/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftById);
 router.get('/game/nft/owner/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getNftOwner);
 router.get('/game/nft/isBurnt/:chain/:contract/:tokenId', hmacAuth('user'), nftController.getIsBurnt);
+
+// game badge apis
+router.post('/game/badge/initBySignature', hmacAuth('user'), gameBadgeController.postBadgeInitBySignature);
+router.post('/game/badge/init', hmacAuth('user'), gameBadgeController.postBadgeInit);
+router.get('/game/badge/isInited', hmacAuth('user'), gameBadgeController.getBadgeIsInited);
+router.post('/game/badge/create', hmacAuth('user'), gameBadgeController.postBadgeCreate);
+router.post('/game/badge/mint', hmacAuth('user'), gameBadgeController.postBadgeMint);
+router.post('/game/badge/burn', hmacAuth('user'), gameBadgeController.postBadgeBurn);
+router.get('/game/badge/list', hmacAuth('user'), gameBadgeController.getList);
+router.get('/game/badge/info', hmacAuth('user'), gameBadgeController.getInfo);
 
 // public apis
 router.get('/tokenlist', tokenListController.getTokenList);

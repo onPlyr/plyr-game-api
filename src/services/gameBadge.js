@@ -5,6 +5,7 @@ const { logActivity } = require('../utils/activity');
 const { decodeEventLog } = require('viem');
 const GameBadgeCollection = require('../models/gameBadgeCollection');
 const GameBadgeRule = require('../models/gameBadgeRule');
+const GameBadge = require('../models/gameBadge');
 const { gameNftConfig} = require('../config');
 
 async function create({gameId, name, symbol}) {
@@ -57,7 +58,7 @@ async function create({gameId, name, symbol}) {
 }
 
 
-async function mint({gameId, plyrIds, slugs, addresses, tokenUris}) {
+async function mint({gameId, plyrIds, slugs, addresses, tokenUris, metaJsons}) {
   let result = [];
 
   let collection = await GameBadgeCollection.findOne({ gameId });
@@ -86,19 +87,6 @@ async function mint({gameId, plyrIds, slugs, addresses, tokenUris}) {
     let address = addresses[i];
     let slug = slugs[i];
     let plyrId = plyrIds[i];
-    if (receipt.status === 'success') {
-        await GameBadgeRule.updateOne({ gameId, slug }, { $inc: { supplyCount: 1 } });
-        let rule = await GameBadgeRule.findOne({ gameId, slug });
-        if (!rule) {
-            throw new Error('Game Badge Rule Not Found');
-        }
-
-        if (!rule.holders.includes(plyrId)) {
-            rule.holders.push(plyrId);
-            rule.holderCount = rule.holders.length;
-            await rule.save();
-        }
-    }
     await logActivity(plyrId, gameId, 'gameBadge', 'mint', { gameId, plyrId, address, slug, badgeCollection, chainTag: localChainTag, hash, success: receipt.status });
   }
   if (receipt.status !== 'success') {
@@ -122,6 +110,21 @@ async function mint({gameId, plyrIds, slugs, addresses, tokenUris}) {
     } catch (error) {
       console.log('Failed to decode log', i, ':', error.message);
     }
+  }
+
+  for (let i = 0; i < result.length; i++) {
+    let { gameId, to, tokenId } = result[i];
+    let plyrId = plyrIds[i].toLowerCase();
+    let slug = slugs[i].toLowerCase();
+    let metaJson = metaJsons[i];
+    await GameBadge.create({
+      gameId,
+      slug,
+      tokenId,
+      plyrId,
+      owner: to,
+      metaJson
+    });
   }
 
   return {hash, result};
@@ -155,14 +158,7 @@ async function burn({gameId, plyrIds, slugs, tokenIds}) {
     let nft = gameBadgeCollection;
     let plyrId = plyrIds[i];
     let slug = slugs[i];
-    if (receipt.status === 'success') {
-      await GameBadgeRule.updateOne({ gameId, slug }, { $inc: { supplyCount: -1 } });
-      let rule = await GameBadgeRule.findOne({ gameId, slug });
-      if (!rule) {
-          throw new Error('Game Badge Rule Not Found');
-      }
-  }
-    await logActivity(plyrId, gameId, 'gameBadge', 'burn', { gameId, plyrId, tokenId, nft, chainTag: localChainTag, hash, success: receipt.status });
+    await logActivity(plyrId, gameId, 'gameBadge', 'burn', { gameId, plyrId, slug, tokenId, nft, chainTag: localChainTag, hash, success: receipt.status });
   }
   if (receipt.status !== 'success') {
     throw new Error('Transaction Receipt Failed');
@@ -186,6 +182,14 @@ async function burn({gameId, plyrIds, slugs, tokenIds}) {
       console.log('Failed to decode log', i, ':', error.message);
     }
   }
+
+  for (let i = 0; i < result.length; i++) {
+    let { gameId, tokenId } = result[i];
+    let plyrId = plyrIds[i];
+    let slug = slugs[i];
+    await GameBadge.deleteOne({gameId, plyrId, slug, tokenId});
+  }
+
   return {hash, result};
 }
 
